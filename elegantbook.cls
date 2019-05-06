@@ -234,7 +234,7 @@
 \renewcommand{\contentsname}{目\hspace{2em}录}
 \renewcommand{\figurename}{图}
 \renewcommand{\tablename}{表}
-\renewcommand{\partname}{第 \thepart\; 部分}
+\renewcommand{\partname}{第 \thepart 部分}
 \renewcommand{\listfigurename}{插图目录}
 \renewcommand{\listtablename}{表格目录}
 \renewcommand{\bibname}{参考文献}
