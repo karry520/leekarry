@@ -2,7 +2,7 @@ import os
 
 line = ''
 dirname = ''
-with open('./Analytics.tex','r') as f:
+with open('./Scientific-calculation.tex','r') as f:
     lines = f.readlines()
     for i in range(0, len(lines)-1):
         if lines[i] != '\n':
@@ -18,7 +18,7 @@ with open('./Analytics.tex','r') as f:
 
             tex = open(path, 'w')
             tex.write(lines[i])
-            line += "\\input{./chapter/分析学/"+ dirname + "/"+filename+"}\n"
+            line += "\\input{./chapter/计算数学与科学计算/"+ dirname + "/"+filename+"}\n"
 
-with open('./Analytics.tex','w') as t:
+with open('./Scientific-calculation.tex','w') as t:
     t.write(line)
