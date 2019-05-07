@@ -1,0 +1,44 @@
+\newenvironment{flowdiagram}[1]
+{
+	\begin{tikzpicture}
+	[
+	>=latex,
+	node distance=5mm,
+	hv path/.style={to path={-| (\tikztotarget)}},
+	vh path/.style={to path={|- (\tikztotarget)}},
+	skip loop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}},
+	vskip loop/.style={to path={-- ++(#1,0)|- (\tikztotarget)}},	
+	startend/.style={
+		draw,
+		rectangle,
+		rounded corners=2mm,
+		minimum size = 6mm,
+		thick
+	},
+	ioput/.style={
+		draw,
+		trapezium,
+		trapezium left angle=60,
+		trapezium right angle=120,
+		inner sep=5pt
+	},
+	chuli/.style={
+		draw, 
+		rectangle,
+		minimum size=6mm,
+		thick,
+		font=\itshape	
+	},
+	panduan/.style={
+		draw,
+		diamond,
+		minimum size=6mm,
+		shape aspect=3,
+		inner sep=0.1pt,
+		thick,
+		font=\itshape
+	}]
+}
+{		
+	\end{tikzpicture}
+}

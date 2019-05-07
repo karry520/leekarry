@@ -1,3 +1,23 @@
+分析学中最基本的概念是\textbf{极限}。数学和物理中的许多重要概念可以用极限定义，如速度、功、能量、功率、作用、物体的体积和表面积、曲线的长和曲率、曲面的曲率等。
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+	\node (a) {极限};
+	\node (b)[below of=a,xshift=-2cm] {微分};
+	\node (c)[below of=a,xshift=2cm] {积分};
+	\node (e)[below of=b]{微分方程};
+	\node (f)[below of=c]{变分法和积分方程};
+	\node (d)[below of=e,xshift=2cm] {自然科学};
+
+	\draw [->] (a) -- (b);
+	\draw [->] (a) -- (c);
+	\draw [->] (b) -- (e);
+	\draw [->] (c) -- (f);
+	\draw [->] (e) -- (d);
+	\draw [->] (f) -- (d);
+\end{tikzpicture}
+\end{center}
+
+分析的核心是\textbf{微积分}，它是由牛顿和莱布尼茨分别独立发现的。然而，只有当分析与其他数学学科，如代数学、数论、几何、随机理论与数值理论相互作用时，它才能发挥其真正的作用。
 \chapter{初等分析}
 \input{./chapter/分析学/初等分析/实数}
 \input{./chapter/分析学/初等分析/复数}
