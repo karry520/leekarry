@@ -1,1 +1,21 @@
 \section{线性基函数模型}
+回归问题的最简单模型是输入变量的线性组合
+$$
+y(\boldsymbol{x,w})=w_0+w_1x_1 + \dots w_Dx_D
+$$
+其中$x=(x_1,\dots,x_D)^T$。这通常被简单地称为\textbf{线性回归(linear regression)}。这个模型的关键性质是它是参数$w_0,\dots,w_D$的一个线性函数。但是，它也是输入变量$x_i$的一个线性函数，这给模型带来了极大的局限性。因此，我们扩展模型的类别：将输入变量的固定的非线性函数进行线性组合，形式为
+$$
+y(\boldsymbol{x,w})=w_0+\sum_{y=1}^{M-1}w_j\phi_j(\boldsymbol{x})=\sum_{j=0}^{M-1}w_j\phi_j(\boldsymbol{x})=\boldsymbol{w}^T\phi(\boldsymbol{x})
+$$
+其中$\phi_j(\boldsymbol{x})$被称为基函数(basis function)。
+\begin{enumerate}
+	\item 高斯基函数 
+	$$
+	\phi_j(x)=exp\left\{-\frac{(x-\mu_j)^2}{2s^2}\right\}
+	$$
+	\item sigmoid基函数 
+	$$
+	\phi_j(x)=\frac{1}{1+exp\left(\frac{x-\mu_j}{s}\right)}
+	$$
+	\item 傅里叶基函数
+\end{enumerate}
