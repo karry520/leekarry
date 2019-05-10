@@ -1,0 +1,47 @@
+\section{序列最小最优算法}
+接上一小节，讨论支持向量机学习的实现问题。讲述其中的序列最小最优化(sequential minimal optimization,SMO)算法。
+
+SMO算法是一种启发式算法，其基本思路是：\textbf{如果所有变量的解都满足此最优化问题的KKT条件，那么这个最优化问题的解就得到了}。因为KKT条件是该最优化问题的充分必要条件。否则，选择两个变量，固定其他变量，针对这两个变量构建一个二次规划问题。这个二次规划问题关于这两个变量的解应该更接近原始二次规划问题的解，因为这会使得原始二次规划问题的目标函数值变得更小。重要的是，这时子问题可以通过解析方法求解，这样就可以大大提高整个算法的计算计算速度。子问题有两个变量，一个是违反KKT条件最严重的那一个，另一个由约束条件自动确定。如此，SMO算法将原问题不断分解为子问题并对子问题求解，进而达到求解原问题的目的。
+
+SMO算法要解如下凸二次规划的对偶问题：
+\begin{flalign}
+	\mathop{min}\limits_a \quad &\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^{N}a_ia_jy_iy_jK(x_i, x_j) - \sum _{i = 1}^N a_i\label{eq:最优化问题}\\
+	s.t. \quad &C\geq a_i \geq 0,\quad i = 1,\dots, n \\
+	&\sum_{i = 1}^N a_iy_i  = 0\label{eq:等式约束}
+\end{flalign}
+注意，子问题的两个变量中只有一个是自由变量。假设$a_1,a_2$为两个变量，$a_3,a_4,\dots,a_N$固定，那么由等式约束$\ref{eq:等式约束}$可知
+\begin{equation}
+	a_1 = - y_1 \sum_{i=2}^{N}a_iy_i
+\end{equation}
+如果$a_2$确定，那么$a_1$也随之确定。所以子问题中同时更新两个变量。
+
+整个SMO算法包括两个部分：\textbf{求解两个变量二次规划的解析方法和选择变量的启发式方法}。
+
+于是SMO的最优化问题$\ref{eq:最优化问题}$的子问题可以写成
+\begin{flalign}
+	\mathop{min}\limits_{a_1,a_2}\ W(a_1,a_2)&=\frac{1}{2}K_{11}a_1^2+\frac{1}{2}K_{22}a_2^2+y_1y_2K_{12}a_1a_2 \nonumber\\
+	&-(a_1+a_2)+y_1a_1\sum_{i=3}^{N}y_ia_iK_{i1}+y_2a_2\sum_{i=3}^{N}y_ia_iK_{i2}\label{拆解后的公式}\\
+	s.t\ &a_1y_1+a_2y_2=-\sum_{i=3}^{N}y_ia_i=\varsigma\\
+	&0\leq a_i \leq C,\ i=1,2
+\end{flalign}
+其中，$K_{ij}=K(x_i,x_j),i,j=1,2,\dots,N,\varsigma$是常数。
+
+为了求解两个变量的二次规划问题%$\ref{拆解后的公式}$，首先分析约束条件，然后在此约束条件下求极小。由于只有两个变量$(a_1,a_2)$，约束可以用二维空间中的图形表示，如图$\ref{fig:2}$所示
+
+\vspace{12pt}
+\begin{tikzpicture}
+  \draw (0,0) rectangle (4,4);
+  \node (a) at (2,-0.5) {$a_2=0$};
+  \node at (2,4.5) {$a_2=C$};
+  \node at (-0.5,2) {$a_1=0$};
+  \node at (4.5,2) {$a_1=C$};
+  \node [below of=a]{$y_1\ne y_2\Rightarrow a_1-a_2=k$};
+  \draw[domain=1:4] plot (\x,{\x -1});
+  \draw[domain=0:3] plot (\x,{\x +1});
+  
+  \draw[domain=6:9] plot (\x,{-\x +9});
+  \draw[domain=7:10] plot (\x,{-\x +11});  
+  \draw (6,0) rectangle (10,4);
+  \node (b) at (8,-0.5) {};
+  \node [below of=b]{$y_1 = y_2\Rightarrow a_1+a_2=k$};
+\end{tikzpicture}

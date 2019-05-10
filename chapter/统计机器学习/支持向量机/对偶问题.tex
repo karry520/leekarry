@@ -1,1 +1,62 @@
 \section{对偶问题}
+注意到式$\ref{eq:3}$本身是一个凸二次规划问题，能直接用现成的优化计算包求解，但我们可以有更高效的办法。由于这个问题的特殊结构，还可以通过拉格朗日对偶性变换到对偶变量的优化问题，即通过求解与原问题等价的对偶问题得到原始问题的最优解，这就是线性可分条件下支持向量机的对偶算法，这样做的优点在于：
+\begin{enumerate}
+	\item 对偶问题往往更容易求解；
+	\item 可以自然的引入核函数，进而推广到非线性分类问题。	
+\end{enumerate}
+该问题的拉格朗日函数可写为
+\begin{equation}
+	L(w,b,a) = \frac{1}{2}\lVert w \rVert^2 - \sum_{i=1}^na_i (y_i(w^T x_i + b) - 1)
+\end{equation}
+然后令
+\begin{equation}
+	\theta (\boldsymbol{w}) = \mathop{max} \limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a)
+\end{equation}
+具体写出来，目标函数变成了
+\begin{equation}
+	\mathop{min}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{min}\limits_{\boldsymbol{w},b}\mathop{ max}\limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a) = p^*
+\end{equation}
+这里用$p^*$表示这个问题的最优值，且和最初的问题是等价的。如果直接求解，那么一上来便得面对$w$和$b$两个参数，而$a_i$以是不等式约束，这个求解过程不好做。考虑对偶问题
+\begin{equation}
+		\mathop{min}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{ max}\limits_{a_i \geq 0}\ \mathop{min}\limits_{\boldsymbol{w},b}\ L(\boldsymbol{w},b,a) = d^*
+\end{equation}
+原始问题通过满足KKT条件，已经转化成了对偶问题。而求解这个对偶问题，分为3个步骤
+\begin{enumerate}
+	\item \textbf{让$L(\boldsymbol{w},b,a)$关于$\boldsymbol{w}$和$b$最小化}
+	
+	首先固定$a$，要让$L$关于$w$和$b$最小化，分别对$w$和$b$求偏导，令其等于0；
+	\begin{equation}
+		\begin{aligned}
+		\frac{\partial L}{\partial \boldsymbol{w}} &= \lVert \boldsymbol{w}\rVert - \sum_{i = 1}^n a_iy_ix_i \boldsymbol{w}^T = 0 \Rightarrow  \boldsymbol{w} = \sum_{i = 1}^n a_iy_ix_i  \\
+		\frac{\partial L}{\partial b} &= \sum_{i = 1}^n a_iy_i = 0\Rightarrow  \sum_{i = 1}^n a_iy_i  = 0
+		\end{aligned}
+	\end{equation}
+	将以上结果代入之前的L，得到
+	\begin{equation}
+		\begin{aligned}
+		L(\boldsymbol{w},b,a) &= \frac{1}{2}\sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j - \sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j - b\sum_{i = 1}^n a_iy_i + \sum_{i = 1}^na_i \\
+		&= \sum _{i = 1}^n a_i - \frac{1}{2}\sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j
+		\end{aligned}
+	\end{equation}
+	\item \textbf{求对$a$的极大}
+	
+	求对$a$的极大，即是关于对偶问题的最优化问题。经过上一个步骤的求解，得到的拉格朗日函数式子已经没有了变量$w$和$b$，只有$a$。从上面的式子得到
+	\begin{equation}
+		\begin{aligned}
+		\mathop{max}\limits_a \quad &\sum _{i = 1}^n a_i - \frac{1}{2}\sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j \\
+		s.t. \quad &a_i \geq 0,i = 1,\dots, n \\
+		&\sum_{i = 1}^n a_iy_i  = 0
+		\end{aligned}
+	\end{equation}
+	这样，求出了$a_i$，从而根据
+	\begin{equation}
+		\begin{aligned}
+		\boldsymbol{w}^* &= \sum_{i = 1}^n a_iy_ix_i \\
+		b^* &= -\frac{\mathop{max}\ {\boldsymbol{w}^*}^T x_i + \mathop{min}\ {\boldsymbol{w}^*}^T x_i}{2} 
+		\end{aligned}
+	\end{equation}
+	即可求出$w,b$，最终得出分离超平面和分类决策函数。
+	\item \textbf{利用SMO算法求解对偶问题中的拉格朗日乘子}
+	
+	在求得$L(w,b,a)$关于$w$和$b$最小化和对$a$的极大之后，最后一步便是利用SMO算法求解对偶问题中的拉格朗日乘子	
+\end{enumerate}
