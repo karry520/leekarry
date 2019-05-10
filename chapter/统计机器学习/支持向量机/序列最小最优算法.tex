@@ -26,22 +26,105 @@ SMO算法要解如下凸二次规划的对偶问题：
 \end{flalign}
 其中，$K_{ij}=K(x_i,x_j),i,j=1,2,\dots,N,\varsigma$是常数。
 
-为了求解两个变量的二次规划问题%$\ref{拆解后的公式}$，首先分析约束条件，然后在此约束条件下求极小。由于只有两个变量$(a_1,a_2)$，约束可以用二维空间中的图形表示，如图$\ref{fig:2}$所示
+为了求解两个变量的二次规划问题$\ref{拆解后的公式}$，首先分析约束条件，然后在此约束条件下求极小。由于只有两个变量$(a_1,a_2)$，约束可以用二维空间中的图形表示，如图所示
 
-\vspace{12pt}
+\vspace{4pt}
+\begin{center}
 \begin{tikzpicture}
-  \draw (0,0) rectangle (4,4);
-  \node (a) at (2,-0.5) {$a_2=0$};
-  \node at (2,4.5) {$a_2=C$};
-  \node at (-0.5,2) {$a_1=0$};
-  \node at (4.5,2) {$a_1=C$};
-  \node [below of=a]{$y_1\ne y_2\Rightarrow a_1-a_2=k$};
-  \draw[domain=1:4] plot (\x,{\x -1});
-  \draw[domain=0:3] plot (\x,{\x +1});
-  
-  \draw[domain=6:9] plot (\x,{-\x +9});
-  \draw[domain=7:10] plot (\x,{-\x +11});  
-  \draw (6,0) rectangle (10,4);
-  \node (b) at (8,-0.5) {};
-  \node [below of=b]{$y_1 = y_2\Rightarrow a_1+a_2=k$};
+	\draw (0,0) rectangle (4,4);
+	\node (a) at (2,-0.5) {$a_2=0$};
+	\node at (2,4.5) {$a_2=C$};
+	\node at (-0.5,2) {$a_1=0$};
+	\node at (4.5,2) {$a_1=C$};
+	\node [below of=a]{$y_1\ne y_2\Rightarrow a_1-a_2=k$};
+	\draw[domain=1:4] plot (\x,{\x -1});
+	\draw[domain=0:3] plot (\x,{\x +1});
+	
+	\draw[domain=6:9] plot (\x,{-\x +9});
+	\draw[domain=7:10] plot (\x,{-\x +11});  
+	\draw (6,0) rectangle (10,4);
+	\node (b) at (8,-0.5) {};
+	\node [below of=b]{$y_1 = y_2\Rightarrow a_1+a_2=k$};
 \end{tikzpicture}
+\end{center}
+不等式约束使得$(a_1,a_2)$在盒子$[0,C]\times[0,C]$内，等式约束使$(a_1,a_2)$在平行盒子的对角线的直线上。因此要求的是目标函数在一条平行于对角线线的线段上的最优值。这使得两个变量的最优化问题成为实质上的单变量的最优化问题，不妨考虑为变量$a_2$的最优化问题。
+
+假设问题$\ref{拆解后的公式}$的初始可行解为$a_1^{old},a_2^{old}$，最优解为$a_1^{new},a_2^{new}$，并且假设在沿着约束方向未经剪辑时$a_2$的最优解为$a_2^{new,unc}$。
+
+引进记号
+\begin{flalign}
+	g(x)&=\sum_{i=1}^{N}a_iy_iK(x_i,x)+b\\
+	v_i&=\sum_{j=3}^{N}y_ia_iK(x_i,x_j)=g(x_i)-\sum_{j=1}^{2}a_jy_jK(x_i,x_j)-b,\ i=1,2
+\end{flalign}
+目标函数可写成
+\begin{equation}
+\label{目标函数}
+	W(a_1,a_2)=\frac{1}{2}K_{11}a_1^2+\frac{1}{2}K_{22}a_2^2+y_1y_2K_{12}a_1a_2 -(a_1+a_2)+y_1a_1v_1+y_2a_2v_2
+\end{equation}
+令
+\begin{equation}
+	E_i=g(x_i)-y_i=\left(\sum_{j=1}^{N}a_jy_jK(x_j,x_i)+b\right)-y_i,\quad i=1,2
+\end{equation}
+当$i=1,2$时，$E_i$为函数$g(x)$对输入$x_i$的预测值与真实输出$y_i$之差。
+由$a_1y_1=\varsigma -a_2y_2$及$y_i^2=1$，可将$a_1$表示为
+\begin{equation}
+	a_1=(\varsigma-y_2a_2)y_1
+\end{equation}
+代入式$\ref{目标函数}$，得到只是$a_2$的函数的目标函数，对$a_2$求导数
+\begin{equation}
+	\frac{\partial W}{\partial a_2}=K_{11}a_2+K_{22}a_2-2K_{12}a_2-K_{11}\varsigma y_2 + K_{12}\varsigma y_2+y_1y_2-1-v_1v_2+y_2v_2
+\end{equation}
+令其为0,得到 
+\begin{equation}
+\begin{split}
+	(K_{11}+K_{22}-2K_{12})a_2=&y_2(y_2-y_1+\varsigma K_{11}-\varsigma K_{12}+v_1-v2)\\
+	=&y2\left[ y_2-y_1+\varsigma K_{11}-\varsigma K_{12} +\left( g(x_1) - \sum_{j=1}^{2}y_ja_jK_{1j}-b \right)\right. \\
+	&\left. \left( g(x_2) - \sum_{j=1}^{2}y_ja_jK_{2j}-b \right) \right]
+\end{split}
+\end{equation}
+将$\varsigma=a_1^{old}y_1+a_2^{old}y_2$代入，得到
+\begin{equation}
+	\begin{split}
+	(K_{11}+K_{22}-2K_{12})a_2^{new,unc}&=y_2((K_{11}+K_{22}-2K_{12})a_2^{old}y_2+y_2-y_1+g(x_1)-g(x_2))\\
+	&=(K_{11}+K_{22}-2K_{12})a_2^{old}+y_2(E_1-E_2)
+	\end{split}
+\end{equation}
+将$\eta = K_{11}+K_{22}-2K_{12}$代入，于是得到
+\begin{equation}
+\label{依赖}
+	a_2^{new,unc}=a_2^{old}+\frac{y_2(E_1-E_2)}{\eta}
+\end{equation}
+要使其满足不等式的约束必须将其限制在区间$[L,H]$内，从而得到$a_2^{new}$的表达式
+\begin{equation}
+	a_2^{new}=
+	\begin{cases}
+	H,\qquad a_2^{new,unc}>H\\
+	a_2^{new,unc},\qquad L\leq a_2^{new,unc}\leq H\\
+	L,\qquad a_2^{new,unc}<L
+	\end{cases}
+\end{equation}
+如果$y_1\ne y_2$
+\begin{equation*}
+	L=\mathop{max}(0,a_2^{old}-a_1^{old}),\quad H=\mathop{min}(C,C+a_2^{old}-a_1^{old})
+\end{equation*}
+如果$y_1 = y_2$
+\begin{equation*}
+L=\mathop{max}(0,a_2^{old}+a_1^{old}-C),\quad H=\mathop{min}(C,a_2^{old}+a_1^{old})
+\end{equation*}
+\textbf{变量的选择方法}
+
+SMO算法在每个子问题中选择两个变量优化，其中至少一个变量是违反KKT条件的。
+\begin{enumerate}
+	\item 第1个变量的选择
+	
+	SMO称选择第1个变量的过程为外层循环。外层循环在训练样本中选取违反KKT条件最严重的样本点，并将其对应的变量作为第1个变量。具体地，检验训练样本点$(x_i,y_i)$是否满足KKT条件，即
+	\begin{flalign}
+		a_i=0&\Leftrightarrow y_ig(x_i)\geq 1\\
+		C>a_i>0&\Leftrightarrow y_ig(x_i)= 1\\
+		a_i=C&\Leftrightarrow y_ig(x_i)\leq 1
+	\end{flalign}
+	\item 第2个变量的选择
+	
+	SMO称选择第2个变量的过程为内层循环，假设在外层循环中已经找到第1个变量$a_1$，现在要在内层循环中找到第2个变量$a_2$。第2个变量选择的标准是希望能使$a_2$有足够大的变化。由式$\ref{依赖}$知，$a_2^{new}$是依赖于$|E_1-E_2|$的，加了加快计算速度，一种简单的做法是选择$a_2$，使其对应的$|E_1-E_2|$最大。
+	\item 计算阈值$b$和差值$E_i$
+\end{enumerate}
