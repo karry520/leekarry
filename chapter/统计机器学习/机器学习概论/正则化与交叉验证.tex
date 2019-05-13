@@ -1,1 +1,14 @@
 \section{正则化与交叉验证}
+模型选择的典型方法是正则化(regularization)。正则化是结构风险最小化策略的实现，是在经验风险上加一个正则化项(regularizer)和罚项(penalty term)
+\begin{equation}
+	\mathop{min}\limits_{f\in F}\quad \frac{1}{2}\sum_{i=1}^NL(y_i, f(x_i)) + \lambda J(f)
+\end{equation}
+另一种常用的模型选择方法是交叉验证（cross validation）
+训练集用来训练模型
+验证集用来选择模型 
+测试集用来对模型进行评估
+\begin{enumerate}
+	\item 简单交叉验证
+	\item S折交叉验证
+	\item 留一交叉验证
+\end{enumerate}
