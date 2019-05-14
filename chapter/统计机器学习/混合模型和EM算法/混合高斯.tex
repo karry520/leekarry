@@ -1,0 +1,83 @@
+\section{混合高斯}
+EM算法的一个重要应用是高斯混合模型的参数估计。高斯混合模型应用广泛，在许多情况下，EM算法是学习高斯混合模型(Gaussian misture model)的有效方法。
+\begin{definition}{高斯混合模型}{}
+	高斯混合模型是指具有如下形式的概率分布模型：
+	\begin{equation}
+		P(y|\theta)=\sum_{k=1}^{K}\alpha_k\phi(y|\theta_k)
+	\end{equation}
+	其中，$\alpha_k$是系数，$\alpha_k\geqslant 0,\sum\limits_{k=1}^{K}\alpha_k=1;\phi(Y|\theta_k)$是高斯分布密度，$\theta_k=(\mu_k,\sigma_k^2)$,
+	\begin{equation}
+		\phi(y|\theta_k)=\frac{1}{\sqrt{2\pi}\sigma_k}exp\left(-\frac{(y-\mu_k)^2}{2\sigma_k^2}\right)
+	\end{equation}
+	称为第k个模型。
+\end{definition}
+\subsection*{高斯混合模型参数估计的EM算法}
+假设观测数据$y_1,y_2,\dots,y_N$由高斯混合模型生成，
+\begin{equation}
+	P(y|\theta)=\sum_{k=1}^{K}\alpha_k\phi(y|\theta_k)
+\end{equation}
+其中，$\theta=(\alpha_1,\alpha_2,\dots,\alpha_K;\theta_1,\theta_2,\dots,\theta_K)$。我们用EM算法估计高斯混合模型的参数$\theta$
+\begin{enumerate}
+	\item 明确隐变量，写出完全数据的对数似然函数
+	
+	隐变量由$\gamma_{jk}$表示，其定义如下：
+	\begin{equation}
+		\gamma_{jk}=\begin{cases}
+		1,\qquad \text{第j个观测来自第k个模型}\\0,\qquad \text{否则}
+		\end{cases}
+	\end{equation}
+	$\gamma_{jk}$是0-1随机变量。
+	那么完全数据是
+	\begin{equation*}
+		(y_j,\gamma_{j1},\gamma_{j2},\dots,\gamma_{jK}),\qquad j=1,2,\dots,K
+	\end{equation*}
+	于是可以写出完全数据的似然函数
+	\begin{equation*}
+		\begin{aligned}
+			P(y,\gamma|\theta)&=\prod_{j=1}^{N}P(y_j,\gamma_{j1},\gamma_{j2},\dots,\gamma_{jK}|\theta)\\
+			&=\prod_{k=1}^{K}\prod_{j=1}^{N}\left[\alpha_k\phi(y|\theta_k)\right]^{\gamma_{jk}}\\
+			&=\prod_{k=1}^{K}\alpha_k^{n_k}\prod_{j=1}^{N}\left[\phi(y|\theta_k)\right]^{\gamma_{jk}}\\
+			&=\prod_{k=1}^{K}\alpha_k^{n_k}\prod_{j=1}^{N}\left[ \frac{1}{\sqrt{2\pi}\sigma_k}exp\left(-\frac{(y-\mu_k)^2}{2\sigma_k^2}\right) \right]^{\gamma_{jk}}\\
+		\end{aligned}
+	\end{equation*}
+	式中，$n_k=\sum\limits_{j=1}^{N}\gamma_{jk},\sum\limits_{k=1}^{K}n_{k}=N$。(意思是选择第k个高斯模型的次数)
+	
+	那么，完全数据的对数似然函数为
+	\begin{equation*}
+		log P(y,\gamma|\theta)=\sum_{k=1}^{K}\left\{n_klog\alpha_k+\sum_{j=1}^{N}\gamma_{jk}\left[log\left(\frac{1}{\sqrt{2\pi}}\right)-log\sigma_k-\frac{1}{2\sigma_k^2}(y_j-\mu_k)^2\right] \right\}
+	\end{equation*}
+	\item EM算法的E步：确定Q函数
+	
+	\begin{equation*}
+		\begin{aligned}
+		Q(\theta,\theta^{(i)})&=E[log P(y,\gamma|\theta)|y,\theta^{(i)}]\\
+		&=E\left\{\sum_{k=1}^{K}\left\{n_klog\alpha_k+\sum_{j=1}^{N}\gamma_{jk}\left[log\left(\frac{1}{\sqrt{2\pi}}\right)-log\sigma_k-\frac{1}{2\sigma_k^2}(y_j-\mu_k)^2\right] \right\}  \right\}\\
+		&=\sum_{k=1}^{K}\left\{\overbrace{n_klog\alpha_k}^{{\color{red}{\text{常数}}}}+\sum_{j=1}^{N}{\color{red}{E(\gamma_{jk})}}\left[log\left(\frac{1}{\sqrt{2\pi}}\right)-log\sigma_k-\frac{1}{2\sigma_k^2}(y_j-\mu_k)^2\right] \right\} 
+		\end{aligned}
+	\end{equation*}
+	这里需要计算$E(\gamma_{jk}|y,\theta)$，记为$\hat{\gamma}_{jk}$
+	\begin{equation*}
+		\begin{aligned}
+		\hat{\gamma}_{jk}&=E(\gamma_{jk}|y,\theta)=P(\gamma_{jk}=1|y,\theta)(\text{二项分布})\\
+		&=\frac{P(\gamma_{jk}=1|y,\theta)}{\sum\limits_{k=1}^{K}P(\gamma_{jk}=1|y,\theta)}\\
+		&=\frac{P(y_j|\gamma_{jk}=1,\theta)P(\gamma_{jk}=1|\theta)}{\sum\limits_{k=1}^{K}P(y_j|\gamma_{jk}=1,\theta)P(\gamma_{jk}=1|\theta)}\\
+		&=\frac{\alpha_k\phi(y_j|\theta_k)}{\sum\limits_{k=1}^{K}\alpha_k\phi(y_j|\theta_k)},\quad j=1,2,\dots,N;k=1,2,\dots,K
+		\end{aligned}
+	\end{equation*}
+	$\hat{\gamma}_{jk}$是在当前模型参数下第j个观测数据来自第k个分模型的概率，称为分模型k对观测数据$y_j$的响应度。代入式中得
+	\begin{equation}
+		Q(\theta,\theta^{(i)})=\sum_{k=1}^{K}\left\{n_klog\alpha_k+\sum_{j=1}^{N}{\color{red}{\hat{\gamma}_{jk}}}\left[log\left(\frac{1}{\sqrt{2\pi}}\right)-log\sigma_k-\frac{1}{2\sigma_k^2}(y_j-\mu_k)^2\right] \right\} 
+	\end{equation}
+	\item 确定EM算法的M步
+	迭代的M步是求函数$Q(\theta,\theta^{(i)})$对$\theta$的极大值，即求新一轮迭代的模型参数：
+	\begin{equation*}
+		\theta^{(i+1)} = arg \mathop{max}\limits_\theta Q(\theta, \theta^{(i)})
+	\end{equation*}
+	分别对$\mu_k,\sigma_k^2$求偏导并令其为0,即可得到$\hat{\mu}_k,\hat{\sigma}_k$。求$\hat{a}_k$是在$\sum\limits_{k=1}^K=1$条件下求偏导并令其为0得到。
+	\begin{flalign}
+		\hat{\mu}_k&=\frac{\sum\limits_{j=1}^N\hat{\gamma}_{jk}y_j}{\sum\limits_{j=1}^N\hat{\gamma}_{jk}},\quad k=1,2,\dots,K\\
+		\hat{\sigma}_k^2&=\frac{\sum\limits_{j=1}^N\hat{\gamma}_{jk}(y_j-\mu_k)^2}{\sum\limits_{j=1}^N\hat{\gamma}_{jk}},\quad k=1,2,\dots,K\\
+		\hat{\alpha}_k&=\frac{n_k}{N}=\frac{\sum\limits_{j=1}^N\hat{\gamma}_{jk}}{N},\quad k=1,2,\dots,K\\
+	\end{flalign}
+	\item 重复以上计算，直到对数似然函数值不再有明显的变化为止。
+\end{enumerate}
