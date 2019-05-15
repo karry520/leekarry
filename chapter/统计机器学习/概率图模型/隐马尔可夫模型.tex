@@ -1,0 +1,175 @@
+\section{隐马尔可夫模型}
+隐马尔可夫模型(hidden Markov model,HMM)是可用于标注问题的统计学习模型，描述由隐藏的马尔可夫链随机生成观测序列的过程，属于生成模型。本节首先介绍隐马尔可夫模型的基本概念，然后分别叙述隐马尔可夫模型的概率计算算法、学习算法以及预测算法。隐马尔可夫模型在语音识别、自然语言处理、生物信息、模式识别等领域有着广泛的应用。
+\subsection*{隐马尔可夫模型的基本概念}
+隐马尔可夫模型是关于时序的概率模型，描述由一个隐藏的马尔可夫链随机生成不可观测的状态随机序列，再由各个状态生成一个观测而产生观测随机序列的过程。隐藏的马尔可夫链随机生成的状态的序列，称为状态序列(state sequence)；每个状态生成一个观测，而由此产生的观测的随机序列，称为观测序列(observation sequence)。序列的每一个位置又可以看作是一个时刻。
+隐马尔可夫模型由初始概率分布、状态转移概率分布以及观测概率分布确定。隐马尔可夫模型定义如下：\\
+设Q是所有可能的状态的集合，V是所有可能的观测的集合。
+\begin{equation}
+	Q=\{q_1,q_2,\dots,q_N\},\quad V=\{v_1,v_2,\dots, v_M\}
+\end{equation}
+设N是所有可能的状态数，M是可能的观测数。\\
+I是长度为T的状态序列，O是对应的观测序列。
+\begin{equation}
+	I=\{i_1,i_2,\dots, i_T\},\quad O=\{o_1,o_2,\dots,o_T\}
+\end{equation}
+A是状态转移概率矩阵：
+\begin{equation}
+	A=\begin{bmatrix} a_{ij} \end{bmatrix}_{N\times N}
+\end{equation}
+其中，
+\begin{equation}
+	a_{ij} = P(i_{t+1}=q_j|i_t=q_i),i=1,2,\dots, N;j=1,2,\dots,N
+\end{equation}
+是在时刻t处于状态$q_i$的条件下在时刻$t+1$转移到状态$q_j$的概率。\\
+B是观测概率矩阵：
+\begin{equation}
+	B=\begin{bmatrix} b_j(k) \end{bmatrix}_{N\times N}
+\end{equation}
+其中，
+\begin{equation}
+	b_j(k) = P(o_t=v_k|i_t=q_j),k=1,2,\dots,M;j=1,2,\dots,N
+\end{equation}
+是在时刻t处于状态$q_j$的条件下生成观测$v_k$的概率。
+$\pi$是初始状态概率向量：
+\begin{equation}
+	\pi = (\pi_i)
+\end{equation}
+其中，
+\begin{equation}
+	\pi_i = P(i_1 = q_i),i=1,2,\dots,N
+\end{equation}
+是时刻$t=1$处于状态$q_i$的概率。
+
+隐马尔可夫模型由初始状态概率向量$\pi$、状态转移概率矩阵A和观测概率矩阵B决定。$\pi$和A决定状态序列，B决定观测序列。因此，隐马尔可夫模型$\lambda$可以用三元符号表示，即
+\begin{equation}
+	\lambda = (A,B,\pi)
+\end{equation}
+$A,B,\pi$称为隐马尔可夫模型的三要素。
+从定义可知，隐马尔可夫模型作了两个基本假设：
+\begin{enumerate}
+	\item 齐次马尔可夫性假设，即假设隐藏的马尔可夫链在任意时刻t的状态只依赖于其前一时刻的状态，与其他时刻的状态及观测无关，也与时刻t无关。
+	\item 观测独立性假设，即假设任意时刻的观测只依赖于该时刻的马尔可夫链的状态，与其他观测及状态无关。
+\end{enumerate}
+\begin{center}
+\begin{tikzpicture}[xscale=0.9,yscale=0.9]
+	\node [draw,circle] (q11) at (2,6){$q_1$};
+	\node [draw,circle] (q12) at (2,5){$q_2$};
+	\node [draw,circle] (vd11) at (2,4){$\vdots$};
+	\node [draw,circle,fill=black!25] (q1i) at (2,3){$q_i$};
+	\node [draw,circle] (vd12) at (2,2){$\vdots$};
+	\node [draw,circle] (q1n) at (2,1){$q_N$};
+	
+	\node [draw,circle] (q21) at (6,6){$q_1$};
+	\node [draw,circle,fill=black!25] (q22) at (6,5){$q_2$};
+	\node [draw,circle] (vd21) at (6,4){$\vdots$};
+	\node [draw,circle] (q2i) at (6,3){$q_i$};
+	\node [draw,circle] (vd22) at (6,2){$\vdots$};
+	\node [draw,circle] (q2n) at (6,1){$q_N$};
+	
+	\foreach \to in {q21,q22,vd21,q2i,vd22,q2n}
+		\draw[->] (q1i) -- (\to);
+		
+	\node [draw,circle] (v1) at (-0.5,-1){$v_1$};
+	\node [draw,circle] (v2) at (0.5,-1){$v_2$};
+	\node [draw,circle] (vdv1) at (1.5,-1){$\dots$};
+	\node [draw,circle] (vi) at (2.5,-1){$v_i$};
+	\node [draw,circle] (vdv2) at (3.5,-1){$\dots$};
+	\node [draw,circle,fill=black!25] (vm) at (4.5,-1){$v_M$};
+	
+	\foreach \to in {v1,v2,vdv1,vi,vdv2,vm}
+		\draw[->] (q1n) -- (\to);
+		
+	\draw (-1,-1.5) rectangle  (5,-0.5);	
+	\draw (1.5,0.5) rectangle  (2.5,6.5);
+	\node () at (2,7) {$t\text{时刻}$};
+	\node () at (6,7) {$t+1\text{时刻}$};
+	\node () at (2,-2) {$\text{观测值}$};
+	\node () at (0,4) {$\text{隐状态}$};
+	\node () at (7,5) {$a_{i2}$};
+	\node () at (4.5,-2) {$b_t(M)$};	
+\end{tikzpicture}
+\end{center}
+
+\subsection*{隐马尔可夫模型的3个基本问题}
+\begin{enumerate}
+	\item 概率计算问题。给定模型$\lambda=(A,B,\pi)$和观测序列$O=(o_1,o_2,\dots,o_T)$，计算在模型$\lambda$下观测序列O出现的概率$P(O|\lambda)$
+	\item 学习问题。已知观测序列$O=(o_1,o_2,\dots,o_T)$，估计模型$\lambda=(A,B,\pi)$参数，使得在该模型下观测序列概率$P(O|\lambda)$最大。即用极大似然估计的方法估计参数。
+	\item 预测问题。也称为解码（decoding）问题。已知模型$\lambda=(A,B,\pi)$和观测序列$O=(o_1,o_2,\dots,o_T)$，求对给定观测序列条件概率$P(I|\lambda)$最大的状态序列$I=(i_1,i_2,\dots,i_T)$。即给定观测序列，求最有可能的对应的状态序列。
+\end{enumerate} 
+
+\section*{问题一：概率计算算法}
+\subsection*{直接计算法}
+给定模型$\lambda=(A,B,\pi)$和观测序列$O=(o_1,o_2,\dots,o_T)$，计算在模型$\lambda$下观测序列O出现的概率$P(O|\lambda)$。最直接的方法是按概率公式直接计算。
+\begin{equation}
+\begin{aligned}
+	P(O|\lambda)&=\sum_{I}P(O|I,\lambda)P(I|\lambda)\\
+	&=\sum_{i_1,i_2,\dots,i_T}\pi_{i_1}b_{i_1}(o_{i1})a_{i_1i_2}\dots a_{i_{T-1}i_T}b_{i_T}(o_T)
+\end{aligned}
+\end{equation}
+利用公式计算量大，这种算法不可行。
+\subsection*{前向算法}
+首先定义前现概率
+\begin{definition}{前向概率}{}
+	给定隐马尔可夫模型$\lambda$，定义到时刻$t$部分观测序列为$O=(o_1,o_2,\dots,o_t)$且状态为$q_i$的概率为前向概率，记作
+	\begin{equation}
+		\alpha_t(i)=P(o_1,o_2,\dots,o_t,i_t=q_i|\lambda)
+	\end{equation}
+\end{definition}
+可以递推地求得前向概率$\alpha_t(i)$及观测序列概率$P(O|\lambda)$
+
+输入：隐马尔可夫模型$\lambda$，观测序列$O$；
+
+输出：观测序列概率$P(O|\lambda)$
+\begin{enumerate}[(1)]
+	\item 初值
+	\begin{equation}
+		\alpha_1(i)=\pi_ib_i(o_1),\qquad i=1,2,\dots,N
+	\end{equation}
+	\item 递推，对$t=1,2,\dots,T-1$
+	\begin{equation}
+		\alpha_{t+1}(i)=\left[ \sum_{j=1}^{N}\alpha_{t}(j)a_{ji} \right]b_i(o_{t+1})
+	\end{equation}
+	\item 终止
+	\begin{equation}
+		P(O|\lambda)=\sum_{i=1}^{N}\alpha_T(i)
+	\end{equation}
+\end{enumerate}
+前向算法实际是基于“状态序列的路径结构”递推计算$P(O|\lambda)$的算法。前身算法的高效的关键是其局部计算前向概率，然后利用路径结构将前向概率“递推”到全局，得到$P(O|\lambda)$.
+\subsection*{后向概率}
+\begin{definition}{后向算法}{}
+	给定隐马尔可夫模型$\lambda$，定义在时刻$t$状态为$q_i$的条件下，从$t+1$到$T$的部分观测序列为$o_{t+1},o_{t+2},\dots,o_{T}$的概率为后向概率，记作
+	\begin{equation}
+		\beta_t(i)=P(o_{t+1},o_{t+2},\dots,o_{T}|i_t=q_i,\lambda)
+	\end{equation}
+\end{definition}
+可以用递推的方法求得后向概率$\beta_t(i)$及观测序列概率$P(O|\lambda)$
+
+输入：隐马尔可夫模型$\lambda$，观测序列$O$；
+
+输出：观测序列概率$P(O|\lambda)$
+\begin{enumerate}[(1)]
+	\item 初值
+	\begin{equation}
+	\beta_T(i)=1,\qquad i=1,2,\dots,N
+	\end{equation}
+	\item 递推，对$t=T-1,T-2,\dots,1$
+	\begin{equation}
+		\beta_t(i)=\sum_{j=1}^{N}a_{ij}b_j(o_{t+1})\beta_{t+1}(j),\quad i=1,2,\dots,N
+	\end{equation}
+	\item 终止
+	\begin{equation}
+	P(O|\lambda)=\sum_{i=1}^{N}\pi_ib_i(o_1)\beta_1(i)
+	\end{equation}
+\end{enumerate}
+利用前向概率和后向概率的定义可以将观测序列概率$P(O|\lambda)$统一写成
+\begin{equation}
+	P(O|\lambda)=\sum_{i=1}^{N}\sum_{j=1}^{N}\alpha_{t}(i)a_{ij}b_j(o_{t+1})\beta_{t+1}(j),\quad t=1,2,\dots,T-1
+\end{equation}
+\subsection*{一些概率与期望值的计算}
+\begin{enumerate}
+	\item 给定模型$\lambda$和观测$O$，在时刻$t$处于状态$q_j$的概率。
+	\item 给定模型$\lambda$和观测$O$，在时刻$t$处于状态$q_j$且在时刻$t+1$处于状态$q_j$的概率。
+	\item 一些有用的期望值
+\end{enumerate}
+\section*{问题二：学习算法}
+\section*{问题三：预测算法}
