@@ -1,1 +1,94 @@
 \section{主成分分析}
+主成分分析，或者称为PCA，是一种被广泛使用的技术，应用的领域包括维度降低、有损数据压缩、特征抽取「数据可视化。它也被称为Karhunen-Loeve变换。
+
+有两种经常使用的PCA的定义，它们会给出同样的算法。PCA可以被定义为数据在低维线性空间上的正交投影，这个线性空间被称为主空间(principal subspace)，使得投影数据的方差被最大化。等价地，它也可以被定义为使得平均投影代价最小的线性投影。平均投影代价是指数据点和它们的投影之间的平均平方距离。
+
+考察一组观测数据集$\{x_n\}$，其中$n=1,\dots,N$，因此$x_n$是一个D维欧几里德空间中的变量。我们的目标是将数据投影到维度$M<D$的空间中，同时最大化投影数据的方差。\\
+样本集合
+\begin{equation}
+X=(x_1\ x_2\ \dots x_N)^T_{N\times p}=
+\begin{pmatrix}
+x_1^T\\x_2^T\\\vdots\\x_N^T
+\end{pmatrix}=
+\begin{pmatrix}
+x_{11}&x_{12}&\dots&x_{1p}\\	x_{21}&x_{22}&\dots&x_{2p}\\
+\dots&\dots&\dots&\dots\\
+x_{11}&x_{12}&\dots&x_{np}
+\end{pmatrix}_{N\times p}
+\end{equation}
+样本均值
+\begin{equation}
+\bar{x}=\frac{1}{N}\sum_{n=1}^{N}x_n=\frac{1}{N}(x_1\ x_2\ \dots\ x_n)
+\begin{pmatrix}
+1\\1\\\vdots \\1
+\end{pmatrix}_{N\times 1}=\frac{1}{N}X^TI_N
+\end{equation}
+样本方差
+\begin{equation}
+\begin{aligned}
+S&=\frac{1}{N}\sum_{n=1}^{N}(x_n-\bar{x})(x_n-\bar{x})^T\\
+&=\frac{1}{N}(x_1-\bar{x}\ x_2-\bar{x}\ \dots \ x_N-\bar{x})
+\begin{pmatrix}
+(x_1-\bar{x})^T\\ (x_2-\bar{x})^T\\ \vdots \\ (x_N-\bar{x})^T
+\end{pmatrix}\\
+&=\frac{1}{N}X^T(\overbrace{I_N-\frac{1}{N}I_NI_N^T}^{H_N-\text{中心矩阵}})\cdot (I_N-\frac{1}{N}I_NI_N^T)^T\cdot X\\
+&=\frac{1}{N}X^THX
+\end{aligned}	
+\end{equation}
+中心矩阵$H$有以下良好的性质 
+\begin{flalign}
+H&=I_N-\frac{1}{N}I_NI_N^T\\
+H^T&=H\\
+H^n&=H
+\end{flalign}
+\subsection*{最大方差形式}
+首先，考虑在一维空间$(M=1)$上的投影。我们可心使用D维向量$u_1$定义这个空间的方向。不失一般性，我们假定选择一个单位向量，从而$u_1^Tu_1=1$(注意，我们只对$u_1$的方向感兴趣，而对$u_1$本身的大小不感兴趣)。这样，每个数据点$x_n$被投影到一个标题值$x_1^Tx_n$上。投影数据的均值是$u_1^T\bar{x}$。投影数据的方差为
+\begin{equation}
+\begin{aligned}
+	J&=\frac{1}{N}\sum_{n=1}^{N}\{u_1^Tx_n-u_1^T\bar{x}\}^2\\
+	&=u_1^T\underbrace{\sum_{n=1}^{N}\frac{1}{N}(x_n-\bar{x})\cdot(x_n-\bar{x})^T}_Su_1\\
+	&=u_1^TSu_1
+\end{aligned}	
+\end{equation}
+S是数据的协方差矩阵，优化问题变成
+\begin{equation}
+	\begin{aligned}
+		\hat{u_1}&=arg \mathop{max} u_1^TSu_1\\
+		s.t\ &\ u_1^Tu_1=1
+	\end{aligned}
+\end{equation}
+利用拉格朗日乘子法，求偏导并令其为零，我们看到驻点满足
+\begin{equation}
+	Su_1=\lambda_1u_1
+\end{equation}
+表明$u_1$一定是S的一个特征向量，这个特征向量被称为第一主成分。
+
+我们可以用一种增量的方式定义额外的主成分，方法为：在所有与那些已经考虑过的方向正交的所有可能的方向中，将新的方向选择为最大化投影方差的方向。
+
+\textbf{总结一下}，主成分分析涉及到计算数据集的均值$\bar{x}$和协方差矩阵$S$，然后寻找$S$的对应于M个最大特征值的M个特征向量。
+\subsection*{最小误差形式}
+引入$D$维基向量的一个完整的单位正交集合$\{u_i\}$，其中$i=1,\dots,D$，且满足 
+\begin{equation}
+	u_i^Tu_j=\delta_{ij}
+\end{equation}
+由于基是完整的，因此每个数据点可以精确地表示为基向量的一个纯性组合，即
+\begin{equation}
+	x_n=\sum_{i=1}^{D}a_{ni}u_i
+\end{equation}
+其中，系数$a_{ni}$对于不同的数据点来说是不同的。这对应于将坐标系旋转到了一个由$\{u_i\}$定义的新坐标系，原始的D个分量$\{x_{n1},\dots,x_{nD}\}$被替换为一个等价的集合$\{a_{n1},\dots,a_{nD}\}$。我们有$a_{nj}=x_n^Tu_j$，因此不失一般性
+\begin{equation}
+	x_n=\sum_{i=1}^{D}(x_n^Tu_i)u_i
+\end{equation}
+然而，我们的目标是使用限定数量$M<D$个变量的一种表示方法来近似数据点，这对应于在低维子空间上的一个投影。不失一般性，M维线性子空间可以用前M个基向量表示，因此我们可以用下式来近似每个数据点$x_n$
+\begin{equation}
+	\widetilde{x}_n=\sum_{i=1}^{M}z_{ni}u_i+\sum_{i=M+1}^{D}b_iu_i
+\end{equation}
+其中$\{z_{ni}\}$依赖于特定的数据点，而$\{b_i\}$是常数，对于所有数据点都相同。我们可以任意选择$\{u_i\},\{z_{ni}\},\{b_i\}$，从而最小化由维度降低所引入的失真。作为失真的度量，我们使用原始数据点与它的近似点$\widetilde{x}_n$之间的平方距离，在数据集上取平均。因此我们的目标是最小化
+\begin{equation}
+	J=\frac{1}{N}\sum_{n=1}^{N}\Vert x_n -\widetilde{x}_n \Vert^2=\frac{1}{N}\sum_{n=1}^{N}\sum_{i=M+1}^{D}(x_n^Tu_i-\bar{x}^Tu_i)^2=\sum_{i=M+1}^{D}u_i^TSu_i
+\end{equation}
+剩下的任务是关于$\{u_i\}$对J进行最小化。同样利用拉格朗日乘子法能够得到 
+\begin{equation}
+	Su_i=\lambda_iu_i
+\end{equation}
+\subsection*{PCA的应用}
