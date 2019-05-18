@@ -1,1 +1,82 @@
 \section{提升方法}
+提升(boosting)方法是一种常用的统计学习方法，应用广泛且有效。在分类问题中，它通过改变训练样本的权重，学习多个分类器，并将这些分类器进行线性组合，提高分类的性能。
+
+提升方法基于这样一种思路：对于一个复杂任务来说，将多个专家的判断进行适当的综合所得出的判断，要比其中任何一个专家单独的判断好 。提升方法就是从弱学习算法出发，反复学习，得到一系列弱分类器(又称基本分类器)，然后组合这些弱分类器，构成一个强分类器。对提升方法来说，有两个问题需要回答：
+\begin{enumerate}
+	\item 在每一轮如何改变训练数据的权值或概率分布；
+	\item 如果将弱分类器组合成一个强分类器。
+\end{enumerate}
+AdaBoost的做法是，提高那些被前一轮弱分类器错误分类样本的权值，而降低那些被正确分类样本的权值。这样一来，那些没有得到正确分类的数据，由于其权值的加大而受到后一轮的弱分类器的更大关注。于是，分类问题被一系列的弱分类器“分而治之”。至于第2个问题，即弱分类器的组合，AdaBoost采取加权表决的方法。具体地，加大分类误差率小的弱分类器的权值，使其在表决中起较大作用，减小分类误差率大的弱分类器的权值，使其在表决中起较小的作用。AdaBoost的巧妙之外就在于它将这些想法自然且有效地实现在一种算法里。
+
+\subsection*{AdaBoost算法}
+输入：训练数据集$T=\{(x_1,y_1),(x_2,y_2),\dots,(x_N,y_N)\}$；弱学习算法；
+
+输出：最终分类器$G(x)$
+\begin{enumerate}[(1)]
+	\item 初始化训练数据的权值分布
+	\begin{equation}
+		D_1=(w_{11},\dots,w_{1i},\dots, w_{1N}),w_{1i}=\frac{1}{N},i=1,2,\dots,N
+	\end{equation}	
+	假设训练数据集具有均匀的权值分布，即每个训练样本在基本分类器的学习中作用相同，这一假设保证第1步能够在原始数据上学习基本分类器$G_1(x)$。
+	\item 对$m=1,2,\dots,M$
+	\begin{enumerate}[a.]
+		\item 使用具有权值分布$D_m$的训练数据集学习，得到基本分类器
+		\begin{equation}
+			G_m(x)X\to \{-1,+1\}
+		\end{equation}
+		\item 计算$G_m(x)$在训练数据集上的分类误差率
+		\begin{equation}
+			e_m=\sum_{i=1}^NP(G_m(x_i)\ne y_i) = \sum_{i=1}^Nw_{mi}I(G_m(x_i)\ne y_i)
+		\end{equation}
+		这表明，$G_m(x)$在加权的训练数据集上的分类误差率是被$G_m(x)$误分类样本的权值之和。
+		\item 计算$G_m(x)$的系数
+		\begin{equation}
+			a_m = \frac{1}{2}log\frac{1-e_m}{e_m}
+		\end{equation}
+		$a_m$表示$G_m(x)$在最终分类器中的重要性。
+		\begin{center}
+		\begin{tikzpicture}[xscale=2]
+			\draw[->] (0,0) -- (2,0) node [right] {$x$};
+			\draw[->] (0,-1) -- (0,2) node [left]{$y$};
+			\draw plot [domain=0.1:0.9]	(\x,{0.5*ln(1-\x)-0.5*ln(\x)});
+			\node at (0.5,0.3){$0.5$};
+		\end{tikzpicture}
+		\end{center}
+		由上图可知，当$e_m\leqslant \frac{1}{2}$时，$a_m\geqslant 0$，并且$a_m$随着$e_m$的减小而增大，所以\textbf{分类误差率越小的基本分类器在最终分类器中的作用越大}。
+		\item 更新训练数据集的权值分布
+		\begin{equation}
+		\label{hhh}
+			\begin{aligned}
+			D_{m+1}&=(w_{m+1,1},\dots,m_{m+1,i},\dots, w_{m+1,N})\\
+			w_{m+1,i} &= \frac{w_{mi}}{Z_m}exp(-a_my_iG_m(x_i)),i=1,2,\dots,N
+			\end{aligned}
+		\end{equation}
+		这里，$Z_m$是规范化因子
+		\begin{equation}
+		Z_m = \sum_{i=1}^N w_{mi}exp(-a_m y_iG_m(x_i))
+		\end{equation}
+		它使$D_{m+1}$成为一个概率分布。式$\ref{hhh}$可以写成
+		\begin{equation}
+			w_{m+1,i}=
+			\begin{cases}
+			\frac{w_{mi}}{Z_m}e^{-a_m},\qquad G_m(x_i)=y_i\\
+			\frac{w_{mi}}{Z_m}e^{a_m},\qquad G_m(x_i)\ne y_i
+			\end{cases}
+		\end{equation}
+		由此可知，\textbf{被基本分类器$G_m(x)$误分类样本的权值得以扩大，而被正确分类样本的权值却得以缩小}。因此，误分类样本在下一轮学习中起更大的作用。不改变所给的训练数据，而不断改变训练数据权值的分布，使得训练数据在基本分类器的学习中起不同的作用，这是AdaBoost的一个特点。
+	\end{enumerate}
+	\item 构建基本分类器的线性组合
+	\begin{equation}
+		f(x) = \sum_{m=1}^Ma_mG_m(x)
+	\end{equation}
+	得到最终分类器
+	\begin{equation}
+		G(x) = sign(f(x)) = sign\left( \sum_{m=1}^Ma_mG_m(x) \right)
+	\end{equation}
+	线性组合$f(x)$实现M个基本分类器的加权表决。系数$a_m$表示了基本分类器$G_m(x)$的重要性，这里，所有$a_m$之和并不为1.$f(x)$的符号决定实例$x$的类，$f(x)$的绝对值表示分类的确信度。利用基本分类器的线性组合构建最终分类器是AdaBoost的另一个特点。
+\end{enumerate}
+
+\subsection*{AdaBoost算法的训练误差分析}
+AdaBoost最基本的性质是它能在学习过程中不断减少训练误差，即在训练数据集上的分类误差率。
+\subsection*{AdaBoost算法的解释}
+AdaBoost算法还有另一个解释，即可以认为AdaBoost算法是模型为加法模型、损失函数为指数函数、学习算法为前向分步算法时的二类分类学习方法
