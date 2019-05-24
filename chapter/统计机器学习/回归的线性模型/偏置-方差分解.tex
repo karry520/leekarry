@@ -1,1 +1,48 @@
 \section{偏置-方差分解}
+目前为止，我们对于回归的线性模型的讨论中，我们假定了基函数的形式和数量都是固定的。如果使用有限规模的数据集来训练复杂的模型，那么使用最大似然法，或者等价地使用最小平方法，会导致严重的过拟合问题。正如前面所说，过拟合现象确实是最大似然方法的一个不好的性质。但是当我们在使用贝叶斯方法对参数进行求和或者积分时，过拟合现象不会出现。从贝叶斯观点讨论模型的复杂度之前，从频率学家的观点考虑一下模型的复杂度的问题——偏置-方差折中(bias-variance trade-off)。
+
+最优的预测由条件期望(记作$h(x)$)给出，即
+\begin{equation}
+	h(x)=\mathbb{E}[t|x]=\int tp(t|x)dt
+\end{equation}
+平方损失函数的期望可以写成
+\begin{equation}
+\label{llk}
+\begin{aligned}
+	\mathbb{E}[L]&=\iint \{y(x)-h(x)\}^2p(x,t)dxdt\\
+	&=\int \{y(x)-h(x) \}^2p(x)dx + \iint \{h(x)-t\}^2p(x,t)dxdt\\
+\end{aligned}
+\end{equation}
+考虑第一项的被积函数，对于一个特定的数据集$D$，它的形式为
+\begin{equation}
+	\{y(x;D)-h(x)\}^2
+\end{equation}
+由于这个量与特定的数据集$D$相关，因此我们对所有的数据集取平均。如果我们在括号内加上然后减去$\mathbb{E}_D[y(x;D)]$，然后展开，我们有
+\begin{equation}
+	\begin{aligned}
+		\{y(x;D)&-\mathbb{E}_D[y(x;D)]+\mathbb{E}_D[y(x;D)] -h(x) \}^2\\
+		&=\{y(x;D)-\mathbb{E}_D[y(x;D)]\}^2\\
+		&+\{\mathbb{E}_D[y(x;D)]-h(x) \}^2\\
+		&+ 2\{y(x;D)-\mathbb{E}_D[y(x;D)]\}\{\mathbb{E}_D[y(x;D)]-h(x) \}
+	\end{aligned}
+\end{equation}
+现在关于$D$求期望，然后注意到\textbf{最后一项等于零}，可得
+\begin{equation}
+\label{kk}
+\begin{aligned}
+	\mathbb{E}_D&[\{y(x;D)-h(x) \}^2]\\
+	&=\underbrace{\mathbb{E}_D[y(x;D)]-h(x)\}^2}_{(\text{偏置})^2}+\underbrace{\mathbb{E}_D[\{y(x;D)-\mathbb{E}_D[y(x;D)] \}^2]}_{\text{方差}}
+\end{aligned}
+\end{equation}
+将式$\ref{kk}$代入式$\ref{llk}$中，就得到了对于期望平方损失的分解
+\begin{equation}
+	\text{期望损失}=\text{偏置}^2+\text{方差}+\text{噪声}
+\end{equation}
+其中
+\begin{flalign}
+	\text{偏置}^2&=\int \{\mathbb{E}_D[y(x;D)]-h(x)\}^2p(x)dx\\
+	\text{方差}&=\int \mathbb{E}_D[\{y(x;D)-\mathbb{E}_D[y(x;D)] \}^2]p(x)dx\\
+	\text{噪声}&=\iint \{h(x)-t\}^2p(x,t)dxdt
+\end{flalign}
+
+我们的目标是最小化期望损失，它可以分解为(平方)偏置、方差和一个常数噪声项的和。对于非常灵活的模型来说，偏置较小，方差较大。对于相对固定的模型来说，偏置较大，方差较小。有着最优预测能力的模型是在偏置和方差之前取得最优的平衡的模型。

@@ -1,0 +1,20 @@
+\begin{center}
+	\begin{tikzpicture}[yscale=1.2]
+		\node(1) at (-4,0) {$\text{概率图模型}$};
+		\node(2) at (1,2) {$\text{贝叶斯网络}$};
+		\node(3) at (1,0) {$\text{高斯网络}$};
+		\node(4) at (1,-2) {$\text{马尔可夫网络}$};
+		\node(5) at (5,1) {$\text{高斯贝叶斯网络}$};
+		\node(6) at (5,-1) {$\text{高斯马尔可夫网络}$};
+		
+		\draw[->] (1) node[above,xshift=2.5cm,yshift=1.3cm] {$\text{离散/有向}$}-- (2);
+		
+		\draw[->] (1) node[above,xshift=2.5cm,yshift=0cm] {$\text{连续}$}-- (3);
+		
+		\draw[->] (1) node[above,xshift=2.5cm,yshift=-1.8cm] {$\text{离散/无向}$}-- (4);
+		
+		\draw[->] (3) node[above,xshift=1.5cm,yshift=0.5cm] {$\text{有向}$}-- (5);
+		
+		\draw[->] (3) node[above,xshift=1.5cm,yshift=-1.2cm] {$\text{无向}$}-- (6);
+	\end{tikzpicture}
+\end{center}

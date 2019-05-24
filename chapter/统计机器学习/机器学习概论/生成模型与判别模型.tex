@@ -12,3 +12,29 @@
 生成方法的特点：生成方法可以还原出联合概率分布P(X|Y)，而判别方法则不能；生成方法的学习收敛速度更快，即当样本容量增加的时候，学到的模型可以更快地收敛于真实模型；当存在隐变量时，仍可以用生成方法学习，此时判别方法就不能用。
 
 判别方法的特点：判别方法直接学习的是条件概率P(Y|X)或决策函数$f(X)$，直接面对预测，往往学习的准确率更高；由于直接学习P(Y|X)或$f(X)$，可以对数据进行各种程度上的抽象、定义特征并使用特征，因此可以简化学习问题。
+
+\section{频率学派和贝叶斯学派的参数估计}
+\subsection*{频率学派与贝叶斯学派的区别}
+简单地说，频率学派与贝叶斯学派探讨\textbf{不确定性}这件事的出发点与立足点同。频率学派从"自然"角度出发，试图直接为"事件"本身建模，即事件A在独立重复试验中发生的频率趋于极限p，那么这个极限就是该事件发生的概率。贝叶斯学派并不从试图刻画"事件"本身，而从"观察者"角度出发。贝叶斯学派并不试图说"事件本身是随机的"，或者"世界的本体带有某种随机性"，而只是从"观察者知识不完备"这一出发点开始，构造一套在贝叶斯概率论的框架下可以对不确定知识做出推断的方法。体现在参数估计中，频率学派认为参数是客观存在，不会改变，虽然未知，但却是固定值；贝叶斯学派则认为参数是随机值，因此参数也可以有分布。
+\subsection*{频率学派的参数估计}
+极大似然估计(Maximum Likelihood Estimate,MLE)，也叫最大似然估计。若总体$X$属离散型(连续型与此类似)，其分布律$P\{X=x\}=p(x;\theta),\theta\in \Theta$的形式为已知，$\theta$为待估参数，$\Theta$是$\theta$的取值范围，设$X_1,X_2,\dots,X_n$是来自$X$的样本，则$X_1,X_2,\dots,X_n$的联合概率分布为
+\begin{equation}
+	\prod_{i=1}^{n}p(x;\theta)
+\end{equation}
+设$x_1,x_2,\dots,x_n$是相应的样本值，则
+\begin{equation}
+	L(\theta)=L(x_1,x_2,\dots,x_n;\hat{\theta})=\mathop{argmax}\limits_{\theta\in\Theta}\prod_{i=1}^{n}p(x;\theta)
+\end{equation}
+\subsection*{贝叶斯学派的参数估计}
+最大后验估计(Maximum a Posteriori estimation,MAP)，它与极大似然估计最大的区别就是，它考虑了参数本身的分布，也就是先验分布。最大后验估计是根据经验数据获得对难以观察的量的点估计。可以看作规则化的最大似然估计。假设$x$为独立同分布的采样，$\theta$为模型参数，$p$为我们所使用的模型。那么最大似然估计可以表示为
+\begin{equation}
+	\hat{\theta}_{MLE}(x)=\mathop{argmax}\limits_\theta p(x|\theta)
+\end{equation}
+现在，假设$\theta$的先验分布为$g$。通过贝叶斯理论，对于$\theta$的后验分布如下式所示：
+\begin{equation}
+	p(\theta|x)=\frac{p(x|\theta)g(\theta)}{\int_{\theta \in \Theta}p(x|\theta^{'})g(\theta^{'})d\theta^{'}}
+\end{equation}
+分母为$x$的边缘概率与$\theta$无关，因此最大后验等价于使分子最大，故目标函数为
+\begin{equation}
+	\hat{\theta}_{MAP}(x)=\mathop{argmax}\limits_\theta p(x|\theta)g(\theta)
+\end{equation}
