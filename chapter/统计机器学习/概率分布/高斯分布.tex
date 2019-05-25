@@ -21,6 +21,7 @@
 	UU^T&=U^TU=I\\
 	\Lambda&=diag(\lambda_i)\\ U&=(u_1,u_2,\dots,u_p)_{p\times p}
 \end{flalign}
+
 考虑高斯分布的几何形式。高斯对于$\boldsymbol{x}$的依赖是通过下面形式的二次型
 \begin{equation}
 	\triangle^2=(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu})
@@ -77,21 +78,27 @@ $\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离�
 	\draw[->] (4,0) -- (0,4) node[right]{$u_2$};
 \end{tikzpicture}
 \end{center}
+高斯分布的均值和方差为
+\begin{flalign}
+	\mathbb{E}[\boldsymbol{x}]&=\boldsymbol{\mu}\\
+	var[\boldsymbol{x}]&=\Sigma
+\end{flalign}
 
-下面考虑高斯分布的期望和方差
-\begin{theorem}{}{}
-	已知$x\sim \mathcal{N}(\boldsymbol{\mu},\Sigma),Y=AX+B$有如下结论：
-	\begin{enumerate}
-		\item $\mathbb{E}[Y]=A\mu+B$
-		\item $var[Y]=A\cdot \Sigma \cdot A^T$
-	\end{enumerate}
-\end{theorem}
-将矩阵进行分块，有
+虽然高斯分布被广泛用作概率密度模型，但是它有着一些巨大的局限性.
+\begin{enumerate}
+	\item 自由参数的数量。可以进一步地把协方差矩阵限制成正比于单位矩阵，$\Sigma=\sigma^2I$，被称为各向同性isotropic的协方差。尽管这样的方法限制了概率分布的自由度的数量，并且使得求协方差矩阵的逆矩阵可以更快地完成，但是这样做也极大地限制了概率密度的形式，限制了它描述模型中有趣的相关性的能力。
+	\item 单峰。因此不能够很好地近似多峰分布。
+\end{enumerate}
+高斯分布一方面相当灵活，因为它有很多参数。另一方面，它又有很大的局限性，因为它不能够近似很多分布。引入潜在变量(latent variable)也被称为隐藏变量(hidden variable)或者未观察变量(unobserved variable)，会让这两个问题都得到解决。
+\subsection*{条件高斯分布}
+多元高斯分布的一个重要性质是，如果两组变量是联合高斯分布，那么以一组变量为条件，另一组变量同样是高斯分布，类似地，任何一个变量的边缘分布也是高斯分布。
+
+首先考虑条件概率的情形，假设$\boldsymbol{x}$是一个服从高斯分布$\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu},\Sigma)$的D维向量。我们把$\boldsymbol{x}$划分成两个不相交的子集$x_a,x_b$。不失一般性，我们可令$x_a$为$\boldsymbol{x}$的前$M$个分量，令$x_b$为剩余的$D-M$个分量，因此
 \begin{flalign}
 	\boldsymbol{x}&=
 	\begin{pmatrix}
-		x_a(\text{m维})\\x_b(\text{n维})
-	\end{pmatrix},m+n=p\\
+		x_a\\x_b
+	\end{pmatrix}\\
 	\boldsymbol{\mu}&=
 	\begin{pmatrix}
 		\mu_a\\\mu_b
@@ -102,3 +109,145 @@ $\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离�
 		\Sigma_{ba}&\Sigma_{bb}
 	\end{pmatrix}\\
 \end{flalign}
+注意，协方差矩阵的对称性$\Sigma^T=\Sigma$表明$\Sigma_{aa}$和$\Sigma_{bb}$也是对称的，而$\Sigma_{ab}^T=\Sigma_{ba}$。
+\begin{theorem}{}{}
+	已知$x\sim \mathcal{N}(\boldsymbol{\mu},\Sigma),Y=AX+B$有如下结论：
+	\begin{enumerate}
+		\item $\mathbb{E}[Y]=A\mu+B$
+		\item $var[Y]=A\cdot \Sigma \cdot A^T$
+	\end{enumerate}
+\end{theorem}
+$x_a$可以表示为
+\begin{equation}
+	x_a=\underbrace{(I_m\ o)}_{A}
+	\underbrace{
+	\begin{pmatrix}
+		x_a\\x_b
+	\end{pmatrix}}_{x}
+\end{equation}
+\begin{flalign}
+	\mathbb{E}[x_a]&=(I_m\ o)(\mu_a\ \mu_b)^T=\mu_a\\
+	var[x_a]&=(I_m\ o)
+	\begin{pmatrix}
+		\Sigma_{aa} & \Sigma_{ab}\\
+		\Sigma_{ba} & \Sigma_{bb}
+	\end{pmatrix}
+	\begin{pmatrix}
+		I_m\\o
+	\end{pmatrix}=\Sigma_{aa}\\
+	x_a&\sim \mathcal{N}(\mu_a,\Sigma_{aa})
+\end{flalign}
+同理
+\begin{flalign}
+	\mathbb{E}[x_b]&=\mu_b\\
+	var[x_b]&=\Sigma_{bb}\\
+	x_b&\sim \mathcal{N}(\mu_b,\Sigma_{bb})
+\end{flalign}
+构造
+\begin{flalign}
+	x_{b|a}&=x_b-\Sigma_{ba}\Sigma_{aa}^{-1}x_a\\
+	\mu_{b| a}&=\mu_b-\Sigma_{ba}\Sigma_{aa}^{-1}\mu_a\\
+	\Sigma_{bb| a}&=\Sigma_{bb}-\Sigma_{ba}\Sigma_{aa}^{-1}\Sigma_{ab}
+\end{flalign}
+\begin{equation}
+	x_{b| a}=\underbrace{(-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n)}_{A}
+	\underbrace{
+	\begin{pmatrix}
+		x_a \\x_b
+	\end{pmatrix}}_{x}
+\end{equation}
+$x_{b| a}$的分布为
+\begin{flalign}
+	\mathbb{E}[x_{b| a}]&=(-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n)| 
+	\begin{pmatrix}
+		\mu_a\\\mu_b
+	\end{pmatrix}=\mu_{b| a}\\
+	var[x_{b| a}]&=(-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n)
+	\begin{pmatrix}
+		\Sigma_{aa} & \Sigma_{ab}\\
+		\Sigma_{ba} & \Sigma_{bb}
+	\end{pmatrix}
+		\begin{pmatrix}
+	-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n\\
+	I
+	\end{pmatrix}=\Sigma_{bb| a}\\
+	p(x_{b| a})&\sim \mathcal{N}(\mu_{b| a},\Sigma_{bb| a})
+\end{flalign}
+因为
+\begin{equation}
+	x_b=x_{b| a}+\Sigma_{ba}\Sigma_{aa}^{-1}x_a
+\end{equation}
+所以
+\begin{flalign}
+	\mathbb{E}[x_b|x_a]&=\mu_{b| a}+\Sigma_{ba}\Sigma_{aa}^{-1}x_a\\
+	var[x_b|x_a]&=var[x_{b| a}]=\Sigma_{bb| a}\\
+	p(x_b|x_a)&\sim \mathcal{N}(\mu_{b| a},\Sigma_{bb| a})
+\end{flalign}
+\subsection*{高斯变量的贝叶斯定理}
+令边缘概率分布和条件概率分布的形式如下
+\begin{flalign}
+	p(\boldsymbol{x})&=\mathcal{N}(\boldsymbol{x}|\mu,\Lambda^{-1})\\
+	p(\boldsymbol{y}|\boldsymbol{x})&=\mathcal{N}(\boldsymbol{y}|\boldsymbol{Ax}+b,\boldsymbol{L}^{-1})
+\end{flalign}
+其中，$\mu,A$和$b$是控制均值的参数，$\Lambda$和$L$是精度矩阵。如果$x$的维度为M，$y$的维度为D，那么矩阵$A$的大小为$D\times M$。
+\begin{enumerate}
+	\item 求$p(y)$。
+	
+	\begin{flalign}
+		y&=Ax+b+\epsilon,\quad \epsilon\sim \mathcal{N}(0,L^{-1})\\
+		\mathbb{E}[y]&=\mathbb{E}(Ax+b)+\mathbb{E}(\epsilon)=A\mu+b\\
+		var[y]&=var[Ax+b+\epsilon]=A\Lambda^{-1}A^T+L^{-1}\\
+		y&\sim\mathcal{N}(A\mu+b,A\Lambda^{-1}A^T+L^{-1})
+	\end{flalign}
+	\item 求$p(x|y)$。
+	
+	定义
+	\begin{equation}
+		z=\begin{pmatrix}x\\y\end{pmatrix}
+	\end{equation}
+	\begin{flalign}
+		z\sim \mathcal{N}\left(
+		\begin{bmatrix}
+			\mu\\A\mu+b
+		\end{bmatrix},
+		\begin{bmatrix}
+			\Lambda^{-1}&\triangle\\
+			\triangle^T&A\Lambda^{-1}A^T+L^{-1}
+		\end{bmatrix}
+		\right)
+	\end{flalign}
+	其中
+	\begin{equation}
+	\begin{aligned}
+		\triangle&=Cov(x,y)\\
+		&=E[(x-E(x))\cdot(y-E(y))^T] \\
+		&=E[(x-\mu)(y-A\mu-b)^T]\\
+		&=E[(x-\mu)(Ax+b+\epsilon-A\mu-b)^T]\\
+		&=E[(x-\mu)(Ax-A\mu)^T+(x-\mu)\epsilon^T]\\
+		&=E[(x-\mu)(Ax-A\mu)^T]+E[(x-\mu)\epsilon^T]\\
+		&=E[(x-\mu)(Ax-A\mu)^T]\\
+		&=E[(x-\mu)(x-\mu)^T]\cdot A^T\\
+		&=var[x]\cdot A^T\\
+		&=\Lambda^{-1}A^T
+	\end{aligned}
+	\end{equation}
+	所以
+	\begin{flalign}
+		\mathbb{E}[x|y]&=(\Lambda+A^TLA)^{-1}\{A^TL(y-b)+\Lambda\mu \}\\
+		cov[x|y]&=(\Lambda+A^TLA)^{-1}
+	\end{flalign}
+\end{enumerate}
+
+\subsection*{高斯分布的最大似然估计}
+给定一个数据集$X=(x_1,x_2,\dots,x_N)^T$，其中观测$\{x_n\}$假定是独立地从多元高斯分布中抽取的。我们可以使用最大似然法估计分布的参数。
+\begin{flalign}
+	\mu_{ML}&=\frac{1}{N}\sum_{n=1}^{N}x_n\\
+	\Sigma_{ML}&=\frac{1}{N}\sum_{n=1}^{N}(x_n-\mu_{ML})(x_n-\mu_{ML})^T\\
+	\mathbb{E}[\mu_{ML}]&=\mu\\
+	\mathbb{E}[\Sigma_{ML}]&=\frac{N-1}{N}\Sigma
+\end{flalign}
+\subsection*{顺序估计}
+\subsection*{高斯分布的贝叶斯推断}
+\subsection*{学生t分布}
+\subsection*{周期变量}
+\subsection*{混合高斯模型}
