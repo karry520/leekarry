@@ -1,1 +1,72 @@
 \section{多项式变量}
+二元变量可以用来描述只能取两种可能值中的某一种这样的量。然而，经常会遇到可以取K个互斥状态中的某一种的离散变量。一种比较方便的表示方法是“1-of-K”表示法。例如，如果我们有一个能够取K=6种状态的变量，这个变量的某次特定的观测恰好对应于$x_3=1$的状态，那么$x$就可以表示为
+\begin{equation}
+	\boldsymbol{x}=(0,0,1,0,0,0)^T
+\end{equation}
+这样的向量满足$\sum_{k=1}^{K}x_k=1$。如果我们用参数$\mu_k$表示$x_k=1$的概率，那么$x$的分布就是
+\begin{equation}
+	p(\boldsymbol{x}|\boldsymbol{\mu})=p(x_1,x_2,\dots,x_K|\mu_1,\dots,\mu_K)=\prod_{k=1}^{K}\mu_k^{x_k}
+\end{equation}
+参数$\mu_k$要满足$\mu_k\geqslant 0,\sum_{k}\mu_k=1$。易知
+\begin{equation}
+	\mathbb{E}[\boldsymbol{x}|\boldsymbol{\mu}]=\sum_{\boldsymbol{x}}p(\boldsymbol{x}|\mu)\boldsymbol{x}=(\mu_1,\mu_2,\dots,\mu_K)^T=\boldsymbol{\mu}
+\end{equation}
+现在考虑一个有N个独立观测值$x_1,x_2,\dots,x_N$的数据集D。对应的似然函数的形式为
+\begin{equation}
+	p(D|\mu)=\prod_{n=1}^{N}\prod_{k=1}^{K}\mu_k^{x_{nk}}=\prod_{k=1}^{K}\mu_k^{(\sum_nx_{nk})}=\prod_{k=1}^{K}\mu_k^{m_k}
+\end{equation}
+其中
+\begin{equation}
+	m_k=\sum_nx_{nk}
+\end{equation}
+表示观测到$x_k=1$的次数。这被称为这个分布的充分统计量。
+为了找到$\boldsymbol{\mu}$的最大似然解，需要关于$\mu_k$最大化$\ln p(D|\boldsymbol{\mu})$，通过拉格朗日乘数$\lambda$实现。
+\begin{equation}
+	\mu_k^{ML}=\frac{m_k}{N}
+\end{equation}
+
+我们可以考虑$m_1,m_2,\dots,m_K$在参数$\mu$和观测总数$N$条件下的联合分布。这个分布的形式为
+\begin{equation}
+	Mult(m_1,m_2,\dots,m_k|\boldsymbol{\mu},N)=
+	\begin{pmatrix}
+		N\\m_1m_2\dots m_K
+	\end{pmatrix}
+	\prod_{k=1}^{K}\mu_k^{m_k}
+\end{equation}
+这被称为多项式分布(multinomial distribution)。归一化系数是把$N$个物体分成大小为$m_1,m_2,\dots,m_K$的K组的方案总数，定义为
+\begin{equation}
+	\begin{pmatrix}
+	N\\m1m2\dots m_K
+	\end{pmatrix}
+	=\frac{N!}{m_1!m_2!\dots m_K!}
+\end{equation}
+注意，$m_k$满足下面的限制 
+\begin{equation}
+	\sum_{k=1}^{K}m_k=N
+\end{equation}
+
+\subsection*{狄利克雷分布}
+现在介绍多项式分布的参数$\{\mu_k\}$的一组先验分布。通过观察多项式分布的形式，我们看到，共轭先验为
+\begin{equation}
+	p(\boldsymbol{\mu}|\alpha) \propto \prod_{k=1}^{K}\mu_k^{\alpha_k-1}
+\end{equation}
+其中$0\leqslant \mu_k \leqslant 1$且$\sum_k\mu_k=1$。这里，$\alpha_1,\alpha_2,\dots,\alpha_K$是分布的参数，$\boldsymbol{\alpha}$表示$(\alpha_1,\alpha_2,\dots,\alpha_K)^T$。概率的归一化形式为
+\begin{equation}
+	Dir(\boldsymbol{\mu}|\boldsymbol{\alpha})=\frac{\Gamma(\alpha_0)}{\Gamma(\alpha_1)\dots\Gamma(\alpha_K)}\prod_{k=1}^{K}\mu_k^{\alpha_k-1}
+\end{equation}
+这被称为狄利克雷分布(Dirichlet distribution)。
+\begin{equation}
+	\alpha_0=\sum_{k=1}^{K}\alpha_k
+\end{equation}
+
+用似然函数乘以先验，我们得到了参数$\{\mu_k\}$的后验分布，形式为
+\begin{equation}
+	p(\boldsymbol{\mu}|D,\boldsymbol{\alpha})\propto p(D|\boldsymbol{\mu})p(\boldsymbol{\mu}|\boldsymbol{\alpha}) \propto \prod_{k=1}^{K}\mu_k^{\alpha_k+m_k-1}
+\end{equation}
+我们看到后验分布的形式又变成了狄利克雷分布。确定归一化系数后变成
+\begin{equation}
+	p(\boldsymbol{\mu}|D,\boldsymbol{\alpha})=Dir(\boldsymbol{\mu}|\boldsymbol{\alpha}+\boldsymbol{m})
+\end{equation}
+
+
+

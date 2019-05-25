@@ -1,1 +1,104 @@
 \section{高斯分布}
+高斯分布，也被称为正态分布，广泛应用于连续型随机变量分布的模型中。对于一元变量$x$的情形，
+\begin{equation}
+	\mathcal{N}(x|\mu,\sigma^2)=\frac{1}{(2\pi \sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}
+\end{equation}
+其中$\mu$是均值，$\sigma^2$是方差。
+\begin{flalign}
+	\mu_{ML}&=\frac{1}{N}\sum_{i=1}^{N}x_i\qquad \text{无偏}\\
+	\sigma^2_{ML}&=\frac{1}{N}\sum_{i=1}^{N}(x_i-\mu_{ML})^2\qquad \text{有偏}\\
+	\mathbb{E}[\sigma_{ML}^2]&=\frac{N-1}{N}\sigma^2\\
+	\hat{\sigma}^2&=\frac{1}{N-1}\sum_{i=1}^{N}(x_i-\mu_{ML})^2\qquad \text{无偏}	
+\end{flalign}
+
+对于D维向量$\boldsymbol{x}$，多元高斯分布的形式为
+\begin{equation}
+	\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu},\Sigma)=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) \right\}
+\end{equation}
+其中，$\mu$是一个D维均值向量，$\Sigma$是一个$D\times D$的协方差矩阵，$|\Sigma|$是$\Sigma$的行列式。对$\Sigma$进行正交分解。
+\begin{flalign}
+	\Sigma&=U\Lambda U^T\\
+	UU^T&=U^TU=I\\
+	\Lambda&=diag(\lambda_i)\\ U&=(u_1,u_2,\dots,u_p)_{p\times p}
+\end{flalign}
+考虑高斯分布的几何形式。高斯对于$\boldsymbol{x}$的依赖是通过下面形式的二次型
+\begin{equation}
+	\triangle^2=(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu})
+\end{equation}
+$\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离。协方差矩阵$\Sigma$可以表示成特征向量的展开的形式
+\begin{equation}
+	\begin{aligned}
+	\Sigma&=U\Lambda U^T\\
+	&=(u_1\ u_2\ \dots \ u_p)
+	\begin{pmatrix}
+		\lambda_1& \dots    & 0 \\
+		\vdots   & \lambda_i&\vdots\\
+		0        & \dots    &\lambda_p
+	\end{pmatrix}
+	\begin{pmatrix}
+		u_1^T\\\vdots\\u_P^T
+	\end{pmatrix}\\
+	&=(u_1\lambda_1\ \dots \ u_p\lambda_p)
+	\begin{pmatrix}
+		u_1^T\\\vdots\\u_P^T
+	\end{pmatrix}\\
+	&=\sum_{i=1}^{P}u_i\lambda_i u_i^T
+	\end{aligned}
+\end{equation}
+于是
+\begin{equation}
+\begin{aligned}
+	\Sigma^{-1}&=(U\Lambda U^T)^{-1}=U\Lambda^{-1}U^T\\
+	&=\sum_{i=1}^{P}u_i\frac{1}{\lambda_i}u_i^T
+\end{aligned}
+\end{equation}
+马氏距离就可以表示为
+\begin{equation}
+	\begin{aligned}
+		\triangle^2&=(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\\
+		&=\sum_{i=1}^{P}\underbrace{(\boldsymbol{x}-\boldsymbol{\mu})^Tu_i}_{y_i}\frac{1}{\lambda_i}\underbrace{u_i^T(\boldsymbol{x}-\boldsymbol{\mu})}_{y_i^T}
+		&=\sum_{i=1}^{P}\frac{y_i^2}{\lambda_i}
+	\end{aligned}
+\end{equation}
+其中
+\begin{equation}
+	y_i=(\boldsymbol{x}-\boldsymbol{\mu})^Tu_i
+\end{equation}
+可以把$\{y_i\}$表示成单位正交向量$u_i$关于原始的$x_i$坐标经过平移和旋转后形成的新的坐标系。
+\begin{center}
+\begin{tikzpicture}
+	\draw[->] (0,0) -- (6,0) node[right]{$x_1$};
+	\draw[->] (0,0) -- (0,5) node[left]{$x_2$};
+	\draw (0,0) node[below left] {$0$};
+	
+	\draw[red,rotate around={45:(2,2)}] (2,2) ellipse [x radius=2cm, y radius=1cm];
+	
+	\draw[->] (0,0) -- (4,4) node[right]{$u_1$};
+	\draw[->] (4,0) -- (0,4) node[right]{$u_2$};
+\end{tikzpicture}
+\end{center}
+
+下面考虑高斯分布的期望和方差
+\begin{theorem}{}{}
+	已知$x\sim \mathcal{N}(\boldsymbol{\mu},\Sigma),Y=AX+B$有如下结论：
+	\begin{enumerate}
+		\item $\mathbb{E}[Y]=A\mu+B$
+		\item $var[Y]=A\cdot \Sigma \cdot A^T$
+	\end{enumerate}
+\end{theorem}
+将矩阵进行分块，有
+\begin{flalign}
+	\boldsymbol{x}&=
+	\begin{pmatrix}
+		x_a(\text{m维})\\x_b(\text{n维})
+	\end{pmatrix},m+n=p\\
+	\boldsymbol{\mu}&=
+	\begin{pmatrix}
+		\mu_a\\\mu_b
+	\end{pmatrix}\\
+	\Sigma&=
+	\begin{pmatrix}
+		\Sigma_{aa}&\Sigma_{ab}\\
+		\Sigma_{ba}&\Sigma_{bb}
+	\end{pmatrix}\\
+\end{flalign}
