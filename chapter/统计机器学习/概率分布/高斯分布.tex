@@ -247,7 +247,48 @@ $x_{b| a}$的分布为
 	\mathbb{E}[\Sigma_{ML}]&=\frac{N-1}{N}\Sigma
 \end{flalign}
 \subsection*{顺序估计}
+顺序的方法允许每次处理一个数据点，然后丢弃这个点。这对于在线应用很重要。并且当数据集相当大以至于一次处理所有数据点不可行的情况下，顺序方法也很重要。对于高斯分布
+\begin{equation}
+	\begin{aligned}
+		\mu_{ML}^{(N)}&=\frac{1}{N}\sum_{n=1}^{N}x_n\\
+		&=\frac{1}{N}x_N+\frac{1}{N}\sum_{n=1}^{N-1}x_n\\
+		&=\mu_{ML}^{(N-1)}+\frac{1}{N}(x_N-\mu_{ML}^{(N-1)})
+	\end{aligned}
+\end{equation}
+随着N的增加，后续数据点的贡献也会逐渐变小。我们不能总是能够使用这种方法推导出一个顺序的算法。因此我们要寻找一个更加通用的顺序学习的方法，这就引出了Robbins-Monro算法。考虑一对随机变量$\theta$和$z$，它们由一个联合概率分布$p(z,\theta)$所控制。已知$\theta$的条件下，z的条件期望定义了一个确定的函数$f(\theta)$，形式如下
+\begin{equation}
+	f(\theta)\equiv \mathbb{E}[z|\theta]=\int zp(z|\theta)dz
+\end{equation}
+通过这种方式定义的函数被称为回归函数(regression function)。我们的目标是寻找根$\theta^*$使得$f(\theta^*)=0$。如果我们有观测$z$和$\theta$的一个大数据集，那么我们可以直接对回归函数建模，得到根的一个估计。但是假设我们每次观测到一个$z$的值，我们想找到一个对应的顺序估计方法来找到$\theta^*$。下面的解决这种问题的通用步骤由Robbins and Monro给出。我们假设$z$的条件方差是有穷的，因此 
+\begin{equation}
+	\mathbb{E}[(z-f)^2|\theta]<\infty
+\end{equation}
+不失一般性，假设当$\theta>\theta^*$时$f(\theta)>0$，当$\theta <\theta^*$时$f(\theta^*)<0$。下式定义了一个根$\theta^*$的顺序估计的序列
+\begin{equation}
+	\theta^{(N)}=\theta^{(N-1)}-\alpha_{N-1}z(\theta^{(N-1)})
+\end{equation}
+$z(\theta^{(N)})$是当$\theta$的取值为$\theta^{(N)}$时$z$的观测值。系数$\{\alpha_{N}\}$表示一个满足下列条件的正数序列
+\begin{flalign}
+	\lim\limits_{N\to \infty}\alpha_{N}&=0\\
+	\sum_{N=1}^{\infty}\alpha_{N}&=\infty\\
+	\sum_{N=1}^{\infty}\alpha_{N}^2&<\infty
+\end{flalign}
+可以证明由公式给出的顺序估计确实以概率1收敛于根。第一个条件确保了后续的修正幅度会逐渐变小，从而这个过程可以收敛于一个极限值。第二个条件用来确保算法不会收敛不到根的值。第三个条件保证了累计的噪声具有一个有限的方差，因此不会导致收敛失败。
 \subsection*{高斯分布的贝叶斯推断}
+现在我们通过引入高斯分布中的参数的先验分布，介绍一种贝叶斯的方法。
+\begin{enumerate}
+	\item $\sigma^2$已知，估计$\mu$。
+	\item $\mu$已知，估计$\sigma^2$。
+	\item $\mu$和$\sigma_{2}$都未知。
+\end{enumerate}
 \subsection*{学生t分布}
 \subsection*{周期变量}
 \subsection*{混合高斯模型}
+虽然高斯分布有一些重要的分析性质，但是当它遇到实际数据集时，也会有巨大的局限性。通过将更基本的概率分布进行线性组合的这样的叠加方法，可以被形式化为概率模型，被称为混合模型(mixture distributions)。通过使用足够多的高斯分布，并且调节它们的均值和方差以及线性组合的系数，几乎所有的连续概率密度都能够以任意的精度近似。考虑K个高斯概率密度的叠加，形式为
+\begin{equation}
+	p(x)=\sum_{k=1}^{K}\pi_k\mathcal{N}(x|\mu_k,\Sigma_k)
+\end{equation}
+这被称为混合高斯(mixture of Gaussians)。其中
+\begin{equation}
+	\sum_{k=1}^{K}\pi_k=1,\ 0\leqslant \pi_k \leqslant 1
+\end{equation}
