@@ -1,2 +1,92 @@
 \section{指数族分布}
-指数族分布的成员有许多共同的重要性质，并且以某种程度的一般性下讨论这些性质是很有启发性的。
+指数族分布的成员有许多共同的重要性质，并且以某种程度的一般性下讨论这些性质是很有启发性的。参数为$\eta$的变量$x$的指数族分布定义为具有下面形式的概率分布的集合
+\begin{equation}
+\label{fa}
+	p(x|\eta)=h(x)g(\eta)exp\{\eta^Tu(x)\}
+\end{equation}
+其中$x$可能是标量或者向量，可能是离散的或者是连续的。这里$\eta$被称为概率分布的自然参数(natural parameters)，$u(x)$是$x$的某个函数。函数$g(\eta)$可以被看成系数，它确保了概率分布是归一化的，因此满足
+\begin{equation}
+	\int p(x|\eta)dx =1
+\end{equation}
+下面看一些例子
+\begin{enumerate}
+	\item 伯努利分布
+	
+	\begin{equation}
+		\begin{aligned}
+			p(x|\mu)&=Bern(x|\mu)=\mu^x(1-\mu)^{1-x}\\
+			&=exp\{x\ln \mu +(1-x)\ln (1-\mu) \}\\
+			&=(1-\mu)exp\left\{\ln\left(\frac{\mu}{1-\mu} \right)x \right\}
+		\end{aligned}
+	\end{equation}
+	与公式$\ref{fa}$比较，可以看出
+	\begin{equation}
+		\eta=\ln \left(\frac{\mu}{1-\mu}\right)
+	\end{equation}
+	从中可以解出$\eta$，得到$\mu=\sigma(\eta)$，其中
+	\begin{equation}
+		\sigma(\eta)=\frac{1}{1+exp(-\eta)}
+	\end{equation}
+	被称为logistic sigmoid函数。因此可以使用公式$\ref{fa}$给出的标准形式把伯努利分布写成下面的形式
+	\begin{equation}
+		p(x|\mu)=\sigma(-\eta)exp(\eta x)
+	\end{equation}
+	\item 单一观测$x$的多项式分布
+	
+	\begin{equation}
+	\begin{aligned}
+		p(x|\mu)&=\prod_{k=1}^{M}\mu_k^{x_k}=exp\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
+		\mu(x)&=x\\
+		h(x)&=1\\
+		g(\eta)&=1
+	\end{aligned}
+	\end{equation}
+	注意参数$\eta_k$不是相互独立的，因为参数$\mu_k$要满足下面的限制
+	\begin{equation}
+		\sum_{k=1}^{M}\mu_k=1
+	\end{equation}
+	因此给定任意M-1个参数$\mu_k$，剩下的参数就固定了。使用这个限制，这种表达方式下多项式分布变成了
+	\begin{equation}
+		\begin{aligned}
+			exp&\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
+			&=exp\left\{\sum_{k=1}^{M-1}x_k\ln \mu_k +\left(1-\sum_{k=1}^{M-1}x_k \right)\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right)\right\}\\
+			&=exp\left\{\sum_{k=1}^{M-1}x_k\ln \left(\frac{\mu_k}{1-\sum_{j=1}^{M-1}\mu_k} \right)+\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right) \right\}
+		\end{aligned}
+	\end{equation}
+	令
+	\begin{equation}
+		\ln \left(\frac{\mu_k}{1-\sum_{j}\mu_j}\right)=\eta_k
+	\end{equation}
+	从中我们可以解出$\mu_k$。首先两侧对k求和，然后整理，回带，可得
+	\begin{equation}
+		\mu_k=\frac{exp(\eta_k)}{1+\sum_{j}exp(\eta_j)}
+	\end{equation}
+	这被称为softmax函数，或者归一化指数(normalized exponential)。在这个表达方式的形式下，多项式分布的形式为
+	\begin{equation}
+		p(x|\eta)=\left(1+\sum_{k=1}^{M-1}exp(\mu_k)\right)^{-1}exp(\mu^Tx)
+	\end{equation}
+	这是指数族分布的标准形式，其中参数向量$\eta=(\eta_1,\dots,\eta_{M-1},0)^T$。在这个指数族分布中
+	\begin{flalign}
+		\mu(x)&=x\\
+		h(x)&=1\\
+		g(\eta)&=\left(1+\sum_{k=1}^{M-1}exp(\eta_k)\right)^{-1}
+	\end{flalign}
+	\item 高斯分布
+	\begin{equation}
+		\begin{aligned}
+		p(x|\mu,\sigma^2)&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}\\
+		&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}x^2+\frac{\mu}{\sigma^2}x-\frac{1}{2\sigma^2}\mu^2 \right\}\\
+		\end{aligned}
+	\end{equation}
+	经过简单的推导后，它可以转化为公式$\ref{fa}$给出的标准指数族分布的形式，其中
+	\begin{flalign}
+		\eta&=\begin{pmatrix}
+		\frac{\mu}{\sigma^2}\\\frac{-1}{2\sigma^2}
+		\end{pmatrix}\\
+		\mu(x)&=\begin{pmatrix}
+		x\\x^2
+		\end{pmatrix}\\
+		h(x)&=(2\pi)^{\frac{1}{2}}\\
+		g(\eta)&=(-2\eta_2)^{\frac{1}{2}}exp\left(\frac{\eta_1^2}{4\eta_2^2}\right)
+	\end{flalign}
+\end{enumerate}
