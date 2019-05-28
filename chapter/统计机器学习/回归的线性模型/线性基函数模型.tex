@@ -20,7 +20,106 @@ $$
 	\item 傅里叶基函数
 \end{enumerate}
 \subsection*{最大似然与最小平方}
+最小化平方和误差函数可以看成高斯噪声模型的假设下的最大似然解。
+假设目标变量$t$由确定的函数$y(x,w)$给出，这个函数被附加了高斯噪声，即
+\begin{equation}
+	t=y(\boldsymbol{x},\boldsymbol{w})+\epsilon
+\end{equation}
+其中$\epsilon$是一个零均值的高斯随机变量，精度为$\beta$。因此我们有 
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{w},\beta)=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}),\beta^{-1})
+\end{equation}
+最优的预测由目标变量的条件给出
+\begin{equation}
+	\mathbb{E}[t|\boldsymbol{x}]=\int tp(t|\boldsymbol{x})dt = y(\boldsymbol{x},\boldsymbol{w})
+\end{equation}
+现在考虑一个输入数据集$X=\{x_1,\dots,x_N \}$，对应的目标值为$t_1,\dots,t_N$。把目标向量$\{t_n\}$组成一个列向量，记作$\textbf{t}$。这个变量的字体与多元目标值的一次观测(记作$t$)不同。假设这些数据点是独立同分布的。那么可以得到下面的似然函数
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)=\prod_{n=1}^{N}\mathcal{N}(t_n|\boldsymbol{w}^T\phi(x_n),\beta^{-1})
+\end{equation}
+注意，在有监督学习问题中(例如回归问题和分类问题)，我们不是在寻找模型来对输入变量的概率分布建模。因此$x$总会出现在条件变量的位置上。为了保持记号的简洁性，不显示地写出$x$。取似然函数的对数，我们有
+\begin{equation}
+	\begin{aligned}
+	\ln p(\boldsymbol{t}|\boldsymbol{w},\beta)&=\sum_{n=1}^{N}\ln \mathcal{N}(t_n|\boldsymbol{w}^T\phi(x_n),\beta^{-1})\\
+	&=\frac{N}{2}\ln \beta -\frac{N}{2}\ln (2\pi) -\beta E_D(\boldsymbol{w})
+	\end{aligned}
+\end{equation}
+其中平方和误差函数的定义为
+\begin{equation}
+\begin{aligned}
+	E_D(\boldsymbol{w})&=\frac{1}{2}\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T\phi(x_n) \}^2\\
+	&=\frac{1}{2}(\boldsymbol{w}^T\phi(x_1)-t_1\ \dots \ \boldsymbol{w}^T\phi(x_N)-t_N)
+	\begin{pmatrix}
+	\boldsymbol{w}^T\phi(x_1)-t_1\\
+	\vdots\\
+	\boldsymbol{w}^T\phi(x_N)-t_N
+	\end{pmatrix}\\
+	&=\frac{1}{2}(\boldsymbol{w}^T(\phi(x_1)\ \dots \ \phi(x_N))-(t_1\ \dots \ t_N))\left(
+	\begin{pmatrix}
+	\boldsymbol{w}^T\phi(x_1)\\
+	\vdots\\
+	\boldsymbol{w}^T\phi(x_N)
+	\end{pmatrix}-
+	\begin{pmatrix}
+	t_1\\\vdots\\t_N
+	\end{pmatrix}
+	\right)\\
+	&=\frac{1}{2}(\boldsymbol{w}^T\Phi^T-\boldsymbol{t}^T)(\Phi \boldsymbol{w} - \boldsymbol{t})\\
+	&=\frac{1}{2}(\boldsymbol{w}^T\Phi^T\Phi \boldsymbol{w}-2\boldsymbol{w}^T\Phi^T\boldsymbol{t}+\boldsymbol{t}^T\boldsymbol{t})
+\end{aligned}
+\end{equation}
+使用最大似然方法确定$\boldsymbol{w}$和$\beta$。首先关于$\boldsymbol{w}$求最大值。
+\begin{equation}
+\begin{aligned}
+	\triangledown \ln p(\boldsymbol{t}|\boldsymbol{w},\beta)&=\beta\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T\phi(x_n) \}\phi(x_n)^T\\
+	&=\Phi^T\Phi\boldsymbol{w}-\Phi^T\boldsymbol{t}
+	\end{aligned}
+\end{equation}
+令梯度为零，可得
+\begin{equation}
+	\boldsymbol{w}=(\Phi^T\Phi)^{-1}\Phi^T\boldsymbol{t}
+\end{equation}
+这被称为最小平方问题的规范方程(normal equation)。这里$\Phi$是一个$N\times M$的矩阵，被称为设计矩阵(design matrix)，它的元素为$\Phi_{nj}=\phi_j(x_n)$，即
+\begin{equation}
+	\begin{pmatrix}
+	\Phi_0(x_1)&\Phi_0(x_1)&\dots&\Phi_{M-1}(x_1)\\
+	\Phi_0(x_2)&\Phi_0(x_2)&\dots&\Phi_{M-1}(x_2)\\
+	\vdots &\vdots &\ddots &\vdots\\
+	\Phi_0(x_N)&\Phi_0(x_N)&\dots&\Phi_{M-1}(x_N)\\
+	\end{pmatrix}
+\end{equation}
+关于噪声精度参数$\beta$最大化似然函数，结果为
+\begin{equation}
+	\frac{1}{\beta_{ML}}=\frac{1}{N}\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T_{ML}\phi(x_n) \}^2
+\end{equation}
+因此我们看到噪声精度的倒数由目标值在回归函数周围的残留方差(residual variance)给出。
 \subsection*{最小平方的几何描述}
 \subsection*{顺序学习}
+最大似然解的求解过程涉及到一次处理整个数据集。这种批处理技术对于大规模数据集来说计算量相当大。如果数据集充分大，那么使用顺序算法(也被称为在线算法)可能更有价值。顺序算法中，每次只考虑一个数据点，模型的参数在每观测到一个数据点之后进行更新。顺序学习也适用于实时的应用。在实时应用中，数据观测以一个连续的流的方式持续到达，我们必须在观测到所有数据之前就做出预测。
+
+我们可以获得一个顺序学习的算法通过考虑随机梯度下降(stochastic gradient descent)也被称为顺序梯度下降(sequential gradient descent)的方法。
 \subsection*{正则化最小平方}
+为误差函数添加正则化项的思想来控制过拟合，因此需要最小化的总的误差函数的形式为
+\begin{equation}
+	E_D(\boldsymbol{w})+\lambda E_W(\boldsymbol{w})
+\end{equation}
+L1正则化引起稀疏解的多种解释。
+\begin{enumerate}
+	\item 用图解释：
+	
+	L2正则相当于用圆去逼近目标，而L1正则相当于用菱形去逼近目标，所以更容易引起交战在坐标轴上即得到稀疏解。
+	
+	\item 从导数角度解释：
+	
+	L2正则无法将目标函数的极值点拉拢到稀疏解上，而L1正则因为L1导函数的特殊性从而可以在一定范围内将极值点直接拉拢到稀疏解上。
+	
+	\item 从先验概率分布角度解释：
+	
+	L2正则相当于假设参数是服从高斯分布的，而L1正则相当于假设了参数是服从拉普拉斯分布的，自然拉普拉斯分布比高斯分布更集中在0这个点上。
+\end{enumerate}
 \subsection*{多个输出}
+在某些应用中，我们可能想预测$K>1$个目标变量。我们把这些目标变量聚焦起来，记作目标向量$\boldsymbol{t}$。这个问题可以这样解决：对于$\boldsymbol{t}$的每个分量，引入一个不同的基函数集合，从而变成了多个独立的回归问题。但是，一个更有趣的并且更常用的方法是对目标向量的所有分量使用一组相同的基函数来建模，即
+\begin{equation}
+	\boldsymbol{y}(\boldsymbol{x},\boldsymbol{w})=\boldsymbol{W}^T\boldsymbol{\phi}(\boldsymbol{x})
+\end{equation}
+其中$\boldsymbol{y}$是一个$K$维列向量，$\boldsymbol{W}$是一个$M\times K$的参数矩阵，$\boldsymbol{\phi}(\boldsymbol{x})$是一个$M$维列向量，每个元素为$\phi_j(\boldsymbol{x})$。
