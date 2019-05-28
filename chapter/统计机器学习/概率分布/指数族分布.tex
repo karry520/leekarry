@@ -90,3 +90,37 @@
 		g(\eta)&=(-2\eta_2)^{\frac{1}{2}}exp\left(\frac{\eta_1^2}{4\eta_2^2}\right)
 	\end{flalign}
 \end{enumerate}
+\subsection*{最大似然与充分统计量}
+用最大似然法估计公式$\ref{fa}$给出的一般形式的指数族分布的参数向量$\mu$的问题。
+\begin{equation}
+	\int h(x)g(\eta)exp\{\eta^Tu(x)\}=1
+\end{equation}
+对上式的两侧关于$\mu$取梯度，我们有
+\begin{equation}
+	\begin{aligned}
+	\triangledown g(\eta)&\underbrace{\int h(x)exp\{\eta^Tu(x) \}dx}_{1/g(\eta)}+g(\eta)\int h(x)exp\{\eta^Tu(x) \}u(x)dx=0
+	\\
+	&\Rightarrow -\frac{1}{g(\eta)}\triangledown g(\eta)=\int \underbrace{g(\eta) h(x)exp\{\eta^Tu(x) \}}_{p(x|\eta)}u(x)dx=\mathbb{E}[\mu(x)]\\
+	&\Rightarrow -\triangledown \ln g(\eta)=\mathbb{E}[u(x)]
+	\end{aligned}
+\end{equation}
+同理，\textbf{$u(x)$的协方差，可以根据$g(\eta)$的二阶导数表达，对于高阶矩的情形也类似}。因此，如果我们能够对一个来自指数族分布的概率分布进行归一化，那么我们总能够通过简单的求微分的方式找到它的矩。现在考虑一组独立同分布的数据$X=\{x_1,\dots,x_N \}$。对于这个数据集，似然函数为
+\begin{equation}
+	p(X|\eta)=\left(\prod_{n=1}^{N}h(x_n) \right)g(\eta )^Nexp\left\{\eta^T\sum_{n=1}^{N}u(x_n) \right\}
+\end{equation}
+令$\ln p(X|\eta)$关于$\eta$的导数等于零，我们可以得到最大似然估计$\mu_{ML}$满足的条件
+\begin{equation}
+	-\triangledown \ln g(\eta)=\frac{1}{N}\sum_{n=1}^{N}u(x_n)
+\end{equation}
+原则上可以通过这个方程来得到$\mu_{ML}$。我们看到最大似然估计的解只通过$\sum_{n}u(x_n)$对数据产生依赖，因此这个量被称为分布的充分统计量(sufficient statistic)。我们不需要存储整个数据集本身，只需要存储充分统计量的值即可。
+\subsection*{共轭先验}
+对于指数族分布的任何成员，都存在一个共轭先验，可以写成下面的形式
+\begin{equation}
+	p(\eta|\varkappa ,v)=f(\varkappa,v)g(\eta)^vexp\{v\eta^T\varkappa \}
+\end{equation}
+\subsection*{无信息先验}
+在许多情形下，我们可能对分布应该具有的形式几乎完全不知道。这时，我们可以寻找一种形式的先验分布，被称为无信息先验(noninformative prior)。这种先验分布的目的是尽量对后验分布产生尽可能小的影响。有时被称为“让数据自己说话”。
+\begin{enumerate}
+	\item 位置参数 
+	\item 缩放参数 
+\end{enumerate}
