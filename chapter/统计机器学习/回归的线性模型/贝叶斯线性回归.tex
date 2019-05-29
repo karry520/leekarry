@@ -3,5 +3,65 @@
 
 这就产生了对于特定的应用确定合适的模型复杂度的问题。这个问题不能简单地通过最大化似然函数来确定，因为这总会产生过于复杂的模型和过拟合现象。独立的额外数据能够用来确定模型的复杂度，但这需要较大的计算量，并且浪费了有价值的数据。因此我们转而考虑线性回归的贝叶斯方法，这会避免最大似然的过拟合问题，也会引出使用训练数据本身确定模型复杂度的自动化方法。
 \subsection*{参数分布}
+关于线性拟合的贝叶斯方法的讨论，我们首先引入模型参数$w$的先验概率分布。把噪声精度参数$\beta$当做已知常数。对应的共轭先验是高斯分布。
+\begin{equation}
+	p(w)\equiv \mathcal{N}(w|\boldsymbol{m}_0,\boldsymbol{S}_0)
+\end{equation}
+均值为$\boldsymbol{m}_0$协方差为$\boldsymbol{S}_0$
+后验分布
+\begin{equation}
+	p(w|\boldsymbol{t})=\mathcal{N}(w|\boldsymbol{m}_N,\boldsymbol{S}_N)
+\end{equation}
+其中，
+\begin{flalign}
+\label{fafa}
+	\boldsymbol{m}_N&=\boldsymbol{S}_N(\boldsymbol{S}_0^{-1}+\beta\Phi^T\boldsymbol{t})\\
+	\boldsymbol{S}_N^{-1}&=\boldsymbol{S}_0^{-1}+\beta\Phi^T\Phi
+\end{flalign}
+为了简化起见，考虑高斯先验的一个特定的形式——零均值各向同性高斯分布。这个分布由一个精度参数$\alpha$控制，即
+\begin{equation}
+	p(\boldsymbol{w}|\alpha)=\mathcal{N}(\boldsymbol{w}|0,\alpha^{-1}I)
+\end{equation}
+后验概率分布的对数由对数似然函数与先验的对数求和的方式得到。它是$w$的函数，形式为
+\begin{equation}
+	\ln p(\boldsymbol{w}|\boldsymbol{t})-\frac{\beta}{2}\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T\phi(x_n) \}^2-\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w}+\text{常数}
+\end{equation}
+于是，后验分布关于$\boldsymbol{w}$的最大化等价于对平方和误差函数加上一个二次正则项进行最小化。
 \subsection*{预测分布}
+在实际应用中，我们通常感兴趣的不是$\boldsymbol{w}$本身的值，而是对于新的$\boldsymbol{x}$值预测出$t$的值。这需要计算出预测分布(predictive distribution)，定义为
+\begin{equation}
+	p(t|\boldsymbol{t},\alpha,\beta)=\int p(t|\boldsymbol{w},\beta)p(\boldsymbol{w}|\boldsymbol{t},\alpha,\beta)d\boldsymbol{w}
+\end{equation}
+其中$\boldsymbol{t}$是训练数据的目标变量的值组成的向量。并且，为了简化记号，我们在右侧省略了条件概率中出现的输入向量。预测分布的形式为
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{t},\alpha,\beta)=\mathcal{N}(t|\boldsymbol{m}^T_N\phi(\boldsymbol{x}),\sigma^2_N(\boldsymbol{x}))
+\end{equation}
+其中预测分布的方差$\sigma_N^2(\boldsymbol{x})$为
+\begin{equation}
+\label{aaa}
+	\sigma_N^2(\boldsymbol{x})=\frac{1}{\beta}+\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x})
+\end{equation}
+公式$\ref{aaa}$的第一项表示数据中的噪声，而第二项反映了与参数$\boldsymbol{w}$关联的不确定性。由于噪声和$\boldsymbol{w}$的分布是相互独立的高斯分布，因此它们的值是可以相加的。注意，当额外的数据点被观测到的时候，后验概率分布会变窄。从而可以证明出$\sigma^2_{N+1}(\boldsymbol{x})\leqslant \sigma_N^2(\boldsymbol{x})$在极限$N\to \infty$的情况下，公式$\ref{aaa}$的第二项趋于零，从而预测分布的方差只与参数$\beta$控制的具有可加性的噪声有关。
 \subsection*{等价核}
+把公式$\ref{fafa}$代入线性基函数模型中，可以写成下面的形式
+\begin{equation}
+\begin{aligned}
+	y(\boldsymbol{x},\boldsymbol{m}_N)&=\boldsymbol{m}_N^T\phi(\boldsymbol{x})\\
+	&=\beta\phi(\boldsymbol{x}^T\boldsymbol{S}_N\Phi^T\boldsymbol{t})\\
+	&=\sum_{n=1}^{N}\underline{\beta\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x}_n)}t_n\\
+	&=\sum_{n=1}^{N}k(\boldsymbol{x},\boldsymbol{x}_n)t_n
+\end{aligned}
+\end{equation}
+可以看成在点$\boldsymbol{x}$处的预测均值由训练集目标变量$t_n$的线性组合给出。函数$k(x,x_n)$被称为平滑矩阵(smoother matrix)或者等价核(equivalent kernel)。像这样的回归函数，通过对训练集里目标值进行线性组合做预测，被称为线性平滑(linear smoother)。核函数$k(x,x^{'})$给出了$x$与$x^{'}$的函数关系。可以看到，$x$处的预测分布的均值$y(x,\boldsymbol{m}_N)$可以通过对目标值加权组合的方式获得。距离$x$较近的数据点可以赋一个较高的权值，而距离$x$较远的数据点可以赋一个较低的权值。这种局部性不仅对于局部的高斯基函数成立，对于非局部的多项式基函数和sigmoid基函数也成立。
+
+考虑$y(\boldsymbol{x})$和$y(\boldsymbol{x^{'}})$的协方差
+\begin{equation}
+	\begin{aligned}
+	cov[y(\boldsymbol{x}),y(\boldsymbol{x^{'}})]&=cov[\phi(\boldsymbol{x})^T\boldsymbol{w},\boldsymbol{w}^T\phi(\boldsymbol{x^{'}})]\\
+	&=\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x^{'}})\\
+	&=\beta^{-1}k(\boldsymbol{x},\boldsymbol{x^{'}})
+	\end{aligned}
+\end{equation}
+根据等价核的形式，我们可以看到在附近的点处的预测均值相关性较高，而对于距离较远的点处，相关性就较低。
+
+用核函数表示线性回归给出了解决回归问题的另一种方法。我们不引入一组基函数(它隐式地定义了一个等价的核)，而是直接定义一个局部的核函数，然后在给定观测数据集的条件下，使用这个核函数对新的输入变量$\boldsymbol{x}$做预测。这就引入了用于回归问题(以及分类问题)的一个很实用的框架，被称为高斯过程(Gaussian process)。
