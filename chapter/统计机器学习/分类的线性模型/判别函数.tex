@@ -10,8 +10,146 @@
 	r=\frac{y(\boldsymbol{x})}{\Vert \boldsymbol{w} \Vert}
 \end{equation}
 \subsection*{多分类}
+考虑把线性判别函数推广到$K>2$个类别。
+\begin{enumerate}
+	\item 1对其他。使用K-1个分类器，每个分类器用来解决一个二分类问题，把属于类别$C_k$和不属于那个类别的点分开。
+	\item 1对1。引入$\frac{K(K-1)}{2}$个二元判别函数，对一对类别都设置一个判别函数。
+\end{enumerate}
+上述两种方法都会产生输入空间无法分类的区域。通过引入K类判别函数可以避免这些问题。K类判别函数由K个线性函数组成，形式为
+\begin{equation}
+	y_k(\boldsymbol{x})=\boldsymbol{w}_k^T\boldsymbol{x}+w_{k0}
+\end{equation}
+对于点$\boldsymbol{x}$，如果所有的$j\ne k$都有$y_k(\boldsymbol{x})>y_j(\boldsymbol{x})$，那么就把它分到$C_k$。于是类别$C_k$和$C_j$之间的决策面为$y_k(\boldsymbol{x})=y_j(\boldsymbol{x})$，并且对应于一个$(D-1)$维超平面，形式为
+\begin{equation}
+	(\boldsymbol{w}_k-\boldsymbol{w}_j)^T\boldsymbol{x}+(w_{k0}-w_{j0})=0
+\end{equation}
+这样的判别函数的决策区域总是单连通的，并且是凸的。现在介绍三种学习线性判别函数的参数的方法，即基于最小平方的方法、Fisher线性判别函数，以及感知器算法。
 \subsection*{用于分类的最小平方方法}
+最小平方误差函数的最小化产生了参数值的简单的解析解。使用最小平方方法的一个理由是它在给定输入向量的情况下，近似了目标值的条件期望$\mathbb{E}[t|\boldsymbol{x}]$。对于二元表示方法，条件期望由后验类概率向量给出。但不幸的是，这些概率通常很难近似。事实上，近似的过程有可能产生位于区间$(0,1)$之外的值，这是因为线性模型的灵活性很受限。
+
+使用向量记号，我们可以很容易地把这量聚焦在一起表示，即
+\begin{equation}
+	\boldsymbol{y}(\boldsymbol{x})=\tilde{W}^T\tilde{\boldsymbol{x}}
+	=
+	\begin{pmatrix}
+	w_{1,0}& w_{2,0}& \dots& w_{K,0}\\
+	w_{1,1}& w_{2,1}& \dots& w_{K,1}\\
+	\vdots& \vdots & \ddots& \vdots\\
+	w_{1,D}& w_{2,D}& \dots& w_{K,D}
+	\end{pmatrix}^T
+	\begin{pmatrix}
+	1\\x_1\\\vdots\\x_{D}
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+	y_0\\y_1\\\vdots \\y_{K}
+	\end{pmatrix}
+\end{equation}
+其中$\tilde{W}$是一个矩阵，第$k$列由$D+1$维向量$\tilde{\boldsymbol{w}}_k=(w_{k0},\boldsymbol{w}_k^T)^T$组成，$\tilde{\boldsymbol{x}}$是对应的增广输入向量$(1,\boldsymbol{x}^T)^T$，它带有一个虚输入$x_0=1$。
+
+通过最小化平方和误差函数来确定参数矩阵$\tilde{W}$，考虑一个训练数据集$\boldsymbol{x}_n,\boldsymbol{t}_n$，其中$n=1,\dots,N$，然后定义一个矩阵$\boldsymbol{T}$，它的第$n$行是向量$\boldsymbol{t}_n^T$。还定义了一个矩阵$\tilde{\boldsymbol{x}}_n^T$。这样，平方和误差函数可以写成
+\begin{equation}
+	E_D(\tilde{W})=\frac{1}{2}Tr\{(\tilde{X}\tilde{W}-\tilde{\boldsymbol{T}})^T(\tilde{X}\tilde{W}-\boldsymbol{T}) \}
+\end{equation}
+令上式关于$\tilde{W}$的导数等于零，整理，可以得到$\tilde{W}$的解，形式为
+\begin{equation}
+	\tilde{W}=(\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T\boldsymbol{T}=\tilde{X}^{\dag}\boldsymbol{T}
+\end{equation}
+这样，我们得到了判别函数，形式为
+\begin{equation}
+	y(\boldsymbol{x})=\tilde{W}^T\tilde{\boldsymbol{x}}=\boldsymbol{T}^T(\tilde{X}^{\dag})^T\tilde{\boldsymbol{x}}
+\end{equation}
+
+最小平方方法对于判别函数的参数给出了精确的解析解。但是，最小平方解对于离群点缺少鲁棒性。最小平方方法对应于高斯条件分布假设下的最大似然法，而二值目标向量的概率分布显然不是高斯分布。通过使用更恰当的概率模型，我们会得到性质比最小平方方法更好的分类方法。
 \subsection*{Fisher线性判别函数}
+Fisher提出的思想是最大化一个函数，这个函数能够让类均值的投影分开得较大，同时让每个类别内部的方差较小，从而最小人化了类别的重叠。
+
+首先考虑一个二分类问题，这个问题中有$C_1$类的$N_1$个点，以及$C_2$类的$N_2$个点。因此两类的均值向量为
+\begin{equation}
+\label{kka}
+	\boldsymbol{m}_1=\frac{1}{N_1}\sum_{n\in C_1}\boldsymbol{x}_n,\qquad \boldsymbol{m}_2=\frac{1}{N_2}\sum_{n\in C_2}\boldsymbol{x}_n
+\end{equation}
+如果投影到$\boldsymbol{w}$上，那么最简单的度量类别之间分开程度的方式就是类别均值投影之后的距离。这说明，我们可以选择$\boldsymbol{w}$使得下式取得最大值
+\begin{equation}
+	m_2-m_1=\boldsymbol{w}^T(\boldsymbol{m}_2-\boldsymbol{m}_1)
+\end{equation}
+其中
+\begin{equation}
+\label{kkb}
+	m_k=\boldsymbol{w}^T\boldsymbol{m}_k
+\end{equation}
+是来自类别$C_k$的投影数据的均值。但是，通过增大$\boldsymbol{w}$，这个表达式可以任意大。为了解决这个问题，我们可以将$\boldsymbol{w}$限制为单位长度，即$\sum_iw_i^2=1$。使用拉格朗日乘数法来进行有限制条件的最大化问题的求解，我们可以发现$\boldsymbol{w}\propto (\boldsymbol{m}_2-\boldsymbol{m}_1)$。
+
+来自类别$C_k$的数据经过变换后的类内方差为
+\begin{equation}
+	s_k^2=\sum_{n\in C_k}(\boldsymbol{w}^T\boldsymbol{x}_n-m_k)^2
+\end{equation}
+可以把整个数据集的总的方差定义为$s_1^2+s_2^2$。Fisher准则根据类间方差和类内方差的比值定义，即
+\begin{equation}
+	J(\boldsymbol{w})=\frac{(m_2-m_1)^2}{s_1^2+s_2^2}
+\end{equation}
+利用公式$\ref{kka},\ref{kkb}$
+\begin{equation}
+	\begin{aligned}
+	(m_2-m_1)^2&=\left(\frac{1}{N_2}\sum_{n\in C_2}\boldsymbol{w}^T\boldsymbol{x}_n-\frac{1}{N_1}\sum_{n\in C_1}\boldsymbol{w}^T\boldsymbol{x}_n\right)^2\\
+	&=\left(\boldsymbol{w}^T(\bar{x}_{C_1}-\bar{x}_{C_2}) \right)^2\\
+	&=\boldsymbol{w}^T(\bar{x}_{C_1}-\bar{x}_{C_2})(\bar{x}_{C_1}-\bar{x}_{C_2})^T\boldsymbol{w} \\
+	&=\boldsymbol{w}^TS_B\boldsymbol{w}\\
+	s_1^2&=\frac{1}{N}\sum_{n\in C_1}(\boldsymbol{w}^T\boldsymbol{x}_n - \frac{1}{N}\sum_{n\in C_1}\boldsymbol{w}^T\boldsymbol{x}_n)(\boldsymbol{w}^T\boldsymbol{x}_n - \frac{1}{N}\sum_{n\in C_1}\boldsymbol{w}^T\boldsymbol{x}_n)^T\\
+	&=\frac{1}{N}\sum_{n\in C_1}\boldsymbol{w}^T(\boldsymbol{x}_n-\bar{x}_{C_1})(\boldsymbol{x}_n-\bar{x}_{C_1})^T\boldsymbol{w}\\
+	&=\boldsymbol{w}^TS_1\boldsymbol{w}\\
+	s_1^2+s_2^2&=\boldsymbol{w}^T(S_1+S_2)\boldsymbol{w}\\
+	&=\boldsymbol{w}^TS_W\boldsymbol{w}
+	\end{aligned}
+\end{equation}
+显式地表达出$J(\boldsymbol{w})$对$\boldsymbol{w}$的依赖
+\begin{equation}
+	J(\boldsymbol{w})=\frac{\boldsymbol{w}^TS_B\boldsymbol{w}}{\boldsymbol{w}^TS_W\boldsymbol{w}}
+\end{equation}
+其中$S_B$是类间(between-class)协方差矩阵，$S_W$被称为类内(within-class)协方差矩阵。对该式关于$\boldsymbol{w}$求导，并令其为零，有
+\begin{equation}
+	\begin{aligned}
+	\frac{\partial J(\boldsymbol{w})}{\partial \boldsymbol{w}}&=\frac{\partial [\boldsymbol{w}^TS_B\boldsymbol{w}\cdot (\boldsymbol{w}^TS_W\boldsymbol{w})^{-1}]}{\partial\boldsymbol{w}}\\
+		&=2S_B\boldsymbol{w}(\boldsymbol{w}^TS_W\boldsymbol{w})^{-1}-2\boldsymbol{w}^TS_B\boldsymbol{w}\cdot (\boldsymbol{w}^TS_W\boldsymbol{w})^{-2}\cdot S_W\boldsymbol{w}\\
+		&=0\\
+		&\Rightarrow S_B\boldsymbol{w}\cdot \boldsymbol{w}^TS_W\boldsymbol{w}=\boldsymbol{w}^TS_B\boldsymbol{w}\cdot  S_W\boldsymbol{w}\\
+		&\Rightarrow S_W\boldsymbol{w}=\frac{\boldsymbol{w}^TS_W\boldsymbol{w}}{\boldsymbol{w}^TS_B\boldsymbol{w}}\cdot S_B\boldsymbol{w}\\
+		&\Rightarrow \boldsymbol{w} \propto S_W^{-1}S_B\boldsymbol{w}=S_W^{-1}(\boldsymbol{m}_2-\boldsymbol{m}_1)(\boldsymbol{m}_2-\boldsymbol{m}_1)^T\boldsymbol{w}
+	\end{aligned}
+\end{equation}
+我们看到$S_B\boldsymbol{w}$总是在$\boldsymbol{m}_2-\boldsymbol{m}_1$的方向上。更重要的是，我们不关心$\boldsymbol{w}$的大小，只关心它的方向，因此
+\begin{equation}
+\label{fi}
+	\boldsymbol{w}\propto S_W^{-1}(\boldsymbol{m}_2-\boldsymbol{m}_1)
+\end{equation}
+公式$\ref{fi}$的结果被称为Fisher线性判别函数(Fisher linear discriminant)。如果类内协方差是各向同性的，从而$S_W$正比于单位矩阵，那么我们看到$\boldsymbol{w}$正比于类均值的差。
 \subsection*{与最小平方的关系}
+最小平方方法确定线性判别函数的目标是使模型的预测尽可能地与目标值接近。相反，Fisher判别准则的目标是使输出空间的类别有最大的区分度。对于二分类问题，Fisher准则可以看成最小平方的一个特例。
 \subsection*{多分类的Fisher判别函数}
 \subsection*{感知器算法}
+线性判别模型的另一个例子是Rosenblatt提出的感知器算法。它对应于一个二分类的模型，这个模型中，输入向量$\boldsymbol{x}$首先使用一个固定的非线性变换得到一个特征向量$\phi(\boldsymbol{x})$，这个特征向量然后被用于构造一个一般的线性模型，形式为
+\begin{equation}
+	y(\boldsymbol{x})=f(\boldsymbol{w}^T\phi(\boldsymbol{x}))
+\end{equation}
+其中非线性激活函数$f(\cdot)$是一个阶梯函数，形式为
+\begin{equation}
+	f(a)=\begin{cases}
+		+1,\quad a\geqslant 0\\
+		-1,\quad a<0
+	\end{cases}
+\end{equation}
+向量$\phi(\boldsymbol{x})$通常包含一个偏置分量$\phi_0(\boldsymbol{x})=1$。用来确定感知器的参数$\boldsymbol{w}$的算法可以很容易地从误差函数最小化的思想中得到。一个自然的选择是误分类的模型的总数。但是，这样做会使得学习算法不会很简单，因为这样做会使误差函数变为$\boldsymbol{w}$的分段常函数，从而当$\boldsymbol{w}$的变化使得决策边界移过某个数据点时，这个函数会不连续变化。这样会不连续变化。这样做还使得使用误差函数改变$\boldsymbol{w}$的方法无法使用，因为在几乎所有的地方梯度都等于零。
+
+因此考虑一个另外的误差函数，被称为感知器准则(perceptron criterion)。
+\begin{equation}
+	E_P(\boldsymbol{w})=-\sum_{n\in \mathcal{M}}\boldsymbol{w}^T\phi_nt_n
+\end{equation}
+其中$\phi_n=\phi(\boldsymbol{x}_n)$和$\mathcal{M}$表示所有误分类模型的集合。某个特定的误分类模型对于误差函数的贡献是$\boldsymbol{w}$空间中模式被误分类的区域中$\boldsymbol{w}$的线性函数，而在正确分类的区域，误差函数等于零。总的误差函数因此是分段线性的。我们现在对这个误差函数使用随机梯度下降算法。这样，权向量$\boldsymbol{w}$的变化为
+\begin{equation}
+	\boldsymbol{w}^{(\tau+1)}=\boldsymbol{w}^{(\tau)}-\eta \triangledown E_P(\boldsymbol{w})=\boldsymbol{w}^{(\tau)}+\eta\phi_nt_n
+\end{equation}
+感知器收敛定理(perceptron convergence theorem)表明，如果存在一个精确的解(即，如果训练数据线性可分)，那么感知器算法可以保证在有限步骤内找到一个精确解。
+
+\begin{tikzpicture}
+\node {$\text{这里要画一个图}$};
+\end{tikzpicture}
