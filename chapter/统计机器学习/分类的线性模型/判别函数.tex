@@ -1,1 +1,17 @@
 \section{判别函数}
+判别函数是一个以向量$x$为输入，把它分配到K个类别中的某一个类别(记作$C_k$)的函数。
+\subsection*{二分类}
+线性判别函数的最简单的形式是输入向量的线性函数，即
+\begin{equation}
+	y(\boldsymbol{x})=\boldsymbol{w}^T\boldsymbol{x}+w_0
+\end{equation}
+其中$\boldsymbol{w}$被称为权向量(weight vector)，$w_0$被称为偏置(bias)。对应的决策边界由$y(\boldsymbol{x})=0$确定。对于一个输入向量$\boldsymbol{x}$，如果$y(\boldsymbol{x})\geqslant 0$，那么它被分到$C_1$中，否则被分到$C_2$中。向量$\boldsymbol{w}$与决策面内的任何向量都正交，从而$w$确定了决策面的方向。任意一点$x$到决策面的距离为
+\begin{equation}
+	r=\frac{y(\boldsymbol{x})}{\Vert \boldsymbol{w} \Vert}
+\end{equation}
+\subsection*{多分类}
+\subsection*{用于分类的最小平方方法}
+\subsection*{Fisher线性判别函数}
+\subsection*{与最小平方的关系}
+\subsection*{多分类的Fisher判别函数}
+\subsection*{感知器算法}

@@ -1,1 +1,16 @@
 \section{证据近似}
+在处理线性基函数模型的纯粹的贝叶斯方法中，我们会引入超参数$\alpha$和$\beta$的先验分布，然后通过对超参数以及参数$w$求积分的方式做预测。但是，虽然我们可以解析地求出对$w$的积分或者求出对超参数的积分，但是对所有这些变量完整地求积分是没有解析解的。这里讨论一种近似方法。这种方法中，首先对参数$w$求积分，得到边缘似然函数(marginal likelihood function)，然后通过最大化边缘似然函数，确定超参数的值。这个框架在统计学的文献中被称为经验贝叶斯，或者被称为第二类最大似然，或者被称为推广的最大似然。在机器学习的文献中，这种方法也被称为证据近似(evidence approximation)。
+
+如果引入$\alpha$和$\beta$上的超先验分布，那么预测分布可以通过对$w,\alpha,\beta$求积分的方法得到 
+\begin{equation}
+	p(t|\boldsymbol{t})=\iiint p(t|\boldsymbol{w},\beta)p(\boldsymbol{w}|\boldsymbol{t},\alpha,\beta)p(\alpha,\beta|\boldsymbol{t})d\boldsymbol{w}d\alpha d\beta
+\end{equation}
+如果后验分布$p(\alpha,\beta|\boldsymbol{t})$在$\hat{\alpha}$和$\hat{\beta}$附近有尖峰，那么预测分布可以通过对$w$积分的方式简单地得到，其中$\alpha$和$\beta$被固定为$\hat{\alpha}$和$\hat{\beta}$
+\begin{equation}
+	p(t|\boldsymbol{t})\simeq p(t|\boldsymbol{t},\hat{\alpha},\hat{\beta})=\int p(t|\boldsymbol{w},\hat{\beta})p(\boldsymbol{w}|\boldsymbol{t},\hat{\alpha},\hat{\beta})d\boldsymbol{w}
+\end{equation}
+根据贝叶斯定理，$\alpha$和$\beta$的后验分布为
+\begin{equation}
+	p(\alpha,\beta|\boldsymbol{t})\propto p(\boldsymbol{t}|\alpha,\beta)p(\alpha,\beta)
+\end{equation}
+如果先验分布相对比较平，那么在证据框架中，$\hat{\alpha}$和$\hat{\beta}$可以通过最大化边缘似然函数$p(\boldsymbol{t}|\alpha,\beta)$来获得。

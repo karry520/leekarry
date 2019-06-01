@@ -1,1 +1,38 @@
 \section{贝叶斯模型比较}
+前面介绍了使用交叉验证的方法，来设置正则化参数的值，或者从多个模型中选择合适的一个。这里，从贝叶斯的角度考虑模型选择的问题。模型比较的贝叶斯观点仅仅涉及到使用概率来表示模型选择的不确定性，以及恰当地使用概率的加和规则和乘积规则。假设我们想比较L个模型$\{M_i\},i=1,2,\dots,L$。这里，一个模型指的是观测数据D上的概率分布。我们会假设数据是由这些模型中的一个生成的，但是我们不知道究竟是哪一个。我们的不确定性通过先验概率分布$p(M_i)$表示。给定一个数据集D，我们想估计后验分布
+\begin{equation}
+	p(M_i|D)\propto p(M_i)p(D|M_i)
+\end{equation}
+先验分布让我们能够表达不同模型之间的优先级。\textbf{我们简单的假设所有的模型都有相同的先验概率}。模型证据(model evidence)$p(D|M_i)$，表达了数据展现出的不同模型的优先级。模型证据有时也被称为边缘似然(marginal likelihood)，因为它可以被看做在模型空间中的似然函数，在这个空间中参数已经被求和或者积分。两个模型的模型证据的比值$\frac{p(D|M_i)}{p(D|M_j)}$被称为贝叶斯因子(Bayes factor)。
+
+一旦我们知道了模型上的后验概率分布，那么根据概率的加和规则与乘积规则，预测分布为
+\begin{equation}
+	p(t|\boldsymbol{x},D)=\sum_{i=1}^{L}p(t|\boldsymbol{x},M_i,D)p(M_i|D)
+\end{equation}
+这是混合分布(mixture distribution)的一个例子。这个公式中，整体的预测分布由下面的方式获得：对各个模型的预测分布$p(t|\boldsymbol{x},M_i,D)$求加权平均，权值为这些模型的后验概率$p(M_i|D)$。
+
+对模型求平均的一个简单的近似是使用最可能的一个模型做预测。这被称为模型选择(model selection)。
+
+对于一个由参数$\boldsymbol{w}$控制的模型，根据概率的加和规则和乘积规则，模型证据为
+\begin{equation}
+	p(D|M_i)=\int p(D|\boldsymbol{w},M_i)p(\boldsymbol{w}|M_i)d\boldsymbol{w}
+\end{equation}
+从取样的角度来看，边缘似然函数可以被看成从一个模型中生成数据集D的概率，这个模型的参数是从先验分布中随机取样的。同时，注意到模型证据恰好就是在估计参数的后验分布时出现在贝叶斯定理的分母中的归一化项，因为 
+\begin{equation}
+	p(\boldsymbol{w}|D,M_i)=\frac{p(D|\boldsymbol{w},M_i)p(\boldsymbol{w}|M_i)}{p(D|M_i)}
+\end{equation}
+对参数的积分进行一个简单的近似。假设后验分布在最大似然值$w_{MAP}$附近是一个尖峰，宽度为$\triangle w_{\text{后验}}$，那么可以用被积函数的值乘以尖峰的宽度来近似这个积分。进一步假设先验分布是平的，宽度为$\triangle w_{\text{先验}}$，即$p(w)=\frac{1}{\triangle w_{\text{先验}}}$，那么我们有
+\begin{equation}
+	p(D)=\int p(D|w)p(w)dw\simeq p(D|w_{MAP})\frac{\triangle w_{\text{后验}}}{\triangle w_{\text{先验}}}
+\end{equation}
+取对数可得
+\begin{equation}
+	\ln p(D)\simeq \ln p(D|w_{MAP})+\ln \left(\frac{\triangle w_{\text{后验}}}{\triangle w_{\text{先验}}} \right)
+\end{equation}
+第一项表示拟合由最可能参数给出的数据。对于平的先验分布来说，这对应于对数似然。第二项用于根据模型的复杂度来惩罚模型。
+
+对于一个有M个参数的模型，我们可以对每个参数进行类似的近似。假设所有的参数的$\frac{\triangle w_{\text{后验}}}{\triangle w_{\text{先验}}}$都相同，我们有
+\begin{equation}
+\ln p(D)\simeq \ln p(D|w_{MAP})+M\ln \left(\frac{\triangle w_{\text{后验}}}{\triangle w_{\text{先验}}} \right)
+\end{equation}
+因此，在这种非常简单的近似下，复杂度惩罚项的大小随着模型中可调节参数M的数量线性增加。随着我们增加模型的复杂度，第一项通常会增大，因为一个更加复杂的模型能够更好地拟合数据，而第二项会减小，因为它依赖于M。由最大模型证据确定的最优的模型复杂度需要在这两个相互竞争的项之间进行折中。
