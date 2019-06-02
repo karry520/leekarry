@@ -1,5 +1,238 @@
 \section{概率生成式模型}
+接下来用概率的观点考察分类问题，并且说明具有纯性决策边界的模型如何通过对数据分布的简单假设得到。
+
+首先考虑二分类的情形。类别$C_1$的后验概率可以写成
+\begin{equation}
+	\begin{aligned}
+	p(C_1|\boldsymbol{x})&=\frac{p(\boldsymbol{x}|C_1)p(C_1)}{p(\boldsymbol{x}|C_1)+p(\boldsymbol{x}|C_2)p(C_2)}\\
+	&=\frac{1}{1+exp(-a)}=\sigma(a)
+	\end{aligned}
+\end{equation}
+其中我们定义了
+\begin{equation}
+	a=\ln \frac{p(\boldsymbol{x}|C_1)p(C_1)}{p(\boldsymbol{x}|C_2)p(C_2)}
+\end{equation}
+$\sigma(a)$是logistic sigmoid函数。“sigmoid”的意思是“S形”。这种函数有时被称为“挤压函数”，这个函数在许多分类算法中都有着重要的作用。它满足下面的对称性
+\begin{equation}
+	\sigma(-a)=1-\sigma(a)
+\end{equation}
+\begin{center}
+	\begin{tikzpicture}[xscale=0.5,yscale=2]
+	\draw [->] (-5,0) -- (5,0) node [right] {$x$};
+	\draw [->] (0,0) -- (0,1.5) node [left] {$y$};
+	\draw [dashed] (-5,1) -- (5,1) node [right]{$y=1$};
+	\draw [domain=-5:5] plot (\x,{1/(1+exp(-\x))});
+	\node at (0,0) [below left] {$o$};
+	\node at (0,0.5) [right] {$0.5$};
+	\end{tikzpicture}
+\end{center}
+logistic sigmoid的反函数为
+\begin{equation}
+	a=\ln \left(\frac{\sigma}{1-\sigma} \right)
+\end{equation}
+被称为logit函数。它表示两类的概率比值的对数$\ln \left[\frac{p(C_1|\boldsymbol{x})}{p(C_2|\boldsymbol{x})} \right]$，也被称为log odds函数。
+
+对于K>2个类别的情形，我们有
+\begin{equation}
+\label{keke}
+\begin{aligned}
+	p(C_k|\boldsymbol{x})&=\frac{p(\boldsymbol{x}|C_k)p(C_k)}{\sum_jp(\boldsymbol{x}|C_j)p(C_j)}\\
+	&=\frac{exp(a_k)}{\sum_jexp(a_j)}
+\end{aligned}
+\end{equation}
+它被称为归一化指数(normalized exponential)，可以被当做logistic sigmoid函数对于多类情况的推广。这里$a_k$被定义为
+\begin{equation}
+	a_k=\ln p((\boldsymbol{x}|C_k)p(C_k))
+\end{equation}
+归一化指数也被称为softmax函数，因为它表示“max”函数的一个平滑版本。
 \subsection*{连续输入}
+假设类条件概率密度是高斯分布，然后求解后验概率的形式。首先，假设所有的类别的协方差矩阵相同。这样类别$C_k$的类条件概率为
+\begin{equation}
+	p(\boldsymbol{x}|C_k)=\frac{1}{(2\pi)^{\frac{D}{2}}}\frac{1}{|\Sigma|^{\frac{1}{2}}}exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_k)^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_k) \right\}
+\end{equation}
+首先考虑两类的情形。
+\begin{equation}
+\begin{aligned}
+	p(C_1|\boldsymbol{x})&=\sigma(a)\\
+	\Rightarrow\ a&=\ln \frac{p(\boldsymbol{x}|C_1)p(C_1)}{p(\boldsymbol{x}|C_2)p(C_2)}\\
+	&=-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_1)^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_1)+\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_2)^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_2)+\ln\frac{p(C_1)}{p(C_2)} \\
+	&=-\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{x}+\frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{x}+\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{\mu}_1-\frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1\\
+	&\quad +\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{x}-\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{x}-\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{\mu}_2+\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{\mu}_2\\
+	&\quad +\ln\frac{p(C_1)}{p(C_2)}\\
+	&=\Sigma^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_2)\boldsymbol{x} - \frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1+\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{\mu}_2+\ln\frac{p(C_1)}{p(C_2)}\\
+	&=\boldsymbol{w}^T\boldsymbol{x}+w_0\\
+	\Rightarrow \ \sigma(a)&=\sigma(\boldsymbol{w}^T\boldsymbol{x}+w_0)
+\end{aligned}	
+\end{equation}
+高斯概率密度的指数项中$\boldsymbol{x}$的二次型消失了(这是因为我们假设类概率的协方差矩阵相同)，从而得到了参数为$\boldsymbol{x}$的线性函数的logistic sigmoid函数。最终求得决策边界$a=0$为常数的决策面。先验概率密度$p(C_k)$只出现在偏置参数$w_0$中，因此先验的改变的效果是平移决策边界，即平移后验概率中的常数轮廓线。
+
+对于K个类别的一般情形，根据公式$\ref{keke}$，有
+\begin{flalign}
+	a_k(\boldsymbol{x})&=\boldsymbol{w}_k^T\boldsymbol{x}+w_{k0}\\
+	w_{k0}&=-\frac{1}{2}\boldsymbol{\mu}_k^T\Sigma^{-1}\boldsymbol{\mu}_k+\ln p(C_k)
+\end{flalign}
+其中定义了
+\begin{equation}
+	\boldsymbol{w}_k=\Sigma^{-1}\boldsymbol{\mu}_k
+\end{equation}
+如果我们不假设各个类别的协方差矩阵相同，允许每个类条件概率密度$p(\boldsymbol{x}|C_k)$有自己的协方差矩阵$\Sigma_k$，那么之前二次项消去的现象不会出现，从而我们会得到$\boldsymbol{x}$的二次函数，这就引出了二次判别函数(quadratic discriminant)。
 \subsection*{最大似然解}
+一旦具体化了类条件概率密度$p(\boldsymbol{x}|C_k)$的参数化的函数形式，我们就能够使用最大似然法确定参数的值，以及先验类概率$p(C_k)$。
+
+首先考虑两类的情形，每个类别都有一个高斯类条件概率密度，且协方差矩阵相同。假设有一个数据集$\{x_n,t_n\}$，其中$n=1,\dots,N$。先验概率记作$p(C_1)=\pi$，从而$p(C_2)=1-\pi$。对于一个来自类别$C_1$的数据点$\boldsymbol{x}_n$，我们有$t_n=1$，因此
+\begin{flalign}
+	p(\boldsymbol{x}_n,C_1)&=p(C_1)p(\boldsymbol{x}_n|C_1)=\pi\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)\\
+	p(\boldsymbol{x}_n,C_2)&=p(C_2)p(\boldsymbol{x}_n|C_2)=(1-\pi)\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_2,\Sigma)
+\end{flalign}
+于是，似然函数为
+\begin{equation}
+	p(\boldsymbol{t},\boldsymbol{X}|\pi,\boldsymbol{\mu}_1,\boldsymbol{\mu}_2,\Sigma)=\prod_{n=1}^{N}[\pi\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)]^{t_n}[(1-\pi)\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_2,\Sigma)]^{1-t_n}
+\end{equation}
+其中$\boldsymbol{t}=(t_1,\dots,t_N)^T$。对数似然函数为
+\begin{equation}
+\begin{aligned}
+	\log p(\boldsymbol{t},\boldsymbol{X}|\pi,\boldsymbol{\mu}_1,\boldsymbol{\mu}_2,\Sigma)&=\sum_{n=1}^{N}\log \left\{\pi\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)]^{t_n}[(1-\pi)\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_2,\Sigma)]^{1-t_n}\right\}\\
+	&=\sum_{n=1}^{N}\left\{ \log \pi^{t_n}(1-\pi)^{1-t_n}+\log \mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)^{t_n}+\log\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_2,\Sigma)^{1-t_n} \right\}
+\end{aligned}
+\end{equation}
+最大化对数似然函数
+\begin{enumerate}
+	\item 求$\pi$
+	\begin{equation}
+	\begin{aligned}
+	\frac{\partial }{\partial\pi}\left[\sum\limits_{n=1}^{N}\log \pi^{t_n}(1-\pi)^{1-t_n} \right]&=\sum_{n=1}^{N}\frac{t_n}{\pi}-\frac{(1-t_n)}{1-\pi}=0\\
+	&=\sum_{n=1}^{N}t_n-\pi t_n -\pi +\pi t_n\\
+	&=\sum_{n=1}^{N}t_n-\pi\\
+	&=\sum_{n=1}^{N}t_n-N\pi=0\\
+	\Rightarrow \pi &= \frac{1}{N}\sum_{n=1}^{N}t_n=\frac{N_1}{N}=\frac{N_1}{N_1+N_2}\\
+	\end{aligned}
+	\end{equation}
+	
+	\item 求$\boldsymbol{\mu}$
+	\begin{equation}
+		\begin{aligned}
+		\frac{\partial }{\partial \boldsymbol{\mu}_1}\left[\log \mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)^{t_n}\right]&\Rightarrow \frac{\partial }{\partial \boldsymbol{\mu}_1}\left[\sum_{n=1}^{N}-\frac{1}{2}t_n(\boldsymbol{x}_n-\boldsymbol{\mu}_1)^T\Sigma^{-1}(\boldsymbol{x}_n-\boldsymbol{\mu}_1) \right]\\
+		&=\frac{\partial }{\partial \boldsymbol{\mu}_1}\left[-\frac{1}{2}\sum_{n=1}^{N}t_n(\boldsymbol{x}_n^T\Sigma^{-1}-\boldsymbol{\mu}_1^T\Sigma^{-1})(\boldsymbol{x}_n-\boldsymbol{\mu}_1) \right]\\
+		&=\frac{\partial }{\partial \boldsymbol{\mu}_1}\left[-\frac{1}{2}\sum_{n=1}^{N}t_n(\underbrace{\boldsymbol{x}_n^T\Sigma^{-1}\boldsymbol{x}_n}_{\text{常数}} - 2\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{x}_n+\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1) \right]\\
+		&=\sum_{n=1}^{N}t_n(\Sigma^{-1}\boldsymbol{x}_n+\Sigma^{-1}\boldsymbol{\mu}_1)=0\\
+		&\Rightarrow\sum_{n=1}^{N}t_n(\boldsymbol{\mu}_1-\boldsymbol{x}_n)=0\\
+		\Rightarrow \boldsymbol{\mu}_1&=\frac{\sum\limits_{n=1}^{N}t_n\boldsymbol{x}_n}{\sum\limits_{n=1}^{N}t_n}\\
+		&=\frac{1}{N_1}\sum\limits_{n=1}^{N}t_n\boldsymbol{x}_n
+		\end{aligned}
+	\end{equation}
+	同理
+	\begin{equation}
+		\boldsymbol{\mu}_2=\frac{1}{N_2}\sum_{n=1}^{N}(1-t_n)\boldsymbol{x}_n
+	\end{equation}
+	\item 求$\Sigma$
+	\begin{theorem}{}{}
+		\begin{flalign}
+			Tr(AB)&=Tr(BA)\\
+			\frac{\partial Tr(AB)}{\partial A}&=B^T\\
+			\frac{\partial |A|}{\partial A}&=|A|A^{-1}\\
+			\frac{\partial \ln |A|}{\partial A}&=A^{-1}
+		\end{flalign}
+	\end{theorem}
+	考察部分分式
+	\begin{equation}
+		\begin{aligned}
+			\sum_{n=1}^{N}\log \mathcal{N}(\boldsymbol{\mu},\Sigma)			&=\sum_{n=1}^{N}\log |\Sigma|^{-\frac{1}{2}}+(-\frac{1}{2}(\boldsymbol{x}_n-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}_n-\boldsymbol{\mu}))+C\\
+			&=-\frac{1}{2}N\log |\Sigma| - \frac{1}{2}\sum_{n=1}^{N}(\boldsymbol{x}_n-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}_n-\boldsymbol{\mu})+C\\
+			&=-\frac{1}{2}N\log |\Sigma|-\frac{1}{2}N Tr(S\cdot \Sigma^{-1})+C
+		\end{aligned}
+	\end{equation}
+	其中
+	\begin{equation}
+		S=\frac{1}{N}\sum_{n=1}^{N}(\boldsymbol{x}_n-\boldsymbol{\mu})(\boldsymbol{x}_n-\boldsymbol{\mu})^T
+	\end{equation}
+	将与$\Sigma$相关的式子组合到一起，有,求关于$\Sigma$的偏导，并令其为零
+	\begin{equation}
+		\begin{aligned}
+		\triangle &= \sum_{n=1}^{N}\log \mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_1,\Sigma)^{t_n}+\log\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_2,\Sigma)^{1-t_n}\\
+		&=-\frac{1}{2}\log |\Sigma|-\frac{1}{2}N_1Tr(S_1\cdot \Sigma^{-1})-\frac{1}{2}N_2Tr(S_2\cdot \Sigma^{-1})+C\\
+		\frac{\partial \triangle}{\partial \Sigma}&=-\frac{1}{2}(N\Sigma^{-1}-N_1S_1\Sigma^{-2}-N_2S_2\Sigma^{-2})=0\\
+		&\Rightarrow \Sigma=\frac{N_1}{N}S_1+\frac{N_2}{N}S_2
+		\end{aligned}
+	\end{equation}
+\end{enumerate}
+
+这个结果很容易推广到K类问题，得到参数的对应的最大似然解。其中我们假定每个类条件概率密度都是高斯分布，协方差矩阵相同。注意，拟合类高斯分布的方法对于离群点并不鲁棒，因为高斯的最大似然估计是不鲁棒的。
 \subsection*{离散特征}
+考虑离散特征值$x_i$的情形。为了简化起见，我们首先考虑二元特征值$x_i\in \{0,1\}$，稍后会讨论如何推广到更一般的离散特征。如果有D个输入，那么一般的概率分布会对应于一个大小为$2^D$的表格，包含$2^D-1$个独立变量 。由于这会随着特征的数量指数增长，因此我们想寻找一个更加严格的表示方法。这里，我们做出朴素贝叶斯(naive Bayes)假设，这个假设中，特征值被看成相互独立的，以类别$C_k$为条件，因此。我们得到类条件分布，形式为
+\begin{equation}
+\begin{aligned}
+	p(\boldsymbol{X}=\boldsymbol{x}|C_k)&=p(X^{(1)}=x^{(1)},\dots,X^{(D)}=x^{(D)}|C_k)\\
+	&=\prod_{i=1}^{D}\mu_{k_i}^{x_i}(1-\mu_{k_i})^{1-x_i}
+\end{aligned}
+\end{equation}
+其中对于每个类别，都有D个独立的参数。代入softmax函数中，有
+\begin{equation}
+	\begin{aligned}
+	a_k(\boldsymbol{x})&=\ln p(\boldsymbol{x}|C_k)p(C_k)\\
+	&=\ln \prod_{i=1}^{D}\mu_{k_i}^{x_i}(1-\mu_{k_i})^{1-x_i} + \ln p(C_k)\\
+	&=\sum_{i=1}^{D}\{x_i\ln \mu_{k_i}+(1-x_i)\ln (1-\mu_{k_i}) \}+\ln p(C_k)
+	\end{aligned}
+\end{equation}
+与之前一样，这是输入变量$x_i$的线性函数。对于$K=2$个类别的情形，我们可以考虑另一种方法——logistic sigmoid函数。离散变量也有类似的结果，其中，每个离散变量有$M>2$种状态。
+
+朴素贝叶斯法实际上学习到生成数据的机制，所以属于生成模型，条件独立性假设等于是说用于分类的特征在类确定的条件下都是条件独立的。这一假设使得朴素贝叶斯变得简单，但有时会牺牲一定的分类准确率。
+
+朴素贝叶斯法分类时，对给定的输入$x$，通过学习到的模型计算后验概率分布$p(C_k|X=x)$，将后验概率最大的类作为$x$类的输出。后验概率计算根据贝叶斯定理进行。
+\begin{equation}
+	y=f(\boldsymbol{x})=arg \mathop{max}\limits_{c_k} \frac{p(C_k)\prod_jp(X^{(j)}|C_k)}{\sum_kp(C_k)\prod_jp(X^{(j)}|C_k)}
+\end{equation}
+注意到分母对所有$C_k$都是相同的，所以 
+\begin{equation}
+	y=arg \mathop{max}\limits_{c_k} p(C_k)\prod_jp(X^{(j)}|C_k)
+\end{equation}
+朴素贝叶斯法将实例分到后验概率最大的类中。这等价于期望风险最小化。假设选择0-1损失函数：
+\begin{equation}
+	L(Y,f(X))=\begin{cases}
+	1,\quad Y\ne f(X)\\
+	0,\quad Y=f(X)
+	\end{cases}
+\end{equation}
+式中$f(X)$是分类决策函数。这时，期望风险函数为
+\begin{equation}
+	\begin{aligned}
+	E_{exp}(f)&=E[L(Y,f(X))]\\
+	&=\int_{x\mathcal{X}y}L(y,f(x))p(x,y)dxdy\\
+	&=\int_x[L(y,f(x))p(y|x)dy]p(x)dx\\
+	&=E_X\sum_{k=1}^{K}[L(C_k,f(X))]p(C_k|X)
+	\end{aligned}
+\end{equation}
+为了使期望风险最小化，只需对$X=x$逐个极小化，由此得到：
+\begin{equation}
+	\begin{aligned}
+	f(x)&=arg \mathop{min}_{y\in \mathcal{y}}\sum_{k=1}^{K}L(C_k,y)p(C_k|X=x)\\
+	&=arg \mathop{min}_{y\in \mathcal{y}}\sum_{k=1}^{K}p(y\ne C_k|X=x)\\
+	&=arg \mathop{min}_{y\in \mathcal{y}}(1-p(y=C_k|X=x))\\
+	&=arg \mathop{max}_{y\in \mathcal{y}}p(y=C_k|X=x)
+	\end{aligned}
+\end{equation}
+下面给出朴素贝叶斯法的学习与分类算法
+
+输入：训练数据$T=\{(x_1,y_1),(x_2,y_2),\dots, (x_N,y_N)\}$，其中$x_i=(x_i^{(1)},x_i^{(2)},\dots,x_i^{(n)})^T$，$x_i^{(j)}$是第i个样本的第j个特征，$x_i^{(j)}\in \{a_{j1},a_{j2},\dots, a_{jS_j}\}$，$a_{jl}$是第j个特征可能取的第l个值，$j=1,2,\dots, n,l=1,2,\dots, S_j, y_i\in \{c_1,c_2,\dots,c_k\}$;实例x;
+
+输出：实例x的分类。
+\begin{enumerate}
+	\item 计算先验概率及条件概率
+	
+	\begin{flalign}
+		P(Y=C_k)&=\frac{\sum_{i=1}^NI(y_i=C_k)}{N},k=1,2,\dots,K \\
+		P(X^{(j)}=a_{jl}|Y=C_k)&=\frac{\sum_{i=1}^NI(x_i^{(j)}=a_{jl},y_i=C_k)}{\sum_{i=1}^NI(y_i=C_k)} \\
+		j&=1,2,\dots, N,l=1,2,\dots, S_j, k=1,2,\dots,K
+	\end{flalign}
+	\item 对于给定的实例$x=(x^{(1)},x^{(2)},\dots,x^{(n)})^T$，计算
+	\begin{equation}
+		P(Y=C_k)\prod_{j=1}^nP(X^{(j)}=x^{(j)}|Y=C_k),k=1,2,\dots,K
+	\end{equation}
+	\item 确定实例x的类
+	
+	\begin{equation}
+		y=arg\mathop{max}\limits _{C_k}P(Y=C_k)\prod_{j=1}^nP(x^{(j)}=x^{(j)}|Y=Cc_k)
+	\end{equation}
+\end{enumerate}
+
 \subsection*{指数族分布}
+正如我们已经看到的，无论是服从高斯分布的输入，还是离散的输入，后验类概率密度都是由一般的线性模型和logistic sigmoid($K=2$个类别)或者softmax($K\geqslant 2$个类别)激活函数给出。通过假设类条件概率密度$p(\boldsymbol{x}|C_k)$是指数族分布的成员，我们可以看到上述结果都是更一般的结果的特例。
