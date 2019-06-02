@@ -1,6 +1,49 @@
 \section{概率判别式模型}
+对于二分类问题，我们已经看到，对于一大类的类条件概率密度$p(\boldsymbol{x}|C_k)$的选择，类别$C_1$后验概率分布可以写成作用于$\boldsymbol{x}$的线性函数上的logistic sigmoid函数的形式。类似地，对于多分类的情形，类别$C_k$的后验概率由$\boldsymbol{x}$的线性函数的softmax变换给出。对于类条件概率密度$p(\boldsymbol{x}|C_k)$的具体的选择，我们已经使用了最大似然方法估计了概率密度的参数以及类别先验$p(C_k)$，然后使用贝叶斯定理就可以求出后验类概率。
+
+另一种方法是显示地使用一般的线性模型的函数形式，然后使用最大似然法直接确定它的参数。
+
+寻找一般的线性模型参数的间接方法是，分别寻找类条件概率密度和类别先验，然后使用贝叶斯定理。这是生成式建模的一个例子。在直接方法中，我们最大化由条件概率分布$p(C_k|\boldsymbol{x})$定义的似然函数。这种方法代表了判别式训练的一种形式。判别式方法的一个优点是通常有更少的可调节的参数需要确定，并且预测表现会提升，尤其是当类条件概率密度的假设没有很好地近似真实的分布的时候更是如此。
 \subsection*{固定基函数}
+如果首先使用一个基函数向量$\phi(\boldsymbol{x})$对输入变量进行一个固定的非线性变换，所有的这些算法仍然同样适用。
 \subsection*{logistic回归}
+首先通过二分类问题开始对于一般线性模型的讨论。类别$C_1$的后验概率可以写成作用在特征向量$\phi$的线性函数上的logistic sigmoid函数的形式，即
+\begin{flalign}
+	p(C_1|\phi)&=y(\phi)=\sigma(\boldsymbol{w}^T\phi)\\
+	p(C_2|\phi)&=1-p(C_1|\phi)
+\end{flalign}
+这个模型被称为logistic回归，这是一个分类模型而不是回归模型。
+
+对于一个M维特征空间$\phi$，这个模型有M个可调节参数。相反，如果我们使用最大似然方法调节高斯类条件概率密度，那么我们有2M个参数来描述均值，以及$\frac{M(M+1)}{2}$个参数来描述协方差矩阵。算上类先验$p(C_1)$，参数的总数为$\frac{M(M+5)}{2}+1$，这随着M的增长而以二次的方式增长。这和logstic回归方法中对于参数数据M的线性依赖不同。对于大的M值，直接使用logistic回归模型有着很明显的优势。
+
+现在使用最大似然方法来确定logistic回归模型的参数。对于一个数据集$\phi_n,t_n$，其中$t_n\in \{0,1\},\phi_n=\phi(\boldsymbol{x}_n),n=1,\dots,N$，似然函数可以写成
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{w})=\prod_{n=1}^{N}y_n^{t_n}\{1-y_n \}^{1-t_n}
+\end{equation}
+其中$\boldsymbol{t}=(t_1,\dots,t_N)^T$且$y_n=p(C_1|\phi_n)$。通过取似然函数的负对数的方式，定义一个误差函数。这种方式产生了交叉熵(cross-entropy)误差函数，形式为
+\begin{equation}
+	\begin{aligned}
+	E(\boldsymbol{w})&=-\ln p(\boldsymbol{t}|\boldsymbol{w})\\
+	&=-\sum_{n=1}^{N}\{t_n\ln y_n+(1-t_n)\ln (1-y_n) \}
+	\end{aligned}
+\end{equation}
+其中$y_n=\sigma(a_n)$且$a_n=\boldsymbol{w}^T\phi_n$。两侧关于$\boldsymbol{w}$取误差函数的梯度，我们有
+\begin{equation}
+\begin{aligned}
+	\triangledown E(\boldsymbol{w})&=-\sum_{n=1}^{N}\{\frac{t_n}{y_n}y_n^{'}+\frac{(1-t_n)}{1-y_n}(1-y_n)^{'} \}\\
+	&=-\sum_{n=1}^{N}\frac{t_n}{\sigma}\sigma(1-\sigma)\phi_n - \frac{1-t_n}{1-\sigma}\sigma(1-\sigma)\phi_n\\
+	&=\sum_{n=1}^{N}(y_n-t_n)\phi_n
+\end{aligned}
+\end{equation}
+推导时用到了
+\begin{equation}
+	\frac{d\sigma}{da}=\sigma(1-\sigma)
+\end{equation}
+我们看到，涉及到logistic sigmoid的导数的因子已经被消去，使得对数似然函数的梯度的形式十分简单。特别地，数据点$n$对梯度的贡献为目标值和模型预测值之间的“误差”与基函数向量$\phi_n$相乘。此外它的函数形式与线性回归模型中的平方和误差函数的梯度的函数形式完全相同。
+
+问题变成了以对数似然函数为目标函数的最优化问题。logistic回归学习中通常采用的方法是梯度下降法及拟牛顿法。
+
+值得注意的一点是，最大似然方法对于线性可分的数据集会产生严重的过拟合现象。最大似然方法无法区分某个解优于另一个解，并且在实际应用中哪个解被找到将会依赖于优化算法的选择和参数的初始化。只要数据是线性可分的，这个问题就会出现。通过引入先验概率，然后寻找$\boldsymbol{w}$的MAP解，或者等价地，通过给误差函数增加一个正则化项，这种奇异性就可以被避免。
 \subsection*{迭代重加权最小平方}
 \subsection*{多类logistic回归}
 \subsection*{probit回归}
