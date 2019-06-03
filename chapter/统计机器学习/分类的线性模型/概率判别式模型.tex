@@ -45,6 +45,50 @@
 
 值得注意的一点是，最大似然方法对于线性可分的数据集会产生严重的过拟合现象。最大似然方法无法区分某个解优于另一个解，并且在实际应用中哪个解被找到将会依赖于优化算法的选择和参数的初始化。只要数据是线性可分的，这个问题就会出现。通过引入先验概率，然后寻找$\boldsymbol{w}$的MAP解，或者等价地，通过给误差函数增加一个正则化项，这种奇异性就可以被避免。
 \subsection*{迭代重加权最小平方}
+对于logistic回归来说，不再有解析解，因为logistic sigmoid函数是一个非线性函数。然而，函数形式不是二次函数并不是本质的原因。精确地说，误差函数是凸函数，因此有一个唯一的最小值。此外，误差函数可以通过一种高效的迭代方法求出最小值，这种迭代方法基于Newton-Raphson迭代最优化框架，使用了对数似然函数的局部二次近似。为了最小化函数$E(\boldsymbol{w})$，Newton-Raphson对权值的更新的形式为
+\begin{equation}
+	\boldsymbol{w}^{\text{新}}=\boldsymbol{w}^{\text{旧}}-H^{-1}\triangledown E(\boldsymbol{w})
+\end{equation}
+其中$H$是一个Hessian矩阵。把Newton-Raphson方法应用到现行回归模型上，误差函数为平方和误差函数。这个误差函数的梯度和Hessian矩阵为
+\begin{flalign}
+	\triangledown E[\boldsymbol{w}]&=\sum_{n=1}^{N}(\boldsymbol{w}^T\phi_n-t_n)\phi_n=\Phi^T\Phi \boldsymbol{w}-\Phi^T\boldsymbol{t}\\
+	H&=\triangledown\triangledown E(\boldsymbol{w})=\sum_{n=1}^{N}\phi_n\phi_n^T=\Phi^T\Phi
+\end{flalign}
+其中$\Phi$是$N\times M$设计矩阵，第n行为$\phi_n^T$。于是，Newton-Raphson更新的形式为
+\begin{equation}
+	\begin{aligned}
+	\boldsymbol{w}^{\text{新}}&=\boldsymbol{w}^{\text{旧}}-(\Phi^T\Phi)^{-1}\{\Phi^T\Phi \boldsymbol{w}^{\text{旧}}-\Phi^T\boldsymbol{t} \}\\
+	&=(\Phi^T\Phi)^{-1}\Phi^T\boldsymbol{t}
+	\end{aligned}
+\end{equation}
+现在把Newton-Raphson更新应用到logistic回归模型的交叉熵误差函数上。
+\begin{flalign}
+	\triangledown E(\boldsymbol{w})&=\sum_{n=1}^{N}(y_n-t_n)\phi_n = \Phi^T(\boldsymbol{y}-\boldsymbol{t})\\
+	H=\triangledown \triangledown  E(\boldsymbol{w})&=\sum_{n=1}^{N}y_n(1-y_n)\phi_n\phi_n^T=\Phi^T\mathcal{R}\Phi
+\end{flalign}
+推导过程中，引入了一个$N\times N$的对角矩阵$\mathcal{R}$，元素为
+\begin{equation}
+	\mathcal{R}_{nn}=y_n(1-y_n)
+\end{equation}
+我们看到，Hessian矩阵不再是常量，而是通过权矩阵$\mathcal{R}$依赖于$\boldsymbol{w}$。这对应于误差函数不是二次函数的事实。使用性质$0<y_n<1$，我们看到对于任意向量$\boldsymbol{u}$都有$\boldsymbol{u}^TH\boldsymbol{u}>0$，因此Hessian矩阵H是正定的。因此误差函数是$\boldsymbol{w}$的一个凸函数，从而有唯一的最小值。
+
+这样，logistic回归模型的Newton-Raphson更新公式就变成了
+\begin{equation}
+	\begin{aligned}
+	\boldsymbol{w}^{\text{新}}&=\boldsymbol{w}^{\text{旧}}-(\Phi^T\mathcal{R}\Phi)^{-1}\Phi^T(\boldsymbol{y}-\boldsymbol{t})\\
+	&=(\Phi^T\mathcal{R}\Phi)^{-1}\{\Phi^T\mathcal{R}\Phi\boldsymbol{w}^{\text{旧}}- \Phi^T(\boldsymbol{y}-\boldsymbol{t})\}\\
+	&=(\Phi^T\mathcal{R}\Phi)^{-1}\Phi^T\mathcal{R}\boldsymbol{z}
+	\end{aligned}
+\end{equation}
+其中$\boldsymbol{z}$是一个$N$维向量，元素为
+\begin{equation}
+	\boldsymbol{z}=\Phi\boldsymbol{w}^{\text{旧}}-\mathcal{R}^{-1}(\boldsymbol{y}-\boldsymbol{t})
+\end{equation}
+更新公式的形式为一组加权最小平方问题的规范方程。由于权矩阵$\mathcal{R}$不是常量，而是依赖于参数向量$\boldsymbol{w}$，因此我们必须迭代地应用规范方程，每次使用新的权向量$\boldsymbol{w}$计算一个修正的权矩阵$\mathcal{R}$，由于这个原因，这个算法被称为迭代重加权最小平方(iterative reweighted least squares)，或者简称为IRLS。对角$\mathcal{R}$可以看成方差。
 \subsection*{多类logistic回归}
+对于多分类的生成式模型，后验概率由特征变量的线性函数的softmax变换给出，即
+\begin{equation}
+	p(C_k|\phi)=y_k(\phi)=\frac{exp(\boldsymbol{w}_k^T\phi)}{\sum_jexp(\boldsymbol{w}_k^T\phi)}
+\end{equation}
 \subsection*{probit回归}
 \subsection*{标准链接函数}
