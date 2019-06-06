@@ -91,4 +91,31 @@
 	p(C_k|\phi)=y_k(\phi)=\frac{exp(\boldsymbol{w}_k^T\phi)}{\sum_jexp(\boldsymbol{w}_k^T\phi)}
 \end{equation}
 \subsection*{probit回归}
+对于由指数族分布描述的一大类的类条件概率分布，最终求出的后验类概率为作用在特征变量的线性函数上的logistic(或者softmax)变换。然而，不是所有的类条件概率密度都有这样简单的后验概率函数形式(例如，如果类条件概率密度由高斯混合模型建模)。这表明研究其他类型的判别式概率模型可能会很有价值。回到二分类的情形，再次使用一般的线性模型的框架，即
+\begin{equation}
+	p(t=1|a)=f(a)
+\end{equation}
+其中$a=\boldsymbol{w}^T\phi$，且$f(\cdot)$为激活函数。
+对于每个输入$\phi_n$，我们计算$\boldsymbol{w}^T\phi_n$，然后按照下面的方式设置目标值
+\begin{equation}
+	\begin{cases}
+	t_n=1,\quad \text{如果}a_n\geqslant \theta\\
+	t_n=0,\quad \text{其他情况}
+	\end{cases}
+\end{equation}
+如果$\theta$的值从概率密度$p(\theta)$中抽取，那么对应的激活函数由累积分布函数给出
+\begin{equation}
+	f(a)=\int_{-\infty}^ap(\theta)d\theta
+\end{equation}
+这被称为逆probit(inverse probit)函数。它的形状为sigmoid形。许多用于计算这个函数的数值计算包都与下面的这个函数紧密相关
+\begin{equation}
+	erf(a)=\frac{2}{\sqrt{\pi}}\int_0^aexp(-\theta^2)d\theta
+\end{equation}
+它被称为erf函数或者被称为error函数。它与逆probit函数的关系为
+\begin{equation}
+	\Phi(a)=\frac{1}{2}\left\{1+erf\left(\frac{a}{\sqrt{2}} \right) \right\}
+\end{equation}
+基于probit激活函数的一般的线性模型被称为probit回归。
 \subsection*{标准链接函数}
+如果假设目标变量的条件分布来自于指数族分布，对应的激活函数选为标准链接函数(canonical link function)，那么这个结果是一个一般的结果。
+
