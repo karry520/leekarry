@@ -1,1 +1,75 @@
 \section{网络训练}
+根据解决的问题的类型，关于输出单元激活函数和对应的误差函数，都存在一个自然的选择。
+\begin{enumerate}
+	\item 对于回归问题，我们使用线性输出和平方和误差函数
+	\item 对于(多类独立的)二元分类问题，我们使用logistic sigmoid输出以及交叉熵误差函数
+	\item 对于多类分类问题，我们使用softmax输出以及对应的多分类交叉熵错误函数。
+\end{enumerate}
+对于涉及到两类的分类问题，我们可以使用单一的logistic sigmoid输出，也可以使用神经网络，这个神经网络有两个输出，且输出激活函数为softmax函数。
+\subsection*{参数最优化}
+下面考虑寻找能够使得选定的误差函数$E(\boldsymbol{w})$达到最小值的权向量$\boldsymbol{w}$。由于误差$E(\boldsymbol{w})$是$\boldsymbol{w}$的光滑连续函数，因此它的最小值出现在权空间中误差函数梯度等于零的位置上，即
+\begin{equation}
+	\triangledown E(\boldsymbol{w})=0
+\end{equation}
+然而，误差函数通常与权值和偏置参数的关系是高度非线性的，因此权值空间中会有很多梯度为零(或者梯度非常小)的点。由于显然无法找到方程$\triangledown E(\boldsymbol{w})=0$的解析解，因此我们使用迭代的数值方法。大多数方法涉及到为权向量选择某个初始值$\boldsymbol{w}_0$，然后在权空间中进行一系列移动，形式为
+\begin{equation}
+	\boldsymbol{w}^{(\tau +1)}=\boldsymbol{w}^{(\tau)}+\triangle w^{(\tau)}
+\end{equation}
+其中$\tau$表示迭代次数。不同的算法涉及到权向量更新$\triangle w^{(\tau)}$的不同选择。许多算法使用梯度信息，为了理解梯度信息的重要性，有必要考虑误差函数基于泰勒展开的局部近似。
+\subsection*{局部二次近似}
+通过讨论误差函数的局部二次近似，我们可以更深刻地认识最优化问题，以及各种解决最优化问题的方法。考虑$E(\boldsymbol{w})$在权空间某点$\hat{\boldsymbol{w}}$处的泰勒展开 
+\begin{equation}
+	E(\boldsymbol{w})\simeq E(\hat{\boldsymbol{w}})+(\boldsymbol{w}-\hat{\boldsymbol{w}})^T\boldsymbol{b}+\frac{1}{2}(\boldsymbol{w}-\hat{\boldsymbol{w}})^T\boldsymbol{H}(\boldsymbol{w}-\hat{\boldsymbol{w}})
+\end{equation}
+$\boldsymbol{b}$被定义为E的梯度在$\hat{\boldsymbol{w}}$处的值。
+\begin{equation}
+	\boldsymbol{b}\equiv \triangledown E|_{\boldsymbol{w}=\hat{\boldsymbol{w}}}
+\end{equation}
+Hessian矩阵$\boldsymbol{H}=\triangledown\triangledown E$
+梯度的局部近似为
+\begin{equation}
+	\triangledown E\simeq \boldsymbol{b}+\boldsymbol{H}(\boldsymbol{w}-\hat{\boldsymbol{w}})
+\end{equation}
+考虑一个特殊情况：在误差函数最小值点$\boldsymbol{w}^*$附近的局部二次近似。因为$\triangledown E=0$
+\begin{equation}
+E(\boldsymbol{w})\simeq E(\boldsymbol{w}^*)+\frac{1}{2}(\boldsymbol{w}-\boldsymbol{w}^*)^T\boldsymbol{H}(\boldsymbol{w}-\boldsymbol{w}^*)
+\end{equation}
+为了用几何的形式表示这个结果，考虑Hessian矩阵的特征值方程
+\begin{equation}
+	\boldsymbol{H} \boldsymbol{u}_i=\lambda_i\boldsymbol{u}_i
+\end{equation}
+其中特征向量$\boldsymbol{u}_i$构成了完备的单位正交集合，即
+\begin{equation}
+	\boldsymbol{u}_i^T\boldsymbol{u}_j=\delta_{ij}
+\end{equation}
+现在把$(\boldsymbol{w}-\boldsymbol{w}^*)$展开成特征值的线性组合的形式
+\begin{equation}
+	\boldsymbol{w}-\boldsymbol{w}^*=\sum_i \alpha_i \boldsymbol{u}_i
+\end{equation}
+误差函数可以写成
+\begin{equation}
+	E(\boldsymbol{w})=E(\boldsymbol{w}^*)+\frac{1}{2}\sum_i \lambda_i\alpha_i^2
+\end{equation}
+在最小值$\boldsymbol{w}^*$的领域中，误差函数可以用二次函数近似。这样，常数误差函数的轮廓线为椭圆，它的轴与Hessian矩阵的特征向量$\boldsymbol{u}_i$给出，长度与对应的特征值$\lambda_i$的平方根成反比。在新的坐标第中，基向量是特征向量$\{\boldsymbol{u}_i\}$，E为常数的轮廓线是以原点为中心的椭圆。对应的D维的结论是，在$\boldsymbol{w}^*$处的Hessian矩阵是正定矩阵。
+\subsection*{使用梯度信息}
+使用误差反向传播的方法可以高效地计算误差函数的梯度。这个梯度信息的使用可以大幅度加快找到极小值点的速度。使用梯度信息构成了训练神经网络的实际算法的基础。
+\subsection*{梯度下降最优化}
+最简单的使用梯度信息的方法是，每次权值更新都是在负梯度方向上的一次小的移动，即
+\begin{equation}
+	\boldsymbol{w}^{(\tau +1)}=\boldsymbol{w}^{(\tau)}-\eta \triangledown E(\boldsymbol{w}^{(\tau)})
+\end{equation}
+这种方法被称为梯度下降法(gradient descent)或者最陡峭下降法(steepest descent)。虽然这种方法在直觉上看比较合理，但是实际上可以证明它是一个很差的算法。对于批量最优化方法，存在更高效的方法，例如共轭梯度法(conjugate gradient)或者拟牛顿法(quasi-Newton)。这些方法具有这样的性质：误差函数在每次迭代时总是减小的，除非权向量到达了局部的或者全局的最小值。
+
+为了找到一个足够好的极小值，可能有必要多次运行基于梯度的算法，每次都使用一个不同的随机选择额起始点，然后在一个独立的验证集上对比最终的表现。
+
+梯度下降法有一个在线的版本，这个版本被证明在实际应用中对于使用大规模数据集来训练神经网络的情形很有用。基于一组独立观测的最大似然函数的误差函数由一个求和式构成，求和式的每一项都对应着一个数据点
+\begin{equation}
+	E(\boldsymbol{w})=\sum_{n=1}^{N}E_n(\boldsymbol{w})
+\end{equation}
+在线梯度下降，也被称为顺序梯度下降(sequential gradient descent)或者随机梯度下降(stochasitc gradient descent)，使得权向量的更新每次只依赖于一个数据点，即
+\begin{equation}
+		\boldsymbol{w}^{(\tau +1)}=\boldsymbol{w}^{(\tau)}-\eta \triangledown E_n(\boldsymbol{w}^{(\tau)})
+\end{equation}
+这个更新在数据集上循环重复进行，并且即可以顺序地处理数据，也可以随机地有重复地选择数据点。当然，也有折中的方法，即每次更新依赖于数据点的一小部分。
+
+与批处理相比，在线方法的一个优点是可以更加高效地处理数据中的冗余性。在线梯度下隆方法的另一个性质是，可以逃离局部极小值点，因为整个数据集的关于误差函数的驻点通常不会是每个数据点各自的驻点。

@@ -1,1 +1,60 @@
 \section{Hessian矩阵}
+反向传播也可以用来计算误差函数的二阶导数，形式为
+\begin{equation}
+	\frac{\partial^2 E}{\partial w_{ji}\partial w_{lk}}
+\end{equation}
+有时将所有的权值和偏置参数看成一个向量(记作$\boldsymbol{w}$)的元素$w_i$更方便，此时二阶导数组成了Hessian矩阵$\boldsymbol{H}$的元素$H_{ij}$，其中$i,j\in \{1,\dots,W\}$，且W是权值和偏置的总数。Hessian矩阵在神经网络计算的许多方面都有着重要的作用，包括
+\begin{enumerate}
+	\item 一些用来训练神经网络的非线性最优化算法是基于误差曲面的二阶性质的，这些性质由Hessian矩阵控制。
+	\item 对于训练数据的微小改变，Hessian矩阵构成了快速重新训练前馈网络的算法的基础。
+	\item Hessian矩阵的逆矩阵用来鉴别神经网络中最不重要的权值，这是网络“剪枝”算法的一部分。
+	\item Hessian矩阵是贝叶斯神经网络的拉普拉斯近似的核心。它的逆矩阵用来确定训练过的神经网络的预测分布，它的特征值确定了超参数的值，它的行列式用来计算模型证据。
+\end{enumerate}
+
+计算神经网络的Hessian矩阵有很多近似方法，然而，使用反向传播方法的一个扩展，Hessian矩阵可以精确地被计算出来。
+\subsection*{对角近似}
+Hessian矩阵的一些应用需要求出Hessian矩阵的逆矩阵，而不是Hessian矩阵本身。因此，我们对Hessian矩阵的对角化近似比较感兴趣。换句话说，就是把非对角线上的元素置为零，因此这样做之后，矩阵的逆矩阵很容易计算。Hessian矩阵的对角线元素可以写成
+\begin{equation}
+\begin{aligned}
+	\frac{\partial^2 E_n}{\partial w_{ji}^2}&=\frac{\partial^2 E_n}{\partial a_j^2}\frac{\partial a_j}{\partial w_{ji}}z_i+0\\
+	&=\frac{\partial^2 E_n}{\partial a_j^2}z_i^2
+\end{aligned}
+\end{equation}
+公式右侧的二阶导数可以通过递归地使用微分的链式法则的方式求出。这样，可以得到反向传播方程的形式为
+\begin{equation}
+\begin{aligned}
+	\frac{\partial^2 E_n}{\partial a_j^2}&=\frac{\partial}{\partial a_j}\left[\sum_{k}\frac{\partial E_n}{\partial a_k}\frac{\partial a_k}{\partial a_j} \right]\\
+	&=\frac{\partial}{\partial a_j}\left[h^{'}(a_j)\sum_{k}w_{kj}\frac{\partial E_n}{\partial a_k} \right]\\
+	&=h^{'}(a_j)^2\sum_{k}\sum_{k^{'}}w_{kj}w_{k^{'}j}\frac{\partial^2 E_n}{\partial a_k\partial a_{k^{'}}}+h^{''}(a_j)\sum_{k}w_{kj}\frac{\partial E_n}{\partial a_k}
+\end{aligned}
+\end{equation}
+如果忽略二阶导数中非对角线无素，那么我们有
+\begin{equation}
+	\frac{\partial^2 E_n}{\partial a_j^2}=h^{'}(a_j)^2\sum_{k}w_{kj}^2\frac{\partial^2 E_n}{\partial a_k^2}+h^{''}(a_j)\sum_{k}w_{kj}\frac{\partial E_n}{\partial a_k}
+\end{equation}
+对角近似的主要问题是，在实际应用中Hessian矩阵通常是强烈非对角化的，因此为了计算方便而采取的这些近似手段必须谨慎使用。
+\subsection*{外积近似}
+当神经网络应用于回归问题时，通常使用平方和误差函数。
+我们可以把Hessian矩阵写成下面的形式
+\begin{equation}
+	\begin{aligned}
+		\boldsymbol{H}&=\triangledown\triangledown E=\frac{\partial^2}{\partial y_n^2}\left[\frac{1}{2}\sum_{n=1}^{N}(y_n-t_n)^2 \right]\\
+		&=\frac{\partial}{\partial y_n}\left[\triangledown y_n\sum_{n=1}^{N}(y_n-t_n) \right]\\
+		&=\sum_{n=1}^{N}\triangledown y_n(\triangledown y_n)^T+\sum_{n=1}^{N}(y_n-t_n)\triangledown\triangledown y_n
+	\end{aligned}
+\end{equation}
+如果网络已经在数据集上训练过，输出$y_n$恰好非常接近$t_n$，那么公式的第二项会很小，可以被忽略。我们就得到了Levenberg-Marquardt近似，或者称为外积近似(outer product approximation)。形式为
+\begin{equation}
+	\boldsymbol{H}\simeq \sum_{n=1}^{N}\boldsymbol{b}_n\boldsymbol{b}_n^T
+\end{equation}
+其中$\boldsymbol{b}_n\equiv \triangledown a_n=\triangledown y_n$，因为输出单元的激活函数就是恒等函数。Hessian矩阵近似的计算是很容易的，因为它只涉及到误差函数的一阶导数，这可能通过使用标准的反向传播算法在$O(W)$个步骤内高效地求出。需要强调的是，这种近似只在网络被恰当地训练时才成立，对于一个一般的网络映射，公式右侧的二阶导数项通常不能忽略。
+
+在误差函数为交叉熵误差函数，输出单元激活函数为logistic sigmoid函数的神经网络中，对应的近似为
+\begin{equation}
+	\boldsymbol{H}\simeq \sum_{n=1}^{N}y_n(1-y_n)\boldsymbol{b}_n\boldsymbol{b}_n^T
+\end{equation}
+对于输出函数为softmax函数的多类神经网络，可以得到类似的结果。
+\subsection*{Hessian矩阵的逆矩阵}
+\subsection*{有限差}
+\subsection*{Hessian矩阵的精确计算}
+\subsection*{Hessian矩阵的快速乘法}

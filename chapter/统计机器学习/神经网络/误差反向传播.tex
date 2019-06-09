@@ -1,1 +1,102 @@
 \section{误差反向传播}
+本节中，我们的目标是寻找一种计算前馈神经网络的误差函数$E(\boldsymbol{w})$的梯度的一种高效的方法。在局部信息传递的思想中，信息在神经网络中交替地向前、向后传播。这种方法被称为误差反向传播(error backpropagation)，有时简称“反传”(backprop)。
+
+为了不让概念发生混淆，仔细研究一下训练过程的本质是很有用的。大部分训练算法涉及到一个迭代的步骤用于误差函数的最小化，以及通过一系列的步骤进行的权值调节。在每一个迭代过程中，我们可以区分这两个不同的阶段。
+\begin{enumerate}
+	\item 第一个阶段，误差函数关于权值的导数必须被计算出来。
+	\item 第二个阶段，导数用于计算权值的调整量。
+\end{enumerate}
+反向传播方法的一个重要的贡献是提供了计算这些导数的一个高效的方法。由于正是这个阶段，误差通过网络进行反向传播，因此我们将专门使用反向传播这个术语来描述计算导数的过程。
+\subsection*{误差函数导数的计算}
+我们现在推导适用于一般神经网络的反向传播算法。许多实际应用中使用的误差函数，例如针对一组独立同分布的数据的最大似然方法定义的误差函数，由若干的求和式组成，每一项对应于训练集的一个数据点，即
+\begin{equation}
+	E(\boldsymbol{w})=\sum_{n=1}^{N}E_n(\boldsymbol{w})
+\end{equation}
+这里，我们要考虑的是计算$\triangledown E_n(\boldsymbol{w})$的问题。这可以使用顺序优化的方法计算，或者使用批处理方法在训练集上进行累加。
+
+首先考虑一个简单的线性模型，其中输出$y_k$是输入变量$x_i$的线性组合，即，
+\begin{equation}
+	y_k=\sum_i w_{ki}x_i
+\end{equation}
+对于一个特定的输入模式n，误差函数的形式为
+\begin{equation}
+	E_n=\frac{1}{2}\sum_k(y_{nk}-t_{nk})^2
+\end{equation}
+其中$y_{nk}=y_k(\boldsymbol{x}_n,\boldsymbol{w})$。这个误差函数关于一个权值$w_{ji}$的梯度为
+\begin{equation}
+	\frac{\partial E_n}{\partial w_{ji}}=(y_{nj}-t_{nj})x_{ni}
+\end{equation}
+它可以表示为链接$w_{ji}$的输出端相关联的“误差信号”$y_{nj}-t_{nj}$和与链接的输入端相关联的变量$x_{nj}$的乘积。
+反向传播算法可以总结如下 
+\begin{enumerate}
+	\item 对于网络的一个输入向量$\boldsymbol{x}_n$，使用下列进行正向传播，找到所有隐含单元和输出单元的激活。
+	\begin{flalign}
+		a_j&=\sum_iw_{ji}z_i\\
+		z_j&=h(a_j)
+	\end{flalign}
+	其中$z_i$是一个单元的激活，或者是输入。它向单元j发送一个链接，$w_{ji}$是与这个链接关联的权值。
+	\item 计算所有输出单元的$\delta_k$
+	\begin{equation}
+		\delta_k=y_k-t_k
+	\end{equation}
+	\item 获得网络中所有隐含单元的$\delta_j$
+	\begin{equation}
+	\begin{aligned}
+			\delta_j\equiv \frac{\partial E_n}{\partial a_j}&=\sum_k \frac{\partial E_n}{\partial a_k}\frac{\partial a_k}{\partial a_j}\\
+			&=h^{'}(a_j)\sum_k w_{kj}\delta_k
+	\end{aligned}
+	\end{equation}
+	其中求和式的作用对象是所有向单元j发送链接的单元k。注意，单元k可以包含其他的隐含单元和输出单元。
+	\item 计算导数
+	\begin{equation}
+		\frac{\partial E_n}{\partial w_{ji}}=\delta_jz_i
+	\end{equation}
+\end{enumerate}
+对于批处理方法，总误差函数E的导数可以通过下面的方式得到：对于训练集里的每个模式，重复上面的步骤，然后对所有的模式求和，即
+\begin{equation}
+	\frac{\partial E}{\partial w_{ji}}=\sum_{n}\frac{\partial E_n}{\partial w_{ji}}
+\end{equation}
+上面的推导中，我们隐式地假设网络中的每个隐含单元或输入单元相同的激活函数$h(\cdot)$。
+\subsection*{一个简单的例子}
+上面对于反向传播算法的推导适用于一般形式的误差函数、激活函数、以及网络拓扑结构。为了说明这个算法的应用，我们考虑一个具体的例子。具体地，我们考虑两层神经网络，误差函数为平方和误差函数，输出单元的激活函数为线性激活函数，即$y_k=a_k$，而隐含单元的激活函数为S型函数，形式为
+\begin{equation}
+	h(a)\equiv \tanh(a)=\frac{e^a-e^{-a}}{e^a+e^{-a}}
+\end{equation}
+这个函数的一个有用的特征是，它的导数可以表示成一个相当简单的形式
+\begin{equation}
+	h^{'}(a)=1-h(a)^2
+\end{equation}
+也考虑一个标准的平方和误差函数，即对于模式n，误差为
+\begin{equation}
+	E_n=\frac{1}{2}\sum_{k=1}^{K}(y_k-t_k)^2
+\end{equation}
+其中，对于一个特定的输入模式$\boldsymbol{x}_n,y_k$是输出单元k的激活，$t_k$是对应的目标值。
+
+对于训练集里的每个模式，我们首先使用下面的公式进行前向传播。
+\begin{flalign}
+	a_j&=\sum_{i=0}^{D}w_{ji}^{(1)}x_i\\
+	z_j&=\tanh(a_j)\\
+	y_k&=\sum_{j=0}^{M}w_{kj}^{(2)}z_j
+\end{flalign}
+接下来，使用下面的公式计算每个输出单元的$\delta$值
+\begin{flalign}
+	\delta_k=y_k-t_k
+\end{flalign}
+然后，将这些$\delta$值反向传播，得到隐含单元的$\delta$值
+\begin{equation}
+	\delta_j=(1-Z_j^2)\sum_{k=1}^{K}w_{kj}\delta_k
+\end{equation}
+最后，关于第一层权值和第二层权值的导数为
+\begin{equation}
+	\frac{\partial E_n}{\partial w_{ji}^{(1)}}=\delta_jx_i,\quad \frac{\partial E_n}{\partial w_{ki}^{(2)}}=\delta_kz_i
+\end{equation}
+\subsection*{反向传播的效率}
+反向传播的一个重要的方面是它的计算效率。考察误差函数导数的计算次数与网络中权值和偏置总数W的关系。
+\subsection*{Jacobian矩阵}
+误差反向传播技术也可以用来计算其他类型的导数。考虑Jacobian矩阵的计算，它的元素的值是网络的输出关于输入的导数
+\begin{equation}
+	J_{ki}\equiv \frac{\partial y_k}{\partial x_i}
+\end{equation}
+其中，计算每个这样的导数时，其他的输入都固定。Jacobian矩阵在由许多不同模块构建的系统中很有用。Jacobian矩阵度量了输出对于每个输入变量的改变的敏感性，因此它也允许与输入关联的任意已知的误差$\triangle x_i$在训练过的网络中传播，从而估计他们对于输出误差$\triangle y_k$的贡献。
+
+%可以将计算Jacobian矩阵的方法总结如下。将输入空间中要寻找Jacobian矩阵的点映射成一个输入向量，将这个输入向量作为网络的输入，使用通常的正向传播方法，得到网络的所有隐含单元和输出单元的激活。接下来，对于Jacobian矩阵的每一行k(对应于输出单元k)，使用递归关系
