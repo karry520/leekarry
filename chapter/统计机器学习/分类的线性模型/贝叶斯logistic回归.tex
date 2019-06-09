@@ -1,3 +1,47 @@
 \section{贝叶斯logistic回归}
+我们现在考虑logistic回归的贝叶斯观点。对于logistic回归，精确的贝叶斯推断是无法处理的。特别地，计算后验概率分布需要对先验概率分布于似然函数的乘积进行归一化，而似然函数本身由一系列logistic sigmoid函数的乘积组成，每个数据点都有一个logistic sigmoid函数。对于预测分布的计算类似地也是无法处理的。这里我们考虑使用拉普拉斯近似来处理贝叶斯logistic回归的问题。
 \subsection*{拉普拉斯近似}
+为了获得后验概率的高斯近似，我们首先最大化后验概率分布，得到MAP(最大后验)解$\boldsymbol{w}_{MAP}$，它定义了高斯分布的均值。这样协方差就是负对数似然函数的二阶导数矩阵的逆矩阵，形式为
+\begin{equation}
+	\boldsymbol{S}_N^{-1}=-\triangledown\triangledown \ln p(\boldsymbol{w}|\boldsymbol{t})=\boldsymbol{S}_0^{-1}+\sum_{n=1}^{N}y_n(1-y_n)\phi_n\phi^T
+\end{equation}
+于是后验概率分布的高斯近似的形式为
+\begin{equation}
+\label{lala}
+	q(\boldsymbol{w})=\mathcal{N}(\boldsymbol{w}|\boldsymbol{w}_{MAP},\boldsymbol{S}_N)
+\end{equation}
 \subsection*{预测分布}
+给定一个新的特征向量$\phi(\boldsymbol{x})$，类别$C_1$的预测分布可以通过对后验概率$p(\boldsymbol{w}|\boldsymbol{t})$积分，后验概率本身由高斯分布$q(\boldsymbol{w})$近似，即
+\begin{equation}
+	p(C_1|\phi,\boldsymbol{t})=\int p(C_1|\phi,\boldsymbol{w})p(\boldsymbol{w}|\boldsymbol{t})d\boldsymbol{w}\simeq \int \sigma(\boldsymbol{w}^T\phi)q(\boldsymbol{w})d\boldsymbol{w}
+\end{equation}
+类别$C_2$的对应的概率为$p(C_2|\phi,\boldsymbol{t})=1-p(C_1|\phi,\boldsymbol{t})$。
+
+为了计算预测分布，我们首先注意到函数$\sigma(\boldsymbol{w}^T\phi)$对于$\boldsymbol{w}$的依赖只通过它在$\phi$上的投影而实现。记$a=\boldsymbol{w}^T\phi$，我们有
+\begin{equation}
+	\sigma(\boldsymbol{w}^T\phi)=\int \delta(a-\boldsymbol{w}^T\phi)\sigma(a)da
+\end{equation}
+其中$\delta(\cdot)$是狄拉克Delta函数。由此我们有
+\begin{equation}
+	\int \sigma(\boldsymbol{w}^T\phi)q(\boldsymbol{w})d\boldsymbol{w}=\int \sigma(a)p(a)da
+\end{equation}
+其中 
+\begin{equation}
+	p(a)=\int \delta(a-\boldsymbol{w}^T\phi)q(\boldsymbol{w})d\boldsymbol{w}
+\end{equation}
+我们可以这样计算$p(a)$：注意到Delta函数给$\boldsymbol{w}$施加了一个线性限制，因此在所有与$\phi$正交的方向上积分，就得到了联合概率分布$q(\boldsymbol{w})$的边缘分布。由于$q(\boldsymbol{w})$是高斯分布，因此我们知道边缘概率分布也是高斯分布。我们可以通过计算各阶矩然后交换$a$和$\boldsymbol{w}$的积分顺序的方式计算均值和协方差，即
+\begin{equation}
+	\mu_a=\mathbb{E}[a]=\int p(a)ada=\int q(\boldsymbol{w})\boldsymbol{w}^T\phi d\boldsymbol{w}=\boldsymbol{w}^T_{MAP}\phi
+\end{equation}
+推导时使用了$\ref{lala}$给出的后验概率分布$q(\boldsymbol{w})$的结果。类似地
+\begin{equation}
+\begin{aligned}
+	\sigma_a^2&=var[a]=\int p(a)\{a^2-\mathbb{E}[a]^2 \}da\\
+	&=\int q(\boldsymbol{w})\{(\boldsymbol{w}^T\phi)^2-(\boldsymbol{m}_N^T\phi)^2\}d\boldsymbol{w}=\phi^T\boldsymbol{S}_N\phi
+\end{aligned}
+\end{equation}
+因此我们对于预测分布的近似变成了
+\begin{equation}
+	p(C_1|\boldsymbol{t})=\int \sigma(a)p(a)da=\int \sigma(a)\mathcal{N}(a|\mu_a,\sigma_a^2)da
+\end{equation}
+关于$a$的积分表示一个高斯分布和一个logistic sigmoid函数的卷积，不能够解析地求值。然而，我们可以利用logistic sigmoid函数$\sigma(a)$和逆probit函数$\Phi(a)$的高度相似性来获得一个较好的近似。
