@@ -55,6 +55,101 @@ Hessian矩阵的一些应用需要求出Hessian矩阵的逆矩阵，而不是Hes
 \end{equation}
 对于输出函数为softmax函数的多类神经网络，可以得到类似的结果。
 \subsection*{Hessian矩阵的逆矩阵}
+使用外积近似可以提出一个计算Hessian矩阵的逆矩阵的高效方法。首先，我们用矩阵的记号写出外积近似，即
+\begin{equation}
+\boldsymbol{H}= \sum_{n=1}^{N}\boldsymbol{b}_n\boldsymbol{b}_n^T
+\end{equation}
+其中，$\boldsymbol{b}_n\equiv \triangledown_{\boldsymbol{w}}a_n$是数据点n产生的输出单元激活对梯度的贡献。
+
+现上推导一个建立Hessian矩阵的顺序步骤，每次处理一个数据点。假设我们已经使用前L个数据点得到了Hessian矩阵的逆矩阵。通过将第L+1个数据点的贡献单独写出来，我们有
+\begin{equation}
+	\boldsymbol{H}_{L+1}=\boldsymbol{H}_L+\boldsymbol{b}_{L+1}\boldsymbol{b}_{L+1}^T
+\end{equation}
+为了计算Hessian矩阵的逆矩阵，我们考虑Sherman-Morrison-Woodbury公式
+\begin{equation}
+\label{booy}
+	(A+UV^T)^{-1}=A^{-1}-A^{-1}U(I_k+V^TA^{-1}U)^{-1}V^TA^{-1}
+\end{equation}
+其中，$A\in \mathbb{R}^{n\times n}$非奇异，即$A^{-1}$存在，$U,V\in \mathbb{R}^{n\times k}$。当$k=1$时的特殊形式
+\begin{equation}
+\begin{aligned}\label{pa}
+		(A+uv^T)^{-1}&=A^{-1}-A^{-1}u(1+v^TA^{-1}u)^{-1}v^TA^{-1}\\
+		&=A^{-1}-\frac{A^{-1}uv^TA^{-1}}{1+v^TA^{-1}u}
+\end{aligned}
+\end{equation}
+SM公式看似复杂，但可以通过求解以下线性方程组来推导出来：
+\begin{equation}
+\label{1}
+	(A+uv^T)x=b
+\end{equation}
+式$\ref{1}$两边同乘以$A^{-1}$，令$A^{-1}u=z,A^{-1}b=y$，则有
+\begin{equation}
+\label{2}
+	x+zv^Tx=y
+\end{equation}
+注意到$V^Tx$是标量，令$a=v^Tx$。式$\ref{2}$两边同时乘以$v^T$，得
+\begin{equation}
+\label{3}
+	a+v^Tza=v^Ty
+\end{equation}
+由于式$\ref{3}$中$v^Tz$和$v^Ty$都是标量，从而由式$\ref{3}$可解得
+\begin{equation}
+	a=\frac{v^Ty}{1+v^Tz}
+\end{equation}
+由式$\ref{2}$和$y,z,a$的定义可得
+\begin{equation}
+\label{4}
+	\begin{aligned}
+	x&=y-az\\
+	&=A^{-1}b-A^{-1}u(1+v^TA^{-1}u)^{-1}v^TA^{-1}b\\
+	&=\left[A^{-1}-A^{-1}u(1+v^TA^{-1}u)^{-1}v^TA^{-1} \right]b
+	\end{aligned}
+\end{equation}
+由$\ref{1}$和$\ref{4}$即可得Sherman-Morrison公式，即$\ref{pa}$。
+\begin{proof}
+	公式$\ref{booy}$两边同乘$(A+UV^T)$
+	\begin{equation}
+		\begin{aligned}
+		I_n&=(A+UV^T)\left[A^{-1}-A^{-1}U(I_k+V^TA^{-1}U)^{-1}V^TA^{-1}\right]\\
+		&=I_n+UV^TA^{-1}-U(I_k+V^TA^{-1}U)^{-1}V^TA^{-1}-UV^TA^{-1}U(I_k+V^TA^{-1}U)^{-1}V^TA^{-1}\\
+		&=I_n+UV^TA^{-1}-U(I_k+V^TA^{-1}U)(I_k+V^TA^{-1}U)^{-1}V^TA^{-1}\\
+		&=I_n
+		\end{aligned}
+	\end{equation}
+\end{proof}
+Woodbury恒等式的主要用途是当$n>k$时把一个相对较大的n阶矩阵求逆的问题转化为求一个相对较小的k阶矩阵的逆矩阵。我们可以把公式看成在已知$A^{-1}$的情况下对$A+\triangle A$求逆的工具。其中$\triangle A$是一个低秩扰动。
+
+如果我们令$\boldsymbol{H}_L=A$，且$\boldsymbol{b}_{L+1}=\boldsymbol{v}$，我们有
+\begin{equation}
+	\boldsymbol{H}_{L+1}^{-1}=\boldsymbol{H}_{L}^{-1}-\frac{\boldsymbol{H}_{L}^{-1}\boldsymbol{b}_{L+1}\boldsymbol{b}_{L+1}^T\boldsymbol{H}_L^{-1} }{1+\boldsymbol{b}_{L+1}^T\boldsymbol{H}_L^{-1}\boldsymbol{b}_{L+1} }
+\end{equation}
+使用这种方式，数据点可以依次使用，直到$L+1=N$，整个数据集被处理完毕。于是，这个结果表示一个计算Hessian矩阵的逆矩阵的算法，这个算法只需对数据集扫描一次。最开始的矩阵$\boldsymbol{H}_0$被选为$\alpha \boldsymbol{I}$，其中$\alpha$是一个较小的量，从而算法实际找的是$\boldsymbol{H}+\aleph \boldsymbol{I}$的逆矩阵。结果对于$\alpha$的精确值不是特别敏感。
 \subsection*{有限差}
+与误差函数的一阶导数的形式相同，我们可以使用有限差的方法求二阶导数，精度受数值计算的精度限制。
 \subsection*{Hessian矩阵的精确计算}
+对于一个任意的前馈拓扑结构的网络，Hessian矩阵也可以精确地计算。计算的方法是使用反向传播算法计算一阶导数的推广，同时也保留了计算一阶导数的方法的许多良好的性质，包括计算效率。这种方法可以应用于任何可微的可以表示成网络输出的函数形式的误差函数，以及任何具有可微的激活函数的神经网络。
+
+这里我们考虑一个具体的情况，即具有两层权值的网络。这种网络中待求的方程很容易推导。我们将使用下标$i$和$i^{'}$表示输入，用下标$j$和$j^{'}$表示隐含单元，用下标$k$和$k^{'}$表示输出。首先我们定义 
+\begin{equation}
+	\delta_k=\frac{\partial E_n}{\partial a_k},\quad M_{kk^{'}}\equiv \frac{\partial^2 E_n}{\partial a_k \partial a_{k^{'}}}
+\end{equation}
+其中$E_n$是数据点n对误差函数的贡献。于是，这个网络的Hessian矩阵可以被看成三个独立的模块，即
+\begin{enumerate}
+	\item 两个权值都在第二层
+	\begin{equation}
+		\frac{\partial ^2E_n}{\partial w_{kj}^{(2)}\partial w_{k^{'}j^{'}}^{(2)}}=z_jz_{j^{'}}M_{kk^{'}}
+	\end{equation}
+	\item 两个权值都在第一层
+	\begin{equation}
+		\begin{aligned}
+			\frac{\partial ^2E_n}{\partial w_{ji}^{(1)}\partial w_{j^{'}i^{'}}^{(1)}}&=x_ix_{i^{'}}h^{''}(a_{j^{'}})I_{jj^{'}}\sum_{k}w_{kj^{'}}^{(2)}\delta_k\\
+			&\ +x_ix_{i^{'}}h^{'}(a_{j^{'}})\sum_{k}\sum_{k^{'}}w_{k^{'}j^{'}}^{(2)}w_{kj}^{(2)}M_{kk^{'}}
+		\end{aligned}
+	\end{equation}
+	\item 每一层有一个权值
+	\begin{equation}
+		\frac{\partial ^2E_n}{\partial w_{ji}^{(1)}\partial w_{kj^{'}}^{(2)}}=x_ih^{'}(a_j)\left\{\delta_kI_{j^{'}j}+z^{j^{'}}\sum_{k^{'}}w_{k^{'}j}^{(2)}M_{kk^{'}} \right\}
+	\end{equation}
+\end{enumerate}
+这里$I_{jj^{'}}$是单位矩阵的第$j,j^{'}$个元素。如果权值中的一个或者两个偏置项，那么只需将激活设为1即可得到对应的表达式。很容易将这个结果推广到允许网络包含跨层链接的情形。
 \subsection*{Hessian矩阵的快速乘法}
