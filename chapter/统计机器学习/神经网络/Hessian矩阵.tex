@@ -153,3 +153,46 @@ Woodbury恒等式的主要用途是当$n>k$时把一个相对较大的n阶矩阵
 \end{enumerate}
 这里$I_{jj^{'}}$是单位矩阵的第$j,j^{'}$个元素。如果权值中的一个或者两个偏置项，那么只需将激活设为1即可得到对应的表达式。很容易将这个结果推广到允许网络包含跨层链接的情形。
 \subsection*{Hessian矩阵的快速乘法}
+对于Hessian矩阵的许多应用来说，我们感兴趣的不是Hessian本身，而是$\boldsymbol{H}$与某些向量$\boldsymbol{v}$的乘积。我们已经看到Hessian矩阵的计算需要$O(W^2)$次操作，所需的存储空间也是$O(W^2)$。但是，我们想要计算的向量$\boldsymbol{v}^T\boldsymbol{H}$只有W个元素。因此，我们可以不把计算Hessian矩阵当成一个中间的步骤，而是可以尝试寻找一种只需$O(W)$次操作的直接计算$\boldsymbol{v}^T\boldsymbol{H}$的高效方法。
+
+为了完成这一点，我们首先注意到
+\begin{equation}
+	\boldsymbol{v}^T\boldsymbol{H}=\boldsymbol{v}^T\triangledown(\triangledown E)
+\end{equation}
+其中$\triangledown$表示权空间的梯度算符。然后，我们可以写下计算$\triangledown E$的标准正向传播和反向传播的方程，然后将公式应用于这些方程，得到一组计算$\boldsymbol{v}^T\boldsymbol{H}$的正向传播和反向传播的方程。这对应于将微分算符$\boldsymbol{v}^T\triangledown$作用于原始的正向传播和反向传播的方程。使用记号$\mathcal{R}\{\cdot \}$表示算符$\boldsymbol{v}^T\triangledown$，我们将遵从这个惯例。与之前一样，我们使用两层网络，以及线性的输出单元和平方和误差函数。我们考虑数据集里的一个模式对于误差函数的贡献。这样，我们所要求解的向量可以通过求出每个模式各自的贡献然后求和的方式得到。对于两层神经网络，正向传播方程为
+\begin{flalign}
+	a_j&=\sum_iw_{ji}x_i\\
+	z_j&=h(a_j)\\
+	y_k&=\sum_{j}w_{kj}z_j
+\end{flalign}
+我们现在使用$\mathcal{R}\{\cdot \}$作用于这些方程上，得到一组正向传播方程，形式为
+\begin{flalign}
+	\mathcal{R}\{a_j \}&=\sum_iv_{ji}x_i\\
+	\mathcal{R}\{z_j \}&=h^{'}(a_j)\mathcal{R}\{a_j \}\\
+	\mathcal{R}\{y_k \}&=\sum_{j}w_{kj}\mathcal{R}\{z_j \}+\sum_{j}v_{kj}z_j
+\end{flalign}
+其中，$v_{ji}$是向量$\boldsymbol{v}$中对应于权值$w_{ji}$的元素。
+
+考虑的平方和误差函数，我们有下面的标准的反向传播表达式
+\begin{flalign}
+	\delta_k &= y_k - t_k\\
+	\delta_j &= h^{'}(a_j)\sum_{k}w_{kj}\delta_k
+\end{flalign}
+与之前一样，我们将$\mathcal{R}\{\cdot \}$作用于这些方程上，得到一组反向传播方程，形式为
+\begin{flalign}
+	\mathcal{R}\{\delta_k \}&=\mathcal{R}\{y_k \}\\\mathcal{R}\{\delta_j \}&=h^{''}(a_j)\mathcal{R}\{a_j \}\sum_{k}w_{kj}\delta_k\nonumber \\
+	&\ +h^{'}(a_j)\sum_{k}v_{kj}\delta_k+h^{'}(a_j)\sum_{k}w_{kj}\mathcal{R}\{\delta\}
+\end{flalign}
+然后，我们有误差函数的一阶导数的方程
+\begin{flalign}
+	\frac{\partial E}{\partial w_{kj}}&=\delta_kz_j\\
+	\frac{\partial E}{\partial w_{ji}}&=\delta_jx_j
+\end{flalign}
+使用$\mathcal{R}\{\cdot \}$作用在这些方程上，我们得到了下面的关于$\boldsymbol{v}^T\boldsymbol{H}$的表达式
+\begin{flalign}
+\label{rq}
+	\mathcal{R}\left\{\frac{\partial E}{\partial w_{kj}} \right\}&=\mathcal{R}\{\delta_k \}z_j+\delta_k\mathcal{R}\{z_j \}\\
+\label{ew}
+	\mathcal{R}\left\{\frac{\partial E}{\partial w_{ji}} \right\}&=x_i\mathcal{R}\{\delta_j \}
+\end{flalign}
+算法的执行涉及到将新的变量$\mathcal{R}\{a_j \},\mathcal{R}\{z_j \},\mathcal{R}\{\delta_j \}$引入到隐含单元，将$\mathcal{R}\{\delta_k \},\mathcal{R}\{y_k \}$引入到输出单元。对于每个输入模式，这些量的值可以使用上面的结果求出，$\boldsymbol{v}^T\boldsymbol{H}$的值由公式$\ref{rq}$和公式$\ref{ew}$给出。这种方法的一个好处是，计算$\boldsymbol{v}^T\boldsymbol{H}$的方程与标准的正向传播和反向传播的方程相同，因此将现有的神经网络计算程序扩展到能够计算这个乘积通常很容易。
