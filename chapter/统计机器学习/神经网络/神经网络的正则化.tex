@@ -1,8 +1,132 @@
 \section{神经网络的正则化}
+神经网络的输入单元和输出单元的数量通常由数据集的维度确定，而隐含单元的数量M是一个自由的参数，可以通过调节来给出最好的预测性能。M控制了网络中参数(权值和偏置)的数量。然后，泛化误差与M的关系不是一个简单的函数关系，因为误差函数中存在局部极小值。有其他的方式控制神经网络的模型复杂度来避免过拟合。一种方法是选择一个相对大的M值，然后通过给误差函数增加一个正则化项，来控制模型的复杂度。最简单的正则化项是二次的，给出了正则化的误差函数，形式为
+\begin{equation}
+\label{na}
+	\tilde{E}(\boldsymbol{w})=E(\boldsymbol{w})+\frac{\lambda}{2}\boldsymbol{w}^T\boldsymbol{w}
+\end{equation}
+这个正则化项也被称为权值衰减(weight decay)。这样模型复杂度可以通过选择正则化系数$\lambda$来确定。正则化项可以表示为权值$\boldsymbol{w}$上的零均值高斯先验分布的负对数。
 \subsection*{相容的高斯先验}
+公式$\ref{na}$给出的简单权值衰减的一个局限性是，它与网络映射的确定缩放性质不相容。为了说明这一点，考虑一个多层感知器网络，这个网络有两层权值和线性输出单元，它给出了从输入变量集合$\{x_i\}$到输出变量集合$\{y_k\}$的映射。第一个隐含层的隐含单元的激活的形式为
+\begin{equation}
+	z_j=h\left(\sum_iw_{ji}x_i+w_{j0} \right)
+\end{equation}
+输出单元的激活为
+\begin{equation}
+	y_k=\sum_jw_{kj}z_j+w_{k0}
+\end{equation}
+假设我们对输入变量进行一个线性变换，形式为
+\begin{equation}
+	x_i\rightarrow \tilde{x}_i=ax_i+b
+\end{equation}
+然后我们可以根据这个映射对网络进行调整，使得网络给出的映射不变。调整的方法为，对从输入单元到隐含层单元的权值和偏置也进行一个对应的线性变换，形式为
+\begin{flalign}
+	w_{ji}\rightarrow \tilde{w}_{ji}&=\frac{1}{a}w_{ji}\\
+	w_{j0}\rightarrow \tilde{w}_{j0}&=w_{j0}-\frac{b}{a}\sum_iw_{ji}
+\end{flalign}
+类似地，网络的输出变量的线性变换
+\begin{equation}
+	y_k\rightarrow \tilde{y}_k = cy_k + d
+\end{equation}
+可以通过对第二层的权值和偏置进行线性变换的方式实现。变换的形式为
+\begin{flalign}
+	w_{kj}\rightarrow \tilde{w}_{kj}&=cw_{kj}\\
+	w_{k0}\rightarrow \tilde{w}_{k0}&=cw_{k0}+d
+\end{flalign}
+如果我们使用原始数据训练一个网络，还使用输入和(或)目标变换进行了上面的线性变换的数据训练一个网络，那么相容性要求这两个网络应该是等价的，差别仅在于上面给出的权值的线性变换。任何正则化项都应该与这个性质相容，否则模型就会倾向于选择某个解，而忽视某个等价的解。显然，简单的权值衰减由于把所有的权值和偏置同等对待，因此不满足这个性质。
+
+于是我们要寻找一个正则化项，它在线性变换下具有不变性。这需要正则化项应该对于权值的重新缩放不变，对于偏置的平移不变，这样的正则化项为
+\begin{equation}
+\label{zz}
+	\frac{\lambda_1}{2}\sum_{w\in \mathcal{W}_1}w^2+\frac{\lambda_2}{2}\sum_{w\in \mathcal{W}_2}w^2
+\end{equation}
+其中$\mathcal{W}_1$表示第一层的权值集合，$\mathcal{W}_2$表示第二层的权值集合，偏置未出现在求和式中。这个正则化项在权值的变换下不会发生变化，只要正则化参数进行下面的重新放缩即可：$\lambda_1 \rightarrow a^{\frac{1}{2}}\lambda_1,\lambda_2\to c^{-\frac{1}{2}}\lambda_2$
+
+正则化项$\ref{zz}$对应于下面形式的先验概率分布
+\begin{equation}
+	p(\boldsymbol{w}|\alpha_1,\alpha_2)\propto exp\left(-\frac{\alpha_1}{2}\sum_{w\in \mathcal{W}_1}w^2-\frac{\alpha_2}{2}\sum_{w\in \mathcal{W}_2}w^2 \right)
+\end{equation}
+注意，这种形式的先验是反常的(improper)(不能被归一化)，因为偏置参数没有限制。使用反常先验会给正则化系数的选择造成很大的困难，也会给贝叶斯框架下的模型选择造成很大的困难，因为对应的模型证据等于零。因此，通常的做法是单独包含一个有着自己单独的一套超参数的偏置的先验(这就破坏了平移不变性)。
 \subsection*{早停止}
+另一种控制网络的复杂度的正则化方法是早停止(early stopping)。非线性网络模型的训练对应于误差函数的迭代减小，其中误差函数是关于训练数据集定义的。对于许多用于网络训练的最优化算法，误差函数是一个关于迭代次数的不增函数。然而，在独立数据(通常被称为验证集)上测量的误差，通常首先减小，接下来由于模型开始过拟合而逐渐增大。于是训练过程可以在关于验证集误差最小的点停止，这样可以得到一个有着较好泛化性能的网络。
 \subsection*{不变性}
+在许多模型识别的应用中，在对于输入变量进行了一个或者多个变换之后，预测不应该发生变化，或者说应用具有不变性(invariant)。如果可以得到足够多的训练模式，那么可调节的模型(例如神经网络)可以学习到不变性，至少可以近似地学习到。这涉及到训练集里包含足够多的表示各种变换的效果的样本。如果训练样本数受限，或者有多个不变性(变换的组合的数量随着变换的数量指数增长)，那么这种方法就很不实用。于是，我们要寻找另外的方法来让可调节的模型能够表述所需的不变性。这此方法大致可以分为四类。
+\begin{enumerate}
+	\item 通过复制训练模式，同时根据要求的不变性进行变换，对训练集进行扩展。
+	\item 为误差函数加上一个正则化项，用来惩罚当输入进行变换时，输出发生的改变。这引出了切线传播方法。
+	\item 通过抽取在要求的变换下不发生改变的特征，不变性被整合到预处理过程中。任何后续的使用这些特征作为输入的回归或者分类系统就会具有不变性。
+	\item 把不变性的性质整合到神经网络的构建过程中，或者对于相关向量机的方法，整合到核函数中。一种方法是通过使用局部接收场和共享权值。如卷积神经网络。
+\end{enumerate}
 \subsection*{切线传播}
+通过切线传播(tangent propagation)的方法，我们可以使用正则化来让模型对于输入的变换具有不变性。
+
+\textbf{涉及到微分几何，待整理！}
 \subsection*{用变换后的数据训练}
+\textbf{涉及到微分几何，待整理！}
 \subsection*{卷积神经网络}
+另一种构造对输入变量的变换具有不变性的模型的方法是将不变性的性质融入到神经网络结构的构建中。这就是卷积神经网络(convolutional neural network)的基础，它被广泛地应用于图像处理领域。
+
+考虑手写数字识别这个具体的任务。我们知道，数字的各类对于平移、缩放以及旋转具有不变性。一种简单的方法是把图像作为一个完全链接的神经网络的输入。假如数据集充分大，那么这样的网络原则上可以产生这个问题的一个较好的解，从而可以从样本中学习到恰当的不变性。然而，这种方法忽略了图像的一个关键性质，即距离较近的像素的相关性要远大于距离较远的像素的相关性。这些想法被整合到了卷积神经网络中，通过下面的三种方式：
+\begin{enumerate}[(1)]
+	\item 局部接收声场
+	\item 权值共享
+	\item 下采样
+\end{enumerate}
 \subsection*{软权值共享}
+降低具有大量权值参数的网络复杂度的一种方法是将权值分组，然后令分组内的权值相等。这里，我们考虑软权值共享(soft weight sharing)。这种方法中，权值相等的硬限制被替换为一种形式的正则化，其中权值的分组倾向于取近似的值。此外，权值的分组、每组权值的均值，以及分组内的取值范围全都作为学习过程的一部分被确定。
+
+简单的权值衰减正则化项可以被看成权值上的高斯分布的负对数。我们可以将权值分成若干组，而不是将所有权值分为一个组。分组的方法是使用高斯混合概率分布。混合分布中，每个高斯分量的均值、方差，以及混合系数，都会作为可调节的参数在学习过程中被确定。于是，我们有下面形式的概率密度
+\begin{equation}
+	p(\boldsymbol{w})=\prod_ip(w_i)
+\end{equation}
+其中
+\begin{equation}
+	p(w_i)=\sum_{j=1}^{M}\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2)
+\end{equation}
+$\pi_j$为混合系数。取负对数，即可得到正则化函数，形式为
+\begin{equation}
+	\Omega(\boldsymbol{w})=-\sum_i\ln\left(\sum_{j=1}^{M}\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2) \right)
+\end{equation}
+从而，总的误差函数为
+\begin{equation}
+	\tilde{E}(\boldsymbol{w})=E(\boldsymbol{w})+\lambda \Omega(\boldsymbol{w})
+\end{equation}
+其中，$\lambda$是正则化系数。这个误差函数同时关于权值$w_i$和混合模型参数$\{\pi_j,\mu_j,\sigma_j \}$进行最小化。如果权值是常数，那么混合模型的参数可以由EM算法确定。然而，权值分布本身在学习过程中是不断变化的，因此为了避免数值的不稳定性，我们同时关于权值和混合模型参数进行最优化。可以使用标准的最优化算法来完成这件事情。
+
+为了最小化总的误差函数，难免计算出它关于各个可调节参数的参数是很有必要的。为了完成这一点，比较方便的做法是把$\{\pi_j \}$当成先验概率，然后引入对应的后验概率。后验概率由贝叶斯定理给出，形式为
+\begin{equation}
+	\gamma_j(w)=\frac{\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2)}{\sum_k\pi_k\mathcal{N}(w_i|\mu_k,\sigma_k^2)}
+\end{equation}
+这样，总的误差函数关于权值的导数为
+\begin{equation}
+	\begin{aligned}
+	\frac{\partial \tilde{E}}{\partial w_i}&=\frac{\partial E}{\partial w_i}+\lambda\frac{\partial \Omega}{\partial w_i}\\
+	&=\frac{\partial E}{\partial w_i}+\lambda\sum_{j}\gamma_j(w_i)\frac{(w_i-\mu_j)}{\sigma_j^2}
+	\end{aligned}
+\end{equation}
+正则化项的效果是把每个权值拉向第j个高斯分布的中心，拉力正比于给定权值的高斯分布的后验概率。
+
+误差函数关于高斯分布的中心的导数
+\begin{equation}
+	\frac{\partial \tilde{E}}{\partial \mu_j}=\lambda\sum_i\gamma_j(w_i)\frac{(\mu_j-w_i)}{\sigma_j^2}
+\end{equation}
+效果是把$\mu_j$拉向了权值的平均值，拉力为第j个高斯分量产生的权值参数的后验概率。
+
+关于方差的导数为
+\begin{equation}
+	\frac{\partial \tilde{E}}{\partial \sigma_j}=\lambda\sum_i\gamma_j(w_i)\left(\frac{1}{\sigma_j}-\frac{(w_i-\mu_j)^2}{\sigma_j^3} \right)
+\end{equation}
+效果是将$\sigma_j$拉向权值在对应的中心$\mu_j$附近的偏差的平方的加权平均，加权平均的权系数与之前一样，等于由第j个高斯分量产生的权值参数的后验概率。
+
+关于混合系数$\pi_j$的导数，我们需要考虑下面的限制条件 
+\begin{equation}
+	\sum_{j}\pi_j=1,\quad 0\leqslant \pi_i \leqslant 1
+\end{equation}
+这个限制的产生，是因为我们把$\pi_i$看成了先验概率。可以这样做：将混合系数通过一组辅助变量$\{\eta_j \}$用softmax函数表示，即
+\begin{equation}
+	\pi_j=\frac{exp(\eta_j)}{\sum_{k=1}^{M}exp(\eta_k)}
+\end{equation}
+这样，正则化的误差函数关于$\{\eta_j \}$的导数的形式为
+\begin{equation}
+	\frac{\partial \tilde{E}}{\partial \eta_j}=\sum_i\{\pi_j-\gamma_j(w_i) \}
+\end{equation}
+效果是$\pi_j$被拉向第j个高斯分量的平均后验概率。
