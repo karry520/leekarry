@@ -1,4 +1,66 @@
 \section{贝叶斯神经网络}
+目前为止，我们对于神经网络的讨论集中于使用最大似然方法来确定网络的参数(权值和偏置)。正则化的最大似然方法可以看成MAP(maximum posterior)方法，其中正则化项可以被看成先验参数分布的对数。然而，在贝叶斯方法中，为了进行预测，我们需要对参数的概率分布进行积分或求和。
+
+在多层神经网络的情况下，网络函数对于参数值的高度非线性的性质意味着精确的贝叶斯方法不再可行，事实上，后验概率分布的对数是非凸的，对应于误差函数中的多个局部极小值。
+
+变分推断方法已经被用在了贝叶斯神经网络中，这种方法使用了对后验概率的分解的高斯近似，也使用了一个具有完成协方差矩阵的高斯分布。但是，最完整的贝叶斯方法是基于拉普拉斯的方法，这种方法构成了本节讨论的基础。我们会使用一个以真实后验概率的众数为中心的高斯分布来近似后验概率分布。此外，我们会假设这个高斯分布的协方差很小，从而网络函数关于参数空间的区域中的参数近似是线性关系。在参数空间中，后验概率距离概率为零的状态相当远。使用这两个近似，我们会得到与之前讨论的线性回归和线性分布的模型相类似的模型，从而我们就可以利用之前得到了结果了。这样，我们可以使用模型证据的框架来对参数进行点估计，并且比较不同的模型。
 \subsection*{后验参数分布}
+考虑从输入向量$\boldsymbol{x}$预测单一连续目标变量$t$的问题。我们假设条件概率分布$p(t|\boldsymbol{x})$是一个高斯分布，均值与$\boldsymbol{x}$有关，由神经网络模型的输出$y(\boldsymbol{x},\boldsymbol{w})$确定，精度$\beta$为
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{w},\beta)=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}),\beta^{-1})
+\end{equation}
+类似地，我们将权值$\boldsymbol{w}$的先验概率分布选为高斯分布，形式为
+\begin{equation}
+	p(\boldsymbol{w}|\alpha)=\mathcal{N}(\boldsymbol{w}|0,\alpha^{-1}\boldsymbol{I})
+\end{equation}
+对于N次独立同分布的观测$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$，对应的目标值集合$\mathcal{D}=\{t_1,\dots,t_N \}$，似然函数为
+\begin{equation}
+	p(\mathcal{D}|\boldsymbol{w},\beta)=\prod_{n=1}^{N}\mathcal{N}(t_n|y(\boldsymbol{x}_n,\boldsymbol{w}),\beta^{-1})
+\end{equation}
+因此最终的后验概率为
+\begin{equation}
+	p(\boldsymbol{w}|\mathcal{D},\alpha,\beta)\propto p(\boldsymbol{w}|\alpha)p(\mathcal{D}|\boldsymbol{w},\beta)
+\end{equation}
+由于$y(\boldsymbol{w},\boldsymbol{x})$与$\boldsymbol{w}$的关系是非线性的，因此后验概率不是高斯分布。
+
+使用拉普拉斯近似，我们可以找到对于后验概率分布的一个高斯近似。为了完成这一点，我们必须首先找到后验概率分布的一个(局部)最大值，这必须使用迭代的数值最优化算法才能找到。比较方便的做法是最大化后验概率分布的对数，它可以写成下面的形式
+\begin{equation}
+	\ln p(\boldsymbol{w}|\mathcal{D})=-\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w}-\frac{\beta}{2}\sum_{n=1}^{N}\{y(\boldsymbol{x}_n,\boldsymbol{w})-t_n \}^2+\text{常数}
+\end{equation}
+这对应于一个正则化的平方和误差函数。假设$\alpha$和$\beta$都是定值，那么我们可以通过标准的非线性最优化算法，使用误差反向传播计算所需的导数，找到后验概率的最大值。我们将最大值的位置记作$\boldsymbol{w}_{MAP}$
+
+找到了众数，我们就可以通过计算后验概率分布的负对数的二阶导数，建立一个局部的高斯近似。负对数后验概率的二阶导数为
+\begin{equation}
+	\boldsymbol{A}=-\triangledown\triangledown \ln p(\boldsymbol{w}|\mathcal{D},\alpha,\beta)=\alpha\boldsymbol{I}+\beta\boldsymbol{H}
+\end{equation}
+这里，$\boldsymbol{H}$是一个Hessian矩阵，由平方和误差函数关于$\boldsymbol{w}$的分量组成。这样，后验概率对应的高斯近似形式为
+\begin{equation}
+	q(\boldsymbol{w}|\mathcal{D})=\mathcal{N}(\boldsymbol{w}_{MAP},\boldsymbol{A}^{-1})
+\end{equation}
+类似地，预测分布可以通过将后验概率分布求积分的方式获得
+\begin{equation}
+	p(t|\boldsymbol{x},\mathcal{D})=\int p(t|\boldsymbol{x},\boldsymbol{w})q(\boldsymbol{w}|\mathcal{D})d\boldsymbol{w}
+\end{equation}
+然而，即使对于后验分布的高斯近似，这个积分仍然无法得到解析解，因为网络函数$y(\boldsymbol{x},\boldsymbol{w})$与$\boldsymbol{w}$的关系是非线性的。为了将计算过程进行下去，我们现在假设，与$y(\boldsymbol{x},\boldsymbol{w})$发生变化造成的$\boldsymbol{w}$幅度相比，后验概率分布的方差较小。这使得我们可以在$\boldsymbol{w}_{MAP}$附近对网络函数进行泰勒展开。只保留展开式的现行项，可得
+\begin{equation}
+	y(\boldsymbol{x},\boldsymbol{w})\simeq y(\boldsymbol{x},\boldsymbol{w}_{MAP})+\boldsymbol{g}^T(\boldsymbol{w}-\boldsymbol{w}_{MAP})
+\end{equation}
+其中，我们定义了
+\begin{equation}
+	\boldsymbol{g}=\triangledown_{\boldsymbol{w}}y(\boldsymbol{w},\boldsymbol{x})|_{\boldsymbol{w}=\boldsymbol{w}_{MAP}}
+\end{equation}
+使用这个近似，我们现在得到了一个线性高斯模型，$p(\boldsymbol{w})$为高斯分布。并且，$p(t|\boldsymbol{w})$也是高斯分布，它的均值是$\boldsymbol{w}$的线性函数，分布的形式为
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{w},\beta)\simeq \mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}_{MAP})+\boldsymbol{g}^T\underbrace{(\boldsymbol{w}-\boldsymbol{w}_{MAP})}_{\text{只有这里含有$\boldsymbol{w}$}},\beta^{-1} )
+\end{equation}
+于是，我们我们可以求出边缘分布$p(t)$
+\begin{equation}
+	p(t|\boldsymbol{x},\mathcal{D},\alpha,\beta)=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}_{MAP}),\sigma^2(\boldsymbol{x})
+\end{equation}
+其中，与输入相关的方差为
+\begin{equation}
+	\sigma^2(\boldsymbol{x})=\beta^{-1}+\boldsymbol{g}^T\boldsymbol{A}^{-1}\boldsymbol{g}
+\end{equation}
+我们看到预测分布$p(t|\boldsymbol{x},\mathcal{D})$是一个高斯分布，它的均值由网络函数$y(\boldsymbol{x},\boldsymbol{w}_{MAP})$给出，参数设置为了MAP值。方差由两项组成。第一项来自目标变量的固有噪声，第二项是一个与$\boldsymbol{x}$相关的项，表示由于模型参数$\boldsymbol{w}$的不确定性造成的内插的不确定性。
 \subsection*{超参数最优化}
 \subsection*{用于分类的贝叶斯神经网络}

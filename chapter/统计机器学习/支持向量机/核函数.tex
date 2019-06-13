@@ -53,3 +53,36 @@ $$P(x,y) = (x^2,\sqrt{2}xy, y^2)$$
 	\item 线性核$K(x_1,x_2) = <x_1, x_2> $
 \end{itemize}
 
+已知映射函数$\phi$，可以通过$\phi(x)$和$\phi(z)$的内积求得核函数$K(x,z)$。不用构造映射$\phi(x)$能否直接判断一个给定的函数$K(x,z)$是不是核函数？或者说，函数$K(x,z)$满足什么条件才能成为核函数？
+
+已知，假设$K(x,z)$是定义在$\chi \times \chi$上的对称函数，并且对任意的$x_1,\dots,x_m\in \chi,K(x,z)$关于$x_1,\dots,x_m$的Gram矩阵是半正定的。可以依据函数$K(x,z)$构成一个希尔伯特空间(Hilbert space)，其步骤是：首先定义映射$\phi$并构成向量空间$S$；然后在S上定义内积构成内积空间；最后将S完备化构成希尔伯特空间。
+\begin{theorem}{正定核的充要条件}{}
+	设$K:\chi \times \chi\to \boldsymbol{R}$是对称函数，则$K(x,z)$为正定核的充要条件是对任意$x_i\in \chi,i=1,2,\dots,m,K(x,z)$ 对应的Gram矩阵：
+	\begin{equation}
+		K=[K(x_i,x_j)]_{m\times m}
+	\end{equation}
+	是半正定矩阵。
+\end{theorem}
+\begin{proof}
+	\begin{enumerate}
+	\item 必要性。由于$K(x,z)$是$\chi\times\chi$上的正定核，所以存在从$\chi$到希尔伯特空间$\mathcal{H}$的映射$\phi$，使得
+	\begin{equation}
+		K(x,z)=\phi(x)\cdot\phi(z)
+	\end{equation}
+	于是，对任意$x_1,\dots,x_m$，构造$K(x,z)$关于$x_1,\dots,x_m$的Gram矩阵
+	\begin{equation}
+		[K_{ij}]_{m\times m}=[K(x_i,x_j)]_{m\times m}
+	\end{equation}
+	对任意$c_1,\dots,c_m\in \boldsymbol{R}$，有
+	\begin{equation}
+		\begin{aligned}
+		\sum_{i,j=1}^{m}c_ic_jK(x_i,x_j)&=\sum_{i,j=1}^{m}c_ic_j(\phi(x_i)\cdot\phi(x_j))\\
+		&=\left(\sum_{i,j=1}^{m}c_i\phi(x_i) \right)\cdot \left(\sum_{i,j=1}^{m}c_j\phi(x_j) \right)\\
+		&=\Bigg\| \sum_ic_i\phi(x_i)\Bigg\|^2\geqslant 0
+		\end{aligned}
+	\end{equation}
+	表明$K(x,z)$关于$x_1,\dots,x_m$的Gram矩阵是半正定的。
+	\item 充分性
+	根据已知，可以构造从$\chi$到某个希尔伯特空间$\mathcal{H}$的映射，从而表明$K(x,z)$是$\chi\times \chi$上的核函数。
+	\end{enumerate}
+\end{proof}
