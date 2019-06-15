@@ -1,1 +1,58 @@
 \section{径向基函数网络}
+讨论了基于固定基函数的线性组合的回归模型，但是没有详细讨论可以取哪种形式的基函数。一种广泛使用的基函数是径向基函数(radial basis functions)。径向基函数中，每一个基函数只依赖于样本和中心$\boldsymbol{\mu}_j$之间的径向距离(通常是欧几里德距离)，即$\phi_j(\boldsymbol{x})=h(\Vert \boldsymbol{x}-\boldsymbol{\mu}_j\Vert )$。历史上，径向基函数被用来进行精确的函数内插。但是，在模式识别应用中，目标值通常带有噪声，精确内插不是我们想要的，因为这对应于一个过拟合的解。
+
+对径向基函数的展开来自正则化理论。径向基函数的另一个研究动机来源于输入变量(而不是目标变量)具有噪声时的内插问题。如果输入变量$\boldsymbol{x}$上的噪声由一个服从分布$v(\boldsymbol{\xi})$的变量$\boldsymbol{\xi}$，那么平方和误差函数就变成了
+\begin{equation}
+	E=\frac{1}{2}\sum_{n=1}^{N}\int \{y(\boldsymbol{x}_n+\boldsymbol{\xi})-t_n \}^2v(\boldsymbol{\xi})d\boldsymbol{\xi}
+\end{equation}
+使用变分法，我们可以关于函数$y(\boldsymbol{x})$进行最优化，得到 
+\begin{equation}
+	y(\boldsymbol{x})=\sum_{n=1}^{N}t_nh(\boldsymbol{x}-\boldsymbol{x}_n)
+\end{equation}
+其中基函数为
+\begin{equation}
+	h(\boldsymbol{x}-\boldsymbol{x}_n)=\frac{v(\boldsymbol{x}-\boldsymbol{x}_n)}{\sum_{n=1}^{N}v(\boldsymbol{x}-\boldsymbol{x}_n)}
+\end{equation}
+我们看到这是一个以每个数据点为中心的基函数。这被称为Nadaraya-Watson模型。
+
+另一个展开归一化径向基函数的情况是把核密度估计应用到回归问题。
+
+\subsection*{Nadaraya-Watson模型}
+对于新的输入$\boldsymbol{x}$，线性回归模型的预测的形式为训练数据集的目标值的线性组合，组合系数由“等价核”给出，其中等价核满足加和限制。我们可以从核密度估计开始，以一个不同的角度研究该回归模型。假设我们有一个训练集$\{\boldsymbol{x}_n,t_n \}$，我们使用Parzen密度估计来对联合分布$p(\boldsymbol{x},t)$进行建模，即
+\begin{equation}
+	p(\boldsymbol{x},t)=\frac{1}{N}\sum_{n=1}^{N}f(\boldsymbol{x}-\boldsymbol{x}_n,t-t_n)
+\end{equation}
+其中$f(\boldsymbol{x},t)$是分量密度函数，每个数据点都有一个以数据点为中心的这种分量。
+
+我们现在要找到回归函数$y(\boldsymbol{x})$的表达式，对应于以输入变量为条件的目标变量的条件均值，它的表达式为
+\begin{equation}
+\begin{aligned}
+	y(\boldsymbol{x})&=\mathbb{E}[t|\boldsymbol{x}]=\int_{-\infty}^{\infty}tp(t|\boldsymbol{x})dt\\
+	&=\int _{-\infty}^{\infty} t\left(\frac{p(\boldsymbol{x},t)}{p(\boldsymbol{x})} \right)dt\\
+	&=\frac{\int tp(\boldsymbol{x},t)dt}{\int p(\boldsymbol{x},t)dt}\\
+	&=\frac{\sum_{n}\int tf(\boldsymbol{x}-\boldsymbol{x}_n,t-t_n)dt }{\sum_{m}\int f(\boldsymbol{x}-\boldsymbol{x}_m,t-t_m)dt}
+\end{aligned}
+\end{equation}
+简单起见，我们现在假设分量的密度函数的均值为零，即
+\begin{equation}
+	\int f(\boldsymbol{x},t)tdt=0
+\end{equation}
+对所有$\boldsymbol{x}$都成立。使用一个简单的变量替换，我们有
+\begin{equation}
+\label{reg}
+\begin{aligned}
+	y(\boldsymbol{x})&=\frac{\sum_n g(\boldsymbol{x}-\boldsymbol{x}_n)t_n}{\sum_m g(\boldsymbol{x}-\boldsymbol{x}_m)}\\
+	&=\sum_nk(\boldsymbol{x},\boldsymbol{x}_n)t_n
+\end{aligned}
+\end{equation}
+其中$n,m=1,\dots,N$，且核函数$k(\boldsymbol{x},\boldsymbol{x}_n)$为
+\begin{equation}
+	\frac{ g(\boldsymbol{x}-\boldsymbol{x}_n)}{\sum_m g(\boldsymbol{x}-\boldsymbol{x}_m)}
+\end{equation}
+并且我们定义了
+\begin{equation}
+	g(\boldsymbol{x})=\int f(\boldsymbol{x},t)dt
+\end{equation}
+公式$\ref{reg}$给出的结果被称为Nadaraya-Watson模型，或者称为核回归(kernel regression)。对于一个局部核函数，它的性质为：给距离$\boldsymbol{x}$较近的数据点$\boldsymbol{x}_n$较高的权重。
+
+这个模型的一个明显的推广是允许形式更灵活的高斯分布作为其分量，例如让输入和目标值具有不同方差。更一般地，我们可以使用高斯混合模型对联合分布$p(t,\boldsymbol{x})$建模，然后找到对应的条件概率分布$p(t|\boldsymbol{x})$。

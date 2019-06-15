@@ -1,1 +1,56 @@
 \section{构造核}
+为了利用核技巧，我们需要能够构造合法的核函数。一种方法是选择一个特征空间映射$\phi(\boldsymbol{x})$，然后利用这个映射寻找对应的核。一维空间的核函数被定义为
+\begin{equation}
+	k(x,x^{'})=\phi(x)^T\phi(x)=\sum_{i=1}^{M}\phi_i(x)\phi_i(x^{'})
+\end{equation}
+其中$\phi_i(x)$是基函数。
+
+另一种方法是直接构造核函数。在这种情况下，我们必须确保我们核函数是合法的，即它对应于某个(或能是无穷维)特征空间的标量积。作为一个简单的例子，考虑下面的核函数
+\begin{equation}
+	k(\boldsymbol{x},\boldsymbol{z})=(\boldsymbol{x}^T\boldsymbol{z})^2
+\end{equation}
+如果我们取二维输入空间$\boldsymbol{x}=(x_1,x_2)$的特殊情况，那么我们可以展开这一项，于是得到对应的非线性特征映射 
+\begin{equation}
+	\begin{aligned}
+	k(\boldsymbol{x},\boldsymbol{z})&=(\boldsymbol{x}^T\boldsymbol{z})^2=(x_1z_1+x_2z_2)^2\\
+	&=x_1^2z_1^2+2x_1z_1x_2z_2+x_2^2z_2^2\\
+	&=(x_1^2,\sqrt{2}x_1x_2,x_2^2)(z_1^2,\sqrt{2}z_1z_2,z_2^2)^T\\
+	&=\phi(\boldsymbol{x})^T\phi(\boldsymbol{z})
+	\end{aligned}
+\end{equation}
+我们看到特征映射的形式为$\phi(\boldsymbol{x})=(x_1^2,\sqrt{2}x_1x_2,x_2^2)$，因此这个特征映射由所有的二阶项组成，每个二阶项有一个具体的系数。
+
+但是，更一般地，我们需要找到一种更简单的方法检验一个函数是否是一个合法的核函数，而不需要显示地构造函数$\phi(\boldsymbol{x})$。核函数是一个合法的核函数的充分必要条件是Gram矩阵在所有的集合在所有的集合$\{\boldsymbol{x}_n \}$的选择下都是半正定的。
+
+构造新的核函数的一个强大的方法是使用简单的核函数作为基本的模块来构造。可以使用下面的性质来完成这件事。给定合法的核$k_1(\boldsymbol{x},\boldsymbol{x}^{'})$和$k_2(\boldsymbol{x},\boldsymbol{x}^{'})$，下面的新核也是合法的
+\begin{flalign}
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=ck_1(\boldsymbol{x},\boldsymbol{x}^{'})\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=f(\boldsymbol{x})k_1(\boldsymbol{x},\boldsymbol{x}^{'})f(\boldsymbol{x}^{'})\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=q(k_1(\boldsymbol{x},\boldsymbol{x}^{'}))\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=\exp(k_1(\boldsymbol{x},\boldsymbol{x}^{'}))\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=k_1(\boldsymbol{x},\boldsymbol{x}^{'})+k_2(\boldsymbol{x},\boldsymbol{x}^{'})\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=k_1(\boldsymbol{x},\boldsymbol{x}^{'})k_2(\boldsymbol{x},\boldsymbol{x}^{'})\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=k_3(\phi(\boldsymbol{x},\phi(\boldsymbol{x}^{'})))\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=\boldsymbol{x}^T\boldsymbol{A}\boldsymbol{x}^{'}\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=k_a(\boldsymbol{x}_a,\boldsymbol{x}_a^{'})+k_b(\boldsymbol{x}_b,\boldsymbol{x}_b^{'})\\
+	k(\boldsymbol{x},\boldsymbol{x}^{'})&=k_a(\boldsymbol{x}_a,\boldsymbol{x}_a^{'})k_b(\boldsymbol{x}_b,\boldsymbol{x}_b^{'})
+\end{flalign}
+其中$c>0$是一个常数，$f(\cdot)$是任意函数，$q(\cdot)$是一个系数非负的多项式，$\phi(\boldsymbol{x})$是一个从$\boldsymbol{x}$到$\mathbb{R}^M$的函数，$k_3(\cdot,\cdot)$是$\mathbb{R}^M$中的一个合法的核，$\boldsymbol{A}$是一个对称半正定矩阵，$\boldsymbol{x}_a$和$\boldsymbol{x}_b$是变量，且$\boldsymbol{x}=(\boldsymbol{x}_a,\boldsymbol{x}_b)$。$K_a,K_b$是各自空间的合法的核函数。
+
+核观点的一个重要的贡献是可以扩展到符号化的输入，而不是简单的实数向量。构造核的另一个强大的方法是从一个概率生成式模型开始构造，这使得我们可以在一个判别式的框架中使用生成式模型。生成式模型可以自然地处理缺失数据，并且在隐马尔可夫模型的情况下，可以处理长度变化的序列。相反，判别式模型在判别式的任务中通常会比生成式模型的表现更好。于是，将这两种方法结合吸收了一些人的兴趣。一种将二者结合的方法是使用一个生成式模型定义一个核，然后在判别式方法中使用这个核。
+
+给定一个生成式模型$p(\boldsymbol{x})$，我们可以定义一个核
+\begin{equation}
+	k(\boldsymbol{x},\boldsymbol{x}^{'})=p(\boldsymbol{x})p(\boldsymbol{x}^{'})
+\end{equation}
+很明显，这是一个合法的核，因为我们可以把它看成由映射$p(\boldsymbol{x})$定义的一维特征空间中的一个内积。它表明，如果两个输入$\boldsymbol{x}$和$\boldsymbol{x}^{'}$都具有较高的概率，那么它们就是相似的。扩展这类核的方法是考虑不同概率分布的乘积的加和，带有正的权值系数$p(i)$，形式为
+\begin{equation}
+	k(\boldsymbol{x},\boldsymbol{x}^{'})=\sum_ip(\boldsymbol{x}|i)p(\boldsymbol{x}^{'}|i)p(i)
+\end{equation}
+如果不考虑一个整体的乘法常数，这个核就等价于一个混合概率密度，它可以分解成各个分量概率密度，下标i扮演着“潜在”变量的角色。如果两个输入$\boldsymbol{x}$和$\boldsymbol{x}^{'}$在一大类的不同分量下都有较大的概率，那么这两个输入将会使核函数输出较大的值，因此就表现出相似性。在无限求和的极限情况下，我们也可以考虑下面形式的核函数 
+\begin{equation}
+		k(\boldsymbol{x},\boldsymbol{x}^{'})=\int p(\boldsymbol{x}|\boldsymbol{z})p(\boldsymbol{x}^{'}|\boldsymbol{z})p(\boldsymbol{z})d\boldsymbol{z}
+\end{equation}
+其中$\boldsymbol{z}$是一个连续潜在变量。
+
+另一个使用生成式模型定义核函数的方法被称为Fisher核。

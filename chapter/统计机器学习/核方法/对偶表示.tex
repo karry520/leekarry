@@ -1,1 +1,53 @@
 \section{对偶表示}
+许多回归的线性模型和分类的线性模型的公式都可以使用对偶表示重写。使用对偶表示形式，核函数可以自然地产生。这里，我们考虑一个线性模型，它的参数通过最小化正则化的平方和误差函数来确定。
+\begin{equation}
+	J(\boldsymbol{w})=\frac{1}{2}\sum_{n=1}^{N}\{\boldsymbol{w}^T\phi(\boldsymbol{x}_n)-t_n \}^2+\frac{\lambda}{2}\boldsymbol{w}^T\boldsymbol{w}
+\end{equation}
+其中$\lambda \geqslant 0$。如果我们令$J(\boldsymbol{w})$关于$\boldsymbol{w}$的梯度等于零，那么我们看到$\boldsymbol{w}$的解是向量$\phi(\boldsymbol{w})$的线性组合的形式，系数是$\boldsymbol{w}$的函数，形式为
+\begin{equation}
+\begin{aligned}
+	\frac{\partial J(\boldsymbol{w})}{\partial \boldsymbol{w}}&=\sum_{n=1}^{N}\{\boldsymbol{w}^T\phi(\boldsymbol{x}_n) -t_n \}\phi(\boldsymbol{x}_n)+\lambda \boldsymbol{w} \\
+	\Rightarrow	\boldsymbol{w}&=-\frac{1}{\lambda}\sum_{n=1}^{N}\{\boldsymbol{w}^T\phi(\boldsymbol{x}_n)-t_n \}\phi(\boldsymbol{x}_n)\\
+	&=\sum_{n=1}^{N}a_n\phi(\boldsymbol{x}_n)=\Phi^T\boldsymbol{a}
+\end{aligned}
+\end{equation}
+其中$\Phi$是设计矩阵，第n行为$\phi(\boldsymbol{x}_n)^T$。向量$\boldsymbol{a}=(a_1,\dots,a_N)^T$
+\begin{equation}
+\label{no}
+	a_n=-\frac{1}{\lambda}\{\boldsymbol{w}^T\phi(\boldsymbol{x}_n)-t_n \}
+\end{equation}
+我们现在不直接对参数向量$\boldsymbol{w}$进行操作，而是使用参数向量$\boldsymbol{a}$重新整理最小平方算法，得到一个对偶表示。如果我们将$\boldsymbol{w}=\Phi^T\boldsymbol{a}$代入$J(\boldsymbol{w})$，那么可以得到 
+\begin{equation}
+	\begin{aligned}
+		J(\boldsymbol{w})&=\frac{1}{2}(\boldsymbol{w}^T\Phi^T-\boldsymbol{t}^T)(\Phi\boldsymbol{w}-\boldsymbol{t})+\frac{\lambda}{2}\boldsymbol{w}^T\boldsymbol{w}\\
+		&=\frac{1}{2}\left[\boldsymbol{w}^T\Phi^T\Phi\boldsymbol{w}-\boldsymbol{w}^T\Phi^T\boldsymbol{t}-\boldsymbol{t}^T\Phi\boldsymbol{w}+\boldsymbol{t}^T\boldsymbol{t} \right]+\frac{\lambda}{2}\boldsymbol{w}^T\boldsymbol{w}\\
+		&\Rightarrow \text{把$\boldsymbol{a}$看作参数，代入$\boldsymbol{w}\Phi^T\boldsymbol{a}$}\\
+		J(\boldsymbol{a})&=\frac{1}{2}\left[\boldsymbol{a}^T\Phi\Phi^T\Phi\Phi^T\boldsymbol{a}-\boldsymbol{a}\Phi\Phi^T\boldsymbol{t}-\boldsymbol{t}^T\Phi\Phi^T\boldsymbol{a}+\boldsymbol{t}^T\boldsymbol{t} \right]+\frac{\lambda}{2}\boldsymbol{a}^T\Phi\Phi^T\boldsymbol{a}\\
+		&=\frac{1}{2}\boldsymbol{a}^T\Phi\Phi^T\Phi\Phi^T\boldsymbol{a}-\boldsymbol{a}\Phi\Phi^T\boldsymbol{t}+\frac{1}{2}\boldsymbol{t}^T\boldsymbol{t}+\frac{\lambda}{2}\boldsymbol{a}^T\Phi\Phi^T\boldsymbol{a}
+	\end{aligned}
+\end{equation}
+其中$\boldsymbol{t}=(t_1,\dots,t_N)^T$。定义Gram矩阵$K=\Phi\Phi^T$，它是一个$N\times N$的对称矩阵，元素为
+\begin{equation}
+	K_{nm}=\phi(\boldsymbol{x}_n)^T\Phi(\boldsymbol{x}_m)=k(\boldsymbol{x}_n,\boldsymbol{x}_m)
+\end{equation}
+其中我们引入了公式$\ref{kernel}$定义的核函数。使用Gram矩阵，平方和误差函数可以写成 
+\begin{equation}
+	J(\boldsymbol{a})=\frac{1}{2}\boldsymbol{a}^T\boldsymbol{KK}\boldsymbol{a}-\boldsymbol{a}^T\boldsymbol{K}\boldsymbol{t}+\frac{1}{2}\boldsymbol{t}^T\boldsymbol{t}+\frac{\lambda}{2}\boldsymbol{a}^T\boldsymbol{K}\boldsymbol{a}
+\end{equation}
+由公式$\ref{no}$，求解$\boldsymbol{a}$，我们有
+\begin{equation}
+\begin{aligned}
+	\boldsymbol{a}^T&=-\frac{1}{\lambda}(\boldsymbol{w}^T\Phi^T-\boldsymbol{t})\\
+	&\Rightarrow \lambda \boldsymbol{a}^T= \boldsymbol{t}^T-\boldsymbol{a}^T\Phi \Phi^T=\boldsymbol{t}-\boldsymbol{a}\boldsymbol{K}\\
+	&\Rightarrow \boldsymbol{a}=(K+\lambda \boldsymbol{I}_{N})^{-1}\boldsymbol{t}
+\end{aligned}
+\end{equation}
+如果我们将这个代入线性回归模型中，对于新的输入$\boldsymbol{x}$，我们得到了下面预测
+\begin{equation}
+	y(\boldsymbol{x})=\boldsymbol{w}^T\phi(\boldsymbol{x})=\boldsymbol{a}^T\Phi\phi(\boldsymbol{x})=k(\boldsymbol{x})^T(\boldsymbol{K}+\lambda\boldsymbol{I}_N)^{-1}\boldsymbol{t}
+\end{equation}
+其中我们定义了向量$k(\boldsymbol{x})$，它的元素为$k_n(\boldsymbol{x})=k(\boldsymbol{x}_n,\boldsymbol{x})$。因此我们看到对偶公式使得最小平方问题的解完全通过核函数$k(\boldsymbol{x},\boldsymbol{x}^{'})$表示。这被称为对偶公式，因为$\boldsymbol{a}$的解可以被表示为$\phi(\boldsymbol{x})$的线性组合，从而我们可以使用参数向量$\boldsymbol{w}$恢复出原始的公式。
+
+对偶公式的优点是，它可以完全通过核函数$k(\boldsymbol{x},\boldsymbol{x}^{'})$来表示。于是，我们可以直接针对核函数进行计算，避免了显式地引入特征向量$\phi(\boldsymbol{x})$，这使得我们可以隐式地使用高维特征空间，甚至无限维特征空间。
+
+基于Gram矩阵的对偶表示的存在是许多线性模型的性质，包括感知器。后面，我们会研究回归的概率线性模型和高斯过程方法的对偶性。
