@@ -146,7 +146,9 @@ $x_a$可以表示为
 构造
 \begin{flalign}
 	x_{b|a}&=x_b-\Sigma_{ba}\Sigma_{aa}^{-1}x_a\\
+	\label{ta}
 	\mu_{b| a}&=\mu_b-\Sigma_{ba}\Sigma_{aa}^{-1}\mu_a\\
+	\label{men}
 	\Sigma_{bb| a}&=\Sigma_{bb}-\Sigma_{ba}\Sigma_{aa}^{-1}\Sigma_{ab}
 \end{flalign}
 \begin{equation}
@@ -197,6 +199,7 @@ $x_{b| a}$的分布为
 		y&=Ax+b+\epsilon,\quad \epsilon\sim \mathcal{N}(0,L^{-1})\\
 		\mathbb{E}[y]&=\mathbb{E}(Ax+b)+\mathbb{E}(\epsilon)=A\mu+b\\
 		var[y]&=var[Ax+b+\epsilon]=A\Lambda^{-1}A^T+L^{-1}\\
+		\label{Ga}
 		y&\sim\mathcal{N}(A\mu+b,A\Lambda^{-1}A^T+L^{-1})
 	\end{flalign}
 	\item 求$p(x|y)$。

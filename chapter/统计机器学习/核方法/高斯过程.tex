@@ -1,1 +1,160 @@
 \section{高斯过程}
+通过将对偶性的概念应用于回归的非概率模型，我们引出了核的概念。这里，我们把核的角色推广到概率判别式模型中，引出了高斯过程的框架。于是，我们会看到在贝叶斯方法中，核是如何自然地被引入的。
+
+在高斯过程的观点中，我们抛弃参数模型，直接定义函数上的先验概率分布。等价于高斯过程的模型在许多不同领域被广泛研究。例如，在统计地质学中文献中，高斯过程回归被称为kriging。类似地，ARMA(自动回归移动平均)模型、Kalman滤波以及径向基函数网络都可以被看成高斯过程模型的形式。
+\subsection*{重新考虑线性回归问题}
+为了引出高斯过程的观点，我们回到线性回归的例子中，通过对函数$y(\boldsymbol{x}\boldsymbol{w})$的计算，重新推导出预测分布。
+
+考虑一个模型M，它被定义为由向量$\phi(\boldsymbol{x})$的元素给出的M个固定基函数的线性组合，即
+\begin{equation}
+\label{49}
+	y(\boldsymbol{x})=\boldsymbol{w}^T\phi(\boldsymbol{x})
+\end{equation}
+其中$\boldsymbol{x}$是输入向量，$\boldsymbol{w}$是M维权向量。现在，考虑$\boldsymbol{w}$上的一个先验概率分布，这个分布是一个各向同性的高斯分布，形式为
+\begin{equation}
+	p(\boldsymbol{w})=\mathcal{N}(\boldsymbol{w}|0,\alpha^{-1}\boldsymbol{I})
+\end{equation}
+它由一个超参数$\alpha$控制，这个超参数表示分布的精度。对于任意给定的$\boldsymbol{w}$，公式$\ref{49}$定义了$\boldsymbol{x}$的一个特定的函数。于是$\boldsymbol{w}$上的概率分布就产生了一个函数$y(\boldsymbol{x})$上的一个概率分布。在实际应用中，我们希望计算这个函数在某个具体的$\boldsymbol{x}$处的函数值，例如在训练数据点$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$处的函数值。于是我们感兴趣的是函数值$y(\boldsymbol{x}_1),\dots,y(\boldsymbol{x}_N)$的概率分布。我们把函数值的集合记作向量$\boldsymbol{y}$。根据公式$\ref{49}$，这个向量等于
+\begin{equation}
+	\boldsymbol{y}=\Phi\boldsymbol{w}
+\end{equation}
+其中$\Phi$是设计矩阵，元素为$\Phi_{nk}=\phi_k(\boldsymbol{x}_n)$。我们可以用下面的方式找到$\boldsymbol{y}$的概率分布。首先，我们注意到$\boldsymbol{y}$是由$\boldsymbol{w}$的元素给出的服从高斯分布的变量的线性组合，因此它本身是服从高斯分布。于是，我们只需要找到它的均值和方差。
+\begin{flalign}
+	\mathbb{E}[y]&=\Phi\mathbb{E}[\boldsymbol{w}]=0\\
+	cov[\boldsymbol{y}]=\mathbb{E}[\boldsymbol{y}\boldsymbol{y}^T]-0&=\Phi\mathbb{E}[\boldsymbol{w}\boldsymbol{w}^T]\Phi^T=\frac{1}{\alpha}\Phi\Phi^T=\boldsymbol{K}
+\end{flalign}
+其中，$\boldsymbol{K}$是Gram矩阵，元素为
+\begin{equation}
+	K_{nm}=k(\boldsymbol{x}_n,\boldsymbol{x}_m)=\frac{1}{\alpha}\phi(\boldsymbol{x}_n)^T\phi(\boldsymbol{x}_m)
+\end{equation}
+$k(\boldsymbol{x},\boldsymbol{x}^{'})$是核函数。
+
+这个模型给我们提供了高斯过程的一个具体的例子。通常来说，高斯过程被定义为函数$y(\boldsymbol{x})$上的一个概率分布，使得在任意点集$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$处计算的$y(\boldsymbol{x})$的值的集合联合起来服从高斯分布。
+
+高斯随机过程的一个关键点是N个变量$y_1,\dots,y_N$上的联合概率分布完全由二阶统计(即均值和协方差)确定。在大部分应用中，我们关于$y(\boldsymbol{x})$的均值没有任何先验的知识，因此根据对称性，我们令其等于零。这等价于基函数的观点中，令权值$p(\boldsymbol{w}|\alpha)$的先验概率分布的均值等于零。之后，高斯过程的确定通过给定两个$\boldsymbol{x}$处的函数值$y(\boldsymbol{x})$的协方差来完成。这个协方差由核函数确定 
+\begin{equation}
+	\mathbb{E}[y(\boldsymbol{x}_n)y(\boldsymbol{x}_m)]=k(\boldsymbol{x}_n,\boldsymbol{x}_m)
+\end{equation}
+我们也可以直接定义核函数，而不是间接地通过选择基函数。
+\subsection*{用于回归的高斯过程}
+为了把高斯过程模型应用一回归模型，我们需要考虑观测目标值的噪声，形式为
+\begin{equation}
+	t_n=y_n+\epsilon_n
+\end{equation}
+其中$y_n=y(\boldsymbol{x}_n),\epsilon_n$是一个随机噪声变量，它的值对于每个观测$n$是独立的。这里我们要考虑服从高斯分布的噪声过程，即
+\begin{equation}
+	p(t_n|y_n)=\mathcal{N}(t_n|y_n,\beta^{-1})
+\end{equation}
+其中$\beta^{-1}$是一个超参数，表示噪声的精度。由于噪声对于每个数据点是独立的，因此以$\boldsymbol{y}=(y_1,\dots,y_N)^T$为条件，目标值$\boldsymbol{t}=(t_1,\dots,t_N)^T$的联合概率分布是一个各向同性的高斯分布，形式为
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{y})=\mathcal{N}(\boldsymbol{t}|\boldsymbol{y},\beta^{-1}\boldsymbol{I}_N)
+\end{equation}
+根据高斯过程的定义，边缘概率分布$p(\boldsymbol{y})$是一个高斯分布，均值为零，协方差由Gram矩阵$\boldsymbol{K}$定义，即
+\begin{equation}
+	p(\boldsymbol{y})=\mathcal{N}(\boldsymbol{y}|0,\boldsymbol{K})
+\end{equation}
+确定$\boldsymbol{K}$的核函数通常被选择成能够表示下面的性质：对于相似的点$\boldsymbol{x}_n$和$\boldsymbol{x}_m$，对应的值$y(\boldsymbol{x}_n)$和$y(\boldsymbol{x}_m)$的相关性要大于不相似的点。这里，相似性的概念取决于实际应用。
+
+为了找到以输入值$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$为条件的边缘概率分布$p(\boldsymbol{t})$，我们需要对$\boldsymbol{y}$积分。可以通过使用公式$\ref{Ga}$，我们看到$\boldsymbol{t}$的边缘概率分布为
+\begin{equation}
+	p(\boldsymbol{t})=\int p(\boldsymbol{t}|\boldsymbol{y})p(\boldsymbol{y})d\boldsymbol{y}=\mathcal{N}(\boldsymbol{t}|0,\boldsymbol{C})
+\end{equation}
+其中协方差矩阵$\boldsymbol{C}$的元素为
+\begin{equation}
+	C(\boldsymbol{x}_n,\boldsymbol{x}_m)=k(\boldsymbol{x}_n,\boldsymbol{x}_m)+\beta^{-1}\delta_{nm}
+\end{equation}
+
+对于高斯过程回归，一个广泛使用的核函数的形式为指数项的二次型加上常数和线性项，即
+\begin{equation}
+	k(\boldsymbol{x}_n,\boldsymbol{x}_m)=\theta_0\exp\left\{-\frac{\theta_1}{2}\Vert \boldsymbol{x}_n-\boldsymbol{x}_m\Vert ^2 \right\}+\theta_2+\theta_3\boldsymbol{x}^T_n\boldsymbol{x}_m
+\end{equation}
+
+目前为止，我们已经使用高斯过程的观点来构建数据点的集合上的联合概率分布的模型。然而，我们在回归问题中的目标是在给定一组训练数据的情况下，对新的输入变量预测目标变量的值。假设$\boldsymbol{t}_N=(t_1,\dots,t_N)^T$，对应于输入值$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$，组成观测训练集，并且我们的目标是对于新的输入向量$\boldsymbol{x}_{N+1}$预测目标变量$t_{N+1}$。这要求我们计算预测分布$p(t_{N+1}|\boldsymbol{t}_N)$。
+
+为了找到条件条布$p(t_{N+1}|\boldsymbol{t})$，我们首先写下联合概率分布$p(\boldsymbol{t}_{N+1})$。
+\begin{equation}
+	p(\boldsymbol{t}_{N+1})=\mathcal{N}(\boldsymbol{t}_{N+1}|0,\boldsymbol{C}_{N+1})
+\end{equation}
+其中$\boldsymbol{C}_{N+1}$是一个$(N+1)\times(N+1)$的协方差矩阵，我们将协方差矩阵分块如下
+\begin{equation}
+	\boldsymbol{C}_{N+1}=
+	\begin{pmatrix}
+	\boldsymbol{C}_N&\boldsymbol{k}\\
+	\boldsymbol{k}  &c
+	\end{pmatrix}
+\end{equation}
+其中$\boldsymbol{C}_N$是一个$N\times N$的协方差矩阵，向量$\boldsymbol{k}$的元素为$k(\boldsymbol{x}_n,\boldsymbol{x}_{N+1})$，其中$n=1,\dots,N$，标量$c=k(\boldsymbol{x}_{N+1},\boldsymbol{x}_{N+1})$。使用公式$\ref{ta}$和公式$\ref{men}$，我们看到条件概率分布$p(t_{N+1}|\boldsymbol{t})$是一个高斯分布，均值和协方差为
+\begin{flalign}
+	m(\boldsymbol{x}_{N+1})&=\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{t}\\
+	\sigma^2(\boldsymbol{x}_{N+1})&=c-\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{k}
+\end{flalign}
+这些是定义高斯过程回归的关键结果。注意，预测分布的均值可以写成$\boldsymbol{x}_{N+1}$的函数，形式为
+\begin{equation}
+	m(\boldsymbol{x}_{N+1})=\sum_{n=1}^{N}a_nk(\boldsymbol{x}_n,\boldsymbol{x}_{N+1})
+\end{equation}
+其中$a_n$是$\boldsymbol{C}_N^{-1}\boldsymbol{t}$的第n个元素。
+
+使用高斯过程的核心计算涉及到对$N\times N$的矩阵求逆。高斯过程观点的一个优点是，我们可以处理那些只能通过无穷多的基函数表达的协方差函数。但是，对于大的训练数据集，直接应用高斯过程方法就变得不可行了，因此一系列近似的方法被提出来。
+\subsection*{学习超参数}
+高斯过程模型的预测部分依赖于协方差函数的选择。在实际应用中，我们不固定协方差函数，而是更喜欢使用一组带有参数的函数，然后从数据中推断参数的值。这些参数控制了相关性的长度缩放以及噪声的精度等等，对应于标准参数模型的超参数。
+
+学习超参数的方法基于计算似然函数$p(\boldsymbol{t}|\boldsymbol{\theta})$，其中$\boldsymbol{\theta}$表示高斯过程模型的超参数。最简单的方法是通过最大化似然函数的方法进行$\boldsymbol{\theta}$的点估计。由于$\boldsymbol{\theta}$表示回归问题的一组超参数，因此这可以看成类似于线性回归模型的第二类最大似然步骤。可以使用高效的基于梯度的最优化算法来最大化对数似然函数。
+
+使用多元高斯分布的标准形式，高斯过程模型的对数似然函数很容易计算。对数似然函数的形式为
+\begin{equation}
+	\ln p(\boldsymbol{t}|\boldsymbol{\theta})=-\frac{1}{2}\ln |\boldsymbol{C}_N|-\frac{1}{2}\boldsymbol{t}^T\boldsymbol{C}_N^{-1}\boldsymbol{t}-\frac{N}{2}\ln (2\pi)
+\end{equation}
+对于非线性最优化，我们也需要对数似然函数关于参数向量$\boldsymbol{\theta}$的梯度。
+\begin{equation}
+	\begin{aligned}
+	\frac{\partial }{\partial \theta_i}\ln p(\boldsymbol{t}|\boldsymbol{\theta})&=-\frac{1}{2}\frac{\partial [\ln |\boldsymbol{C}_N|]}{\partial \theta_i}-\frac{1}{2}\boldsymbol{t}^T\frac{\partial [\boldsymbol{C}_N^{-1}]}{\partial \theta_i}\boldsymbol{t}\\
+	&=-\frac{1}{2}\mathop{Tr}\left(\boldsymbol{C}_N^{-1}\frac{\partial \boldsymbol{C}_N}{\partial \theta_i} \right)+\frac{1}{2}\boldsymbol{t}^T\boldsymbol{C}_N^{-1}\frac{\partial \boldsymbol{C}_N}{\partial \theta_i}\boldsymbol{C}_N^{-1}\boldsymbol{t}
+	\end{aligned}
+\end{equation}
+由于$\ln p(\boldsymbol{t}|\boldsymbol{\theta})$通常是一个非凸函数，因此它有多个极大值点。
+
+引入一个$\theta$上的先验分布然后基于梯度的方法最大化对数后验是很容易的。在一个纯粹的贝叶斯方法中，我们需要计算$\boldsymbol{\theta}$的边缘概率，乘以先验概率$p(\boldsymbol{\theta})$和似然函数$p(\boldsymbol{t}|\boldsymbol{\theta})$。然而，通常精确的积分或者求和是不可行的，我们必须进行近似。
+\subsection*{自动相关性确定}
+我们看到最大似然方法如何被用于确定高斯过程中的长度缩放参数的值。通过为每个输入变量整合到一个单独的参数，这种方法可以很有用地推广。正如我们将看到的那样，这样做的结果是，通过最大似然方法进行的参数最优化，能够将不同输入的相对重要性从数据中推断出来。这是高斯过程中的自动相关性确定(automatic relecance detemination)或者ARD的一个例子。
+
+考虑二维输入空间$\boldsymbol{x}=(x_1,x_2)$，有一个下面形式的核函数
+\begin{equation}
+	k(\boldsymbol{x},\boldsymbol{x}^{'})=\theta_0\exp\left\{-\frac{1}{2}\sum_{i=1}^{2}\eta_i(x_i-x_i^{'})^2 \right\}
+\end{equation}
+随着特定的$\eta_i$的减小，函数逐渐对对应的输入变量$x_i$不敏感。通过使用最大似然法按照数据集调整这些参数，它可以检测到对于预测分布几乎没有影响的输入变量。
+
+ARD框架很容易整合到指数-二次核中，得到下面形式的核函数，它对于 一大类将高斯过程应用于回归问题的实际应用都很有帮助。
+\begin{equation}
+	k(\boldsymbol{x}_n,\boldsymbol{x}_m)=\theta_0\exp\left\{-\frac{\theta_1}{2}\sum_{i=1}^{D}\eta_i(x_{ni}-x_{mi})^2 \right\}+\theta_2+\theta_3\sum_{i=1}^{D}\boldsymbol{x}_{ni}\boldsymbol{x}_{mi}
+\end{equation}
+其中D是输入空间的维度。
+\subsection*{用于分类的高斯过程}
+在分类的概率方法中，我们的目标是在给定一组训练数据的情况下，对于一个新的输入向量，为目标变量的后验概率建模。这些概率一定位于区间$[0,1]$中，而一个高斯过程模型做出的预测位于整个实数轴上。然而，我们可以很容易地调整高斯过程，使基能够处理分类问题。方法为：使用一个恰当的非线性激活函数，将高斯过程的输出进行变换。
+
+首先考虑一个二分类问题。如果我们定义函数$a(\boldsymbol{x})$上的一个高斯过程，然后使用logistic sigmoid函数$y=\sigma(a)$进行变换。那么我们就得到了函数$y(\boldsymbol{x})$上的一个非高斯随机过程。一维输入空间的情况下，目标变量$t$上的概率分布是伯努利分布
+\begin{equation}
+	p(t|a)=\sigma(a)^t(1-\sigma(a))^{1-t}
+\end{equation}
+训练集的输入记作$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$，对应的观测目标变量为$\boldsymbol{t}=(t_1,\dots,t_N)^T$。我们还考虑一个单一的观测数据点$\boldsymbol{x}_{N+1}$，目标值为$t_{N+1}$。我们的目标是确定预测分布$p(t_{N+1}|\boldsymbol{t})$，其中我们没有显示地写出它对于输入变量的条件依赖。为了完成这个目标，我们引入向量$\boldsymbol{a}_{N+1}$上的高斯过程先验，它的分量为$a(\boldsymbol{x}_1),\dots,a(\boldsymbol{x}_{N+1})$这反过来定义了$\boldsymbol{t}_{N+1}$上的一个非高斯过程。通过以训练数据$\boldsymbol{t}_{N}$为条件，我们得到了求解的预测分布。$\boldsymbol{a}_{N+1}$上的高斯过程先验的形式为
+\begin{equation}
+	p(\boldsymbol{a}_{N+1})=\mathcal{N}(\boldsymbol{a}_{N+1}|0,\boldsymbol{C}_{N+1})
+\end{equation}
+协方差矩阵不包含噪声项，然而，由于数值计算的原因，更方便的做法是引入一个由参数$v$控制的类似噪声的项，它确保了协方差矩阵是正定的。因此协方差矩阵$\boldsymbol{C}_{N+1}$的元素为
+\begin{equation}
+	C(\boldsymbol{x}_n,\boldsymbol{x}_m)=k(\boldsymbol{x}_n,\boldsymbol{x}_m)+v\sigma_{nm}
+\end{equation}
+其中$k(\boldsymbol{x}_n,\boldsymbol{x}_m)$是任意的半正定核函数，$v$的值通常事先固定。我们会假定核函数由参数向量$\boldsymbol{\theta}$控制，稍后会讨论如何从训练数据中学习到$\boldsymbol{\theta}$。
+
+求解的预测分布为
+\begin{equation}
+	p(t_{N+1}|\boldsymbol{t}_N)=\int p(t_{N+1}=1|a_{N+1})p(a_{N+1}|\boldsymbol{t}_{N})da_{N+1}
+\end{equation}
+其中$p(t_{N+1}=1|a_{N+1})=\sigma(\boldsymbol{a}_{N+1})$这个积分无法求出解析解，可以采用近似的方法。
+\begin{enumerate}
+	\item 变分推断
+	\item 期望传播
+	\item 拉普拉斯近似
+\end{enumerate}
+\subsection*{拉普拉斯近似}
+\subsection*{与神经网络的联系}
+在贝叶斯神经网络中，参数向量$\boldsymbol{w}$上的先验分布以及网络函数$f(\boldsymbol{x},\boldsymbol{w})$产生了函数$y(\boldsymbol{x})$上的先验概率分布，其中$\boldsymbol{y}$是网络输出向量。在极限$M\Rightarrow \infty$的情况下，对于$\boldsymbol{w}$的一大类先验分布，神经网络产生的函数的分布将会趋于高斯过程。
