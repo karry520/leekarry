@@ -85,7 +85,9 @@ $k(\boldsymbol{x},\boldsymbol{x}^{'})$是核函数。
 \end{equation}
 其中$\boldsymbol{C}_N$是一个$N\times N$的协方差矩阵，向量$\boldsymbol{k}$的元素为$k(\boldsymbol{x}_n,\boldsymbol{x}_{N+1})$，其中$n=1,\dots,N$，标量$c=k(\boldsymbol{x}_{N+1},\boldsymbol{x}_{N+1})$。使用公式$\ref{ta}$和公式$\ref{men}$，我们看到条件概率分布$p(t_{N+1}|\boldsymbol{t})$是一个高斯分布，均值和协方差为
 \begin{flalign}
+\label{shu}
 	m(\boldsymbol{x}_{N+1})&=\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{t}\\
+	\label{xue}
 	\sigma^2(\boldsymbol{x}_{N+1})&=c-\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{k}
 \end{flalign}
 这些是定义高斯过程回归的关键结果。注意，预测分布的均值可以写成$\boldsymbol{x}_{N+1}$的函数，形式为
@@ -147,6 +149,7 @@ ARD框架很容易整合到指数-二次核中，得到下面形式的核函数�
 
 求解的预测分布为
 \begin{equation}
+\label{yuce}
 	p(t_{N+1}|\boldsymbol{t}_N)=\int p(t_{N+1}=1|a_{N+1})p(a_{N+1}|\boldsymbol{t}_{N})da_{N+1}
 \end{equation}
 其中$p(t_{N+1}=1|a_{N+1})=\sigma(\boldsymbol{a}_{N+1})$这个积分无法求出解析解，可以采用近似的方法。
@@ -156,5 +159,75 @@ ARD框架很容易整合到指数-二次核中，得到下面形式的核函数�
 	\item 拉普拉斯近似
 \end{enumerate}
 \subsection*{拉普拉斯近似}
+为了计算预测分布$\ref{yuce}$，我们寻找$a_{N+1}$的后验概率分布的高斯近似。使用贝叶斯定理，后验概率分布为
+\begin{equation}
+	\begin{aligned}
+	\label{he}
+	p(a_{N+1}|\boldsymbol{t}_N)&=\int p(a_{N+1},\boldsymbol{a}_N|\boldsymbol{t}_N)d\boldsymbol{a}_N\\\
+	&=\frac{1}{p(\boldsymbol{t}_N)}\int p(a_{N+1},\boldsymbol{a}_N,\boldsymbol{t}_N)d\boldsymbol{a}_N \\
+	&=\frac{1}{p(\boldsymbol{t}_N)}\int p(a_{N+1},\boldsymbol{a}_N)p(\boldsymbol{t}_N|a_{N+1},\boldsymbol{a}_N)d\boldsymbol{a}_N \\
+	&=\int p(a_{N+1}|\boldsymbol{a}_N)\frac{1}{p(\boldsymbol{t}_N)}p(\boldsymbol{a}_N)p(\boldsymbol{t}_N|\boldsymbol{a}_N)d\boldsymbol{a}_N \\
+	&=\int p(a_{N+1}|\boldsymbol{a}_N)p(\boldsymbol{a}_N|\boldsymbol{t}_N)d\boldsymbol{a}_N
+	\end{aligned}
+\end{equation}
+其中，我们用到了$p(\boldsymbol{t}_N|a_{N+1},\boldsymbol{a}_N)=p(\boldsymbol{t}_N|\boldsymbol{a}_N)$。使用公式$\ref{shu}$和公式$\ref{xue}$给出的高斯过程回归的结果，我们可以得到条件概率分布$p(a_{N+1}|\boldsymbol{a}_N)$，结果为
+\begin{equation}
+\label{jie}
+	p(a_{N+1}|\boldsymbol{a}_N)=\mathcal{N}(a_{N+1}|\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{a}_N,c-\boldsymbol{k}^T\boldsymbol{C}_N^{-1}\boldsymbol{k})
+\end{equation}
+于是，通过找到后验概率分布$p(\boldsymbol{a}_N|\boldsymbol{t}_N)$的拉普拉斯近似，然后使用两个高斯分布卷积的标准结果，我们就可以计算公式中的积分。
+
+先验概率$p(\boldsymbol{a}_N)$由一个零均值高斯过各给出，协方差矩阵为$\boldsymbol{C}_N$，数据项(假设数据点之间具有独立性)为
+\begin{equation}
+	p(\boldsymbol{t}_N|\boldsymbol{a}_N)=\prod_{n=1}^{N}\sigma(a_n)^{t_n}(1-\sigma(a_n))^{1-t_n}=\prod_{n=1}^{N}e^{a_nt_n}\sigma(-a_n)
+\end{equation}
+然后通过对$p(\boldsymbol{a}_N|\boldsymbol{t}_N)$的对数进行泰勒展开，就可以得到拉普拉斯近似。忽略掉一些具有可加性的常数，这个概率的对数为
+\begin{equation}
+\begin{aligned}
+	\Psi(\boldsymbol{a}_N)&=\ln p(\boldsymbol{a}_N,\boldsymbol{t}_N)\quad \text{忽略了常数项}\\
+	&=\ln p(\boldsymbol{a}_N)+\ln p(\boldsymbol{t}_N|\boldsymbol{a}_N)\\
+	&=\underbrace{-\frac{1}{2}\boldsymbol{a}_N^T\boldsymbol{C}_N^{-1}\boldsymbol{a}_N-\frac{N}{2}\ln (2\pi)-\frac{1}{2}\ln |\boldsymbol{C}_N|}_{\text{$\boldsymbol{a}_N$服从零均值高斯分布}}\\
+	&\quad  +\underbrace{\boldsymbol{t}_N^T\boldsymbol{a}_N-\sum_{n=1}^{N}\ln (1+e^{a_n})}_{\text{二项分布}}
+\end{aligned}
+\end{equation}
+首先我们需要找到后验概率分布的众数，这需要我们计算$\Psi (\boldsymbol{a}_N)$的梯度。这个梯度为
+\begin{equation}
+	\triangledown \Psi(\boldsymbol{a}_N)=\boldsymbol{t}_N-\boldsymbol{\sigma}_N-\boldsymbol{C}_N^{-1}\boldsymbol{a}_N
+\end{equation}
+其中$\boldsymbol{\sigma}_N$是一个元素为$\sigma(a_n)$的向量。寻找众数时，我们不能简单地令这个梯度等于零，因为$\boldsymbol{\sigma}_N$与$\boldsymbol{a}_N$的关系是非线性的，因此我们需要使用基于Newton-Raphson方法的迭代的方法，它给出了一个迭代重加权最小平方(IRLS)算法。这需要求$\Psi(\boldsymbol{a}_N)$的二阶导数，而这个二阶导数也需要进行拉普拉斯近似，结果为
+\begin{equation}
+	\triangledown\triangledown \Psi(\boldsymbol{a}_N)=-\boldsymbol{W}_N-\boldsymbol{C}_N^{-1}
+\end{equation}
+其中$\boldsymbol{W}_N$是一个对角矩阵，元素为$\sigma(a_n)(1-\sigma(a_n))$，并且使用了logistic sigmoid函数的导数的结果
+\begin{equation}
+	\frac{d\sigma}{da}=\sigma(1-\sigma)
+\end{equation}
+注意，这些对角矩阵元素位于区间$(0,\frac{1}{4})$，因此$\boldsymbol{W}_N$是一个正定矩阵。由于$\boldsymbol{C}_N$被构造成正定的，并且由于两个正定矩阵的和仍然是正定矩阵，因此我们看到Hessian矩阵$\boldsymbol{A}=-\triangledown\triangledown \Psi(\boldsymbol{a}_N)$是正定的，因此后验概率分布$p(\boldsymbol{a}_N|\boldsymbol{t}_N)$是对数凸函数，因此有一个唯一的众数，即全局最大值。然而，后验概率不是高斯分布，因为Hessian矩阵是$\boldsymbol{a}_N$的函数。
+
+使用Newton-Raphson公式，$\boldsymbol{a}_N$的迭代更新方程为
+\begin{equation}
+	\boldsymbol{a}_N^{\text{新}}=\boldsymbol{C}_N(\boldsymbol{I}+\boldsymbol{W}_N\boldsymbol{C}_N)^{-1}\{\boldsymbol{t}_N-\boldsymbol{\sigma}_N+\boldsymbol{W}_N\boldsymbol{a}_N \}
+\end{equation}
+这个方程反复迭代，直到收敛于众数(记作$\boldsymbol{a}_N^{*}$)。在这个众数位置，梯度$\triangledown\Psi(\boldsymbol{a}_N)$为零，因此$\boldsymbol{a}_N^{*}$满足
+\begin{equation}
+	\boldsymbol{a}_N^{*}=\boldsymbol{C}_N(\boldsymbol{t}_N-\boldsymbol{\sigma}_N)
+\end{equation}
+一旦我们找到了后验概率的众数$\boldsymbol{a}_N^{*}$，我们就可以计算Hessian矩阵，结果为
+\begin{equation}
+	\boldsymbol{H}=-\triangledown\triangledown \Psi(\boldsymbol{a}_N)=\boldsymbol{W}_N+\boldsymbol{C}_N^{-1}
+\end{equation}
+其中$\boldsymbol{W}_N$的元素使用$\boldsymbol{a}_N^{*}$计算。这定义了我们对后验概率分布$p(\boldsymbol{a}_N|\boldsymbol{t}_N)$的高斯近似，结果为
+\begin{equation}
+	q(\boldsymbol{a}_N)=\mathcal{N}(\boldsymbol{a}_N|\boldsymbol{a}_N^{*},\boldsymbol{H}^{-1})
+\end{equation}
+我们现在可以将这个结果与公式$\ref{jie}$结合，然后计算积分$\ref{he}$。因为这对应于线性高斯模型，我们可以使用一般的结果得到 
+\begin{flalign}
+	\mathbb{E}[a_{N+1}|\boldsymbol{t}_N]&=\boldsymbol{K}^T(\boldsymbol{t}_N-\boldsymbol{\sigma}_N)\\
+	var[a_{N+1}|\boldsymbol{t}_N]&=c-\boldsymbol{k}^T(\boldsymbol{W}_N^{-1}+\boldsymbol{C}_N)^{-1}\boldsymbol{k}
+\end{flalign}
+现在我们有一个$p(a_{N+1}|\boldsymbol{t}_N)$的高斯分布，我们可以使用$\ref{jiasup}$的结果近似积分$\ref{he}$。
+
+我们还需要确定协方差函数的参数$\boldsymbol{\theta}$。一种方法是最大化似然函数$p(\boldsymbol{t}_N|\boldsymbol{\theta})$，此时我们需要对数似然函数和它的梯度的表达式。如果必要的话，还可以加上正则化项，产生一个正则化的最大似然解。
+
 \subsection*{与神经网络的联系}
 在贝叶斯神经网络中，参数向量$\boldsymbol{w}$上的先验分布以及网络函数$f(\boldsymbol{x},\boldsymbol{w})$产生了函数$y(\boldsymbol{x})$上的先验概率分布，其中$\boldsymbol{y}$是网络输出向量。在极限$M\Rightarrow \infty$的情况下，对于$\boldsymbol{w}$的一大类先验分布，神经网络产生的函数的分布将会趋于高斯过程。

@@ -45,3 +45,22 @@
 	p(C_1|\boldsymbol{t})=\int \sigma(a)p(a)da=\int \sigma(a)\mathcal{N}(a|\mu_a,\sigma_a^2)da
 \end{equation}
 关于$a$的积分表示一个高斯分布和一个logistic sigmoid函数的卷积，不能够解析地求值。然而，我们可以利用logistic sigmoid函数$\sigma(a)$和逆probit函数$\Phi(a)$的高度相似性来获得一个较好的近似。
+
+使用逆Probit函数的一个优势是它与高斯的卷积可以用另一个逆probit解析地表示出来。特别地，我们可以证明 
+\begin{equation}
+	\int \Phi(\lambda a)\mathcal{N}(a|\mu,\sigma^2)da=\Phi\left(\frac{\mu}{(\lambda^{-2}+\sigma^2)^{\frac{1}{2}}} \right)
+\end{equation}
+我们现在将逆probit函数的近似$\sigma(a)\simeq \Phi(\lambda a)$应用于这个方程的两侧，得到下面的对于loigstic sigmoid函数与高斯的卷积的近似
+\begin{equation}
+	\int \sigma(a)\mathcal{N}(a|\mu,\sigma^2)da\simeq \sigma(k(\sigma^2)\mu)
+\end{equation}
+其中我们定义了
+\begin{equation}
+	k(\sigma^2)=(1+\frac{\pi\sigma^2}{8})^{-\frac{1}{2}}
+\end{equation}
+
+把这个结果应用于公式中，我们得到了近似的预测分布，形式为
+\begin{equation}
+\label{jiasup}
+	p(C_1|\phi,\boldsymbol{t})=\sigma(k(\sigma_a^2)\mu_a)
+\end{equation}
