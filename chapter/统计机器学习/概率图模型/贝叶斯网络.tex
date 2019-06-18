@@ -1,1 +1,227 @@
 \section{贝叶斯网络}
+为了理解有向图对于描述概率分布的作用，考虑K个变量的联合概率分布$p(x_1,\dots,x_K)$。通过重复使用概率的乘积规则，联合概率分布可以写成条件概率的乘积，每一项对应一个变量，形式如下 
+\begin{equation}
+\label{gai}
+	p(x_1,\dots,x_K)=p(x_K|x_1,\dots,x_{K-1})\dots p(x_2|x_1)p(x_1)
+\end{equation}
+对应一个给定的K，我们可以将其表示为一个具有K个结点的有向图，每个结点对应于公式$\ref{gai}$右侧的一个条件概率分布，每个结点的输入链接包括所有以编号低于当前结点编号的结点为起点的链接。真正传递出图表示的概率分布的性质的有趣信息的是图中链接的缺失(absence)。
+
+现在，根据下面这幅图，写出对应的概率表达式。
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >= 1pt,auto,node distance=2.0cm,semithick]
+	\tikzstyle{every state} = [fill=red, draw=none,text=white]
+	
+	\node [state] (A) {$x_1$};
+	\node [state] (B) [below left of=A] {$x_2$};
+	\node [state] (C) [below right of=A] {$x_3$};
+	\node [state] (D) [below right of=B,xshift=-1cm] {$x_4$};
+	\node [state] (E) [below left of=C,xshift=1cm] {$x_5$};
+	\node [state] (F) [below left of=D,xshift=1cm] {$x_6$};
+	\node [state] (G) [below right of=E,xshift=-1cm] {$x_7$};
+	
+	\path (A) edge (D) edge (E)
+		  (B) edge (D)
+		  (C) edge (E) edge (D)
+		  (D) edge (F) edge (G)
+		  (E) edge (G);
+\end{tikzpicture}
+\end{center}
+联合概率表达式由一系列条件概率的乘积组成，每一项对应于图中的一个结点。每个这样的条件概率分布只以图中对应结点的父结点为条件。例如，$x_5$以$x_1$和$x_3$为条件。于是，7个变量的联合概率分布为
+\begin{equation}
+	p(x_1)p(x_2)p(x_3)p(x_4|x_1,x_2,x_3)p(x_5|x_1,x_3)p(x_6|x_4)p(x_7|x_4,x_5)
+\end{equation}
+
+我们现在说明给定的有向图和变量上对应的概率分布之间的一般关系。在图的所有结点上定义的联合概率分布由每个结点上的条件概率分布的乘积表示，每个条件概率分布的条件都是图中结点的父结点所对应的变量。因此，对于一个有K个结点的图，联合概率为
+\begin{equation}
+\label{fen}
+	p(\boldsymbol{x})=\prod_{k=1}^{K}p(x_k|\textrm{pa}_k)
+\end{equation}
+其中，$\textrm{pa}_k$表示$x_k$的父结点的集合，$\boldsymbol{x}=\{x_1,\dots,x_K \}$。这个关键的方程表示有向图模型的联合概率分布的分解(factorization)属性。虽然我们之前考虑的情况是每个结点对应于一个变量的情形，但是我们可以很容易地推广到让图的每个结点关联一个变量的集合，或者关联向量值的变量。
+
+我们考虑的有向图要满足一个重要的限制，即不能存在有向环(directed cycle)。
+\subsection*{例子：多项式回归}
+作为有向图描述概率分布的一个例子，我们考虑贝叶斯多项式拟合模型。这个模型中的随机变量是多项式系数向量$\boldsymbol{w}$和观测数据$\boldsymbol{t}=(t_1,\dots,t_N)^T$。此外，这个模型包含输入数据$\boldsymbol{X}=(x_1,\dots,x_N)^T$、噪声方差$\sigma^2$以及表示$\boldsymbol{w}$的高斯先验分布的精度的超参数$\alpha$。所有这些都是模型的参数而不是随机变量。现阶段我们只关注随机变量。
+\begin{equation}
+\label{86}
+	p(\boldsymbol{t},\boldsymbol{w})=p(\boldsymbol{w})\prod_{n=1}^{N}p(t_n|\boldsymbol{w})
+\end{equation}
+图模型表示的联合概率分布如图所示
+\begin{center}
+	\begin{tikzpicture}[auto,node distance=2cm,semithick]
+		\tikzstyle{every state} = [fill=red,text=white,draw=none]
+		
+		\node[state] (A) {$\boldsymbol{w}$};
+		\node[state] (B) [below left of=A]{$t_1$};
+		\node[state] (C) [below right of=A]{$t_N$};
+		
+		\path (A) edge[->] (B) edge[->] (C)
+			  (B) edge[dashed] (C);
+	\end{tikzpicture}
+\end{center}
+当我们开始处理更加复杂的模型时，我们会看到，像图中那样显式地写出$t_1,\dots,t_N$的结点是很不方便的。于是，我们引入一种图结构，使得多个结点可以更简洁地表示出来。这种图结构中，我们画出一个单一表示的结点$t_n$，然后用一个被称为板(plate)的方框圈起来，标记为N，表示有N个同类型的点。用这种表示重新表示上图，我们得到了下图
+\begin{center}
+	\begin{tikzpicture}[semithick,auto,node distance=2cm]
+	\tikzstyle{every state} = [fill=red,draw=none,text=white]
+	
+	\node[state] (A) {$t_n$};
+	\node[state] (B) [right of=A]{$\boldsymbol{w}$};
+	\path (B) edge[->] (A);
+	\draw [color=blue,rounded corners,thick] (-1,-1) rectangle (1,1); 
+	\node at (0.8,-0.8) {$N$};
+	\end{tikzpicture}
+\end{center}
+
+我们有时会发现，显式地定出模型的参数和随机变量是很有帮助的。此时，公式$\ref{86}$就变成了
+\begin{equation}
+	p(\boldsymbol{t},\boldsymbol{w}|\boldsymbol{X},\alpha,\sigma^2)=p(\boldsymbol{w}|\alpha)\prod_{n=1}^{N}p(t_n|\boldsymbol{w},x_n,\sigma^2)
+\end{equation}
+对应地，我们可以在图表示中显式地写出$\boldsymbol{X}$和$\alpha$。为了这样做，我们会遵循下面的惯例：随机变量由空心圆表示，确定性参数由小的实心圆表示。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+	
+	\node [red,fill=gray,state] (A) {$t_n$};
+	\node [red,state] (B) [right of=A]{$\boldsymbol{w}$};
+
+
+	\node at (0.8,-0.8) {$N$};
+	\node[fill=red,inner sep=0.1cm,circle,above of=A,label=right:$x_n$](C) {};
+	\node[fill=red,inner sep=0.1cm,circle,above of=B,label=right:$\alpha$](D){};
+	\node[fill=red,inner sep=0.1cm,circle,left of=A,label=left:$\sigma^2$](E){};
+	\draw [color=blue,rounded corners,thick] (-1,-1) rectangle (1,2.2);
+	\path (B) edge[->,semithick] (A)
+		  (C) edge[->,semithick] (A)
+		  (D) edge[->,semithick] (B)
+		  (E) edge[->,semithick] (A);
+	\end{tikzpicture}
+\end{center}
+当我们将图模型应用于机器学习或者模型识别的问题中时，我们通常将某些随机变量设置为具体的值，例如将变量$\{t_n \}$根据多项式曲线拟合中的训练集进行设置。在图模型中，我们通过给对应的结点加上阴影的方式来表示这种观测变量(observed variables)。$\boldsymbol{w}$不是观测变量，因此$\boldsymbol{w}$是潜在变量(latent variable)的一个例子。潜在变量也被称为隐含变量(hidden variable)。这样的变量在许多概率模型中有着重要的作用，将在后面的章节详细讨论。
+
+观测到了$\{t_n \}$的值，如果必要的话，我们可以计算系数$\boldsymbol{w}$的后验概率。
+\begin{equation}
+	p(\boldsymbol{w}|\boldsymbol{t})\propto p(\boldsymbol{w})\prod_{n=1}^{N}p(t_n|\boldsymbol{w})
+\end{equation}
+其中，省略了确定性系数，使得记号简洁。
+
+通常，我们对于$\boldsymbol{w}$这样的参数本身不感兴趣，因为我们的最终目标是对输入变量进行预测。假设给定一个输入值$\hat{x}$，我们想找到以观测数据为条件的对应的$\hat{t}$的概率分布。描述这个问题的图模型如下图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+	
+	\node[red,fill=gray,state] (A) {$t_n$};
+	\node[red,state] (B) [right of=A]{$\boldsymbol{w}$};
+	\node[red,state] (F) [below of=B]{$\hat{t}$};
+	\node[fill=red,circle,label=right:$\hat{x}$,right of=F](G){};
+	
+	\node at (0.8,-0.8) {$N$};
+	\node[fill=red,inner sep=0.1cm,circle,above of=A,label=right:$x_n$](C) {};
+	\node[fill=red,inner sep=0.1cm,circle,above of=B,label=right:$\alpha$](D){};
+	\node[fill=red,inner sep=0.1cm,circle,below of=A,label=left:$\sigma^2$](E){};
+	
+	
+	\draw [color=blue,rounded corners,thick] (-1,-1) rectangle (1,2.2);
+	\path (B) edge[->,semithick] (A)
+	(C) edge[->,semithick] (A)
+	(D) edge[->,semithick] (B)
+	(E) edge[->,semithick] (A) edge[->,semithick] (F)
+	(G) edge[->,semithick] (F)
+	(B) edge[->,semithick] (F);
+	\end{tikzpicture}
+\end{center}
+以确定性参数为条件，这个模型的所有随机变量的联合分布为
+\begin{equation}
+	p(\hat{t},\boldsymbol{t},\boldsymbol{w}|\hat{x},\boldsymbol{X},\alpha,\sigma^2)=\left[\prod_{n=1}^{N}p(t_n|x_n,\boldsymbol{w},\sigma^2) \right]p(\boldsymbol{w}|\alpha)p(\hat{t}|\hat{x},\boldsymbol{w},\sigma^2)
+\end{equation}
+然后，根据概率的加和规则，对模型参数$\boldsymbol{w}$积分，即可得到$\hat{t}$的预测分布
+\begin{equation}
+	p(\hat{t}|\hat{x},\boldsymbol{X},\boldsymbol{t},\alpha,\sigma^2)\propto \int p(\hat{t},\boldsymbol{t},\boldsymbol{w}|\hat{x},\boldsymbol{X},\alpha,\sigma^2)d\boldsymbol{w}
+\end{equation}
+其中我们隐式地将$\boldsymbol{t}$中的随机变量设置为数据集中观测到的具体值。
+\subsection*{生成式模型}
+许多情况下，我们希望从给定的概率分布中抽取样本。后面用一章节讨论取样方法，这里简要介绍一种方法——祖先取样(ancestral sampling)，与图模型特别相关。考虑K个变量的一个联合概率分布$p(x_1,\dots,x_K)$，它根据公式$\ref{fen}$进行分解，对应于一个有向无环图。我们假设变量已经进行了排序，从而不存在从某个结点到序号较低的结点的链接。换句话说，每个结点的序号都大于它的父结点。我们的目标是从这样的联合概率分布中取样$\hat{x}_1,\dots,\hat{x}_K$。
+
+为了完成这一点，我们首先选出序号最小的结点，按照概率分布$p(x_1)$取样，记作$\hat{x}_1$。然后，我们顺序计算每个结点，使得对于结点n，我们根据条件概率$p(x_n|\textrm{pa}_n)$进行取样，其中父结点的变量被设置为它们的取样值。按照具体的概率分布的取样方法将会在后面的章节中详细讨论。一旦我们对最后的变量$x_K$取样结束，我们就达到了根据联合概率分布取样的目标。为了从对应于变量的子集的边缘概率分布中取样，我们简单地取要求结点的取样值，忽略剩余结点的取样值。
+
+对于概率模型的实际应用，通常的情况是，数量众多的变量对应于图的终端结点(表示观测值)，较少的变量对应于潜在变量。潜在的变量的主要作用是使得观测变量上的复杂分布可以表示为由简单的条件分布(通常是指数族分布)构建的模型。
+
+我们可以将这样的模型表示为观测数据产生的过程。图模型描述了生成观测数据的一种因果关系(causal)过程。因此，这种模型通常被称为生成式模型(generatice model)。
+
+概率模型中的隐含变量不必具有显式的物理含义。它的引入可以仅仅为了从更简单的成分中建立一个更复杂的联合概率分布。在任何一种情况下，应用于生成式模型的祖先取样方法都模拟了观测数据的创造过程，因此可以产生“幻想的”数据，它的概率分布(如果模型完美地表示现实)与观测数据的根据分布相同。在实际应用中，从一个生成式模型中产生人工生成的观测数据，对于理解模型所表示的概率分布形式很有帮助。
+\subsection*{离散变量}
+我们已经讨论了指数族概率分布的重要性，我们看到这一类概率分布将许多著名的概率分布当成了指数族分布的特例。虽然指数族分布相对比较简单，但是它们组成了构建更复杂概率分布的基本元件。图模型的框架在表达这些基本元件之间的联系时非常有用。
+
+如果我们将有向图中的每个父结点-子结点对的关系选为共轭的，那么这样的模型有一些特别好的性质。稍后会给出几个例子。两种情形很值得注意，即父结点和子结点都对应于离散变量的情形，以及它们都对应高斯变量的情形，因为在这两种情形中，关系可以层次化地推广，构建任意复杂的有向无环图。
+
+现在假设我们有两个离散变量$\boldsymbol{x}_1$和$\boldsymbol{x}_2$，每个都有K个状态，我们想对它们的联合概率分布建模。我们将$x_{1k}=1$和$x_{2l}=1$同时被观测到的概率记作参数$\mu_{kl}$
+，其中$x_{1k}$表示$\boldsymbol{x}_1$的第k个分量，$x_{2l}$的意义与此相似。联合概率分布可以写成 
+\begin{equation}
+	p(\boldsymbol{x}_1,\boldsymbol{x}_2|\boldsymbol{\mu})=\prod_{k=1}^{K}\prod_{l=1}^{K}\mu_{kl}^{x_{1k}x_{2l}}
+\end{equation}
+由于参数满足限制$\sum_k\sum_l u_{kl}=1$，因此这个分布由$K^2-1$个参数控制。很容易看到，对于M个变量的任意一个联合概率分布，需要确定的参数的数量为$K^M-1$，因此随着变量M的数量指数增长。
+
+使用概率的乘积规则，我们可以将联合概率分布$p(\boldsymbol{x}_1,\boldsymbol{x}_2)$分解为$p(\boldsymbol{x}_2|\boldsymbol{x}_1)p(\boldsymbol{x}_1)$，它对应于一个具有两个结点的图，链接从结点$\boldsymbol{x}_1$指向结点$\boldsymbol{x}_2$。边缘概率分布$p(\boldsymbol{x}_1)$与之前一样，由K-1个参数控制。类似地，条件概率分布$p(\boldsymbol{x}_2|\boldsymbol{x}_1)$需要指定K-1个参数，确定$\boldsymbol{x}_1$的K个可能的取值。因此，与之前一样，在联合概率分布中，需要指定的参数的总数为$(K-1)+K(K-1)=K^2-1$
+
+现在假设变量$\boldsymbol{x}_1$和$\boldsymbol{x}_2$是独立的。这样，每个变量由一个独立的多项式概率分布描述，参数的总数是$2(k-1)$。对于M个独立离散变量上的概率分布，其中每个变量有K个可能的状态，参数的总数为$M(K-1)$，因此随着变量的数量线性增长。从图的角度看，我们通过删除结点之间链接的方式，减小了参数的数量，代价是类别的概率分布受到了限制。
+
+作为一个说明，考虑下图所示的结点链。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,->]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {$x_1$};
+		\node[state] (B) [right of=A] {$x_2$};
+		\node (C) [right of=B] {$\dots$};
+		\node[state] (D) [right of=C] {$x_M$};
+		
+		\path (A) edge (B)
+			  (B) edge (C)
+			  (C) edge (D);
+ 	\end{tikzpicture}
+\end{center}
+边缘概率分布$p(\boldsymbol{x}_1)$需要K-1个参数，而对于M-1个条件概率分布$p(\boldsymbol{x}_i|\boldsymbol{x}_{i-1})$需要K(K-1)个参数。从而，参数的总数为$K-1+(M-1)K(K-1)$，这是K的二次函数，并且随着链的长度M线性增长(而不是指数增长).
+
+另一种减小模型中独立参数数量的方法是参数共享(sharing)。通过引入参数的狄利克雷先验，我们可以将离散变量上的图模型转化为贝叶斯模型。如图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,->]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {$x_1$};
+		\node[state] (B) [right of=A] {$x_2$};
+		\node 		 (C) [right of=B] {$\dots$};
+		\node[state] (D) [right of=C] {$x_M$};
+		
+		\node[state] (E) [above of=A] {$\boldsymbol{\mu}_1$};
+		\node[state] (F) [above of=B] {$\boldsymbol{\mu}_2$};
+		\node[state] (G) [above of=D] {$\boldsymbol{\mu}_M$};
+		
+		\path (A) edge (B)
+			  (B) edge (C)
+			  (C) edge (D)
+			  (E) edge (A)
+			  (F) edge (B)
+			  (G) edge (D);
+	\end{tikzpicture}
+\end{center}
+从图的观点来看，每个结点需要额外的父结点表示对应于每个离散结点的参数。如果我们将控制条件概率分布进行参数共享，那么对应的模型如图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,->]
+	\tikzstyle{every node} = [color=red]
+	
+	\node[state] (A) {$x_1$};
+	\node[state] (B) [right of=A] {$x_2$};
+	\node 		 (C) [right of=B] {$\dots$};
+	\node[state] (D) [right of=C] {$x_M$};
+	
+	\node[state] (E) [above of=A] {$\boldsymbol{\mu}_1$};
+	\node[state] (F) [above of=C] {$\boldsymbol{\mu}$};
+
+	
+	\path (A) edge (B)
+	(B) edge (C)
+	(C) edge (D)
+	(E) edge (A)
+	(F) edge (B)
+	(F) edge (D);
+	\end{tikzpicture}
+\end{center}
+
+另一种控制离散变量模型参数数量的指数增长的方式是对条件概率分布使用参数化的模型，而不使用条件概率值的完整表格。
+\subsection*{线性高斯模型}
