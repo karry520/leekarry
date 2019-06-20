@@ -1,3 +1,167 @@
 \section{条件独立}
+多变量概率分布的一个重要概念是条件独立(conditional independence)。如果一组变量的联合概率分布的表达式是根据条件概率分布的乘积表示的(即有向图的数学表达形式)，那么原则上我们可以通过重复使用概率的加和规则和乘积规则测试是否具有潜在的条件独立性。在实际应用中，这种方法非常耗时。图模型的一个重要的优雅的特征是，联合概率分布的条件独立性可以直接从图中读出来，不用进行任何计算。完成这一件事的一般框架被称为“d-划分”(d-separation)，其中“d”表示有向(directed)。
 \subsection*{图的三个例子}
+如果我们考虑以c为条件下的a,b的联合分布，我们可以用一种稍微不同的方式表示，即
+\begin{equation}
+\begin{aligned}
+p(a,b|c)&=p(a|b,c)p(b|c)\\
+&=p(a|c)p(b|c)
+\end{aligned}
+\end{equation}
+因此，以c为条件，a和b的联合概率分布分解为了a的边缘概率分布和b的边缘概率分布的乘积(全部以c为条件)。我们有时会使用条件独立的一种简洁记号，即
+\begin{equation}
+	a\indep b\ |\ c
+\end{equation}
+表示给定c条件下a与b条件独立，等价于
+\begin{equation}
+	p(a|b,c)=p(a|c)
+\end{equation}
+我们开始讨论有向图的条件独立性质。考虑三个简单的例子。
+\begin{enumerate}
+	\item 三个例子中的第一个。如图所示。
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm]
+			\tikzstyle{every node} = [color=red]
+			\node[state](A) {$c$}; 
+			\node[state](B) [below left of=A] {$a$};
+			\node[state](C) [below right of=A] {$b$}; 
+			
+			\path (A) edge (B) edge (C);
+		\end{tikzpicture}
+	\end{center}
+	使用公式给出的一般结果，对应于这个图的联合概率分布很容易写出来，即
+	\begin{equation}
+	\label{du}
+		p(a,b,c)=p(a|c)p(b|c)p(c)
+	\end{equation}
+	如果没有变量是观测变量，那么我们可以通过对公式$\ref{du}$两边进行积分或求和的方式，考察a和b是否相互独立，即
+	\begin{equation}
+		p(a,b)=\sum_cp(a|c)p(b|c)p(c)
+	\end{equation}
+	一般地，这不能分解为乘积$p(a)p(b)$，因此
+	\begin{equation}
+		a\nindep b\ |\ \emptyset
+	\end{equation}
+	其中，$\emptyset$表示空集，符号$\nindep$表示条件独立性质不总是成立。
+	现在假设我们以变量c为条件，如图
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm,->,semithick]
+			\tikzstyle{every node} = [color=red]
+			\node[state,fill=gray,fill opacity=0.5](A) {$c$}; 
+			\node[state](B) [below left of=A] {$a$};
+			\node[state](C) [below right of=A] {$b$}; 
+			
+			\path (A) edge (B) edge (C);
+		\end{tikzpicture}
+	\end{center}
+	根据公式，给定c的条件下，a和b的条件概率分布，形式为
+	\begin{equation}
+		\begin{aligned}
+			p(a,b|c)&=\frac{p(a,b,c)}{p(c)}\\
+			&=p(a|c)p(b|c)
+		\end{aligned}
+	\end{equation}
+	因此，我们可以得到条件独立性质
+	\begin{equation}
+		a\indep b\ |\ c
+	\end{equation}
+	通过考虑从结点a经过结点c到结点b。结点c被称为关于这个路径“尾到尾”(tail-to-tail)，因为结点与两个箭头的尾部相连。这样的一个连接结点a和结点b的路径的存在使得结点相互依赖。然而，当我们以结点c为条件时，被用作条件的结点“阻隔”了从a到b的路径，使得a和b变得(条件)独立了。
+	\item 三个例子中的第二个。如图所示。
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm,->,semithick]
+			\tikzstyle{every node} = [color=red]
+			\node[state](A) {$a$}; 
+			\node[state](B) [right of=A] {$c$};
+			\node[state](C) [right of=B] {$b$}; 
+			
+			\path (A) edge (B) 
+				  (B) edge (C);
+		\end{tikzpicture}
+	\end{center}
+	对应于这幅图的联合概率分布可以通过一般形式的公式得到，形式为\
+	\begin{equation}
+		p(a,b,c)=p(a)p(c|a)p(b|c)
+	\end{equation}
+	首先，假设所有的变量都不是观测变量。与之前一样，我们可以考察a和b是否是相互独立的，方法是对c积分或求和，结果为
+	\begin{equation}
+		p(a,b)=p(a)\sum_cp(c|a)p(b|c)=p(a)p(b|a)
+	\end{equation}
+	这通常不能够分解为$p(a)p(b)$，因此
+	\begin{equation}
+		a\nindep b\ | \emptyset
+	\end{equation}
+	现在假设我们以c为条件，如图所示
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm,->,semithick]
+		\tikzstyle{every node} = [color=red]
+			\node[state](A) {$a$}; 
+			\node[state,fill=gray,fill opacity=0.5](B) [right of=A] {$c$};
+			\node[state](C) [right of=B] {$b$}; 
+			
+			\path (A) edge (B) 
+				  (B) edge (C);
+		\end{tikzpicture}
+	\end{center}
+	使用贝叶斯定理，我们有
+	\begin{equation}
+		\begin{aligned}
+			p(a,b|c)&=\frac{p(a,b,c)}{p(c)}\\
+			&=\frac{p(a)p(c|a)p(b|c)}{p(c)}\\
+			&=p(a|c)p(b|c)
+		\end{aligned}
+	\end{equation}
+	从而我们又一次得到了条件独立性质
+	\begin{equation}
+		a\indep b\ |\ c
+	\end{equation}
+	结点c被称为关于从结点a到结点b的路径“头到尾”(head-to-tail)。这样的一个路径连接了结点a和结点b，并且使它们互相之间存在依赖关系。如果我们现在观测结点c，那么这样观测“阻隔”了从a到b的路径，因此我们得到了条件独立性质$a\indep b\ |\ c$。
+	\item 三个例子中的第三个。如图所示。
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm,->,semithick]
+			\tikzstyle{every node} = [color=red]
+			\node[state](A) {$c$}; 
+			\node[state](B) [above left of=A] {$a$};
+			\node[state](C) [above right of=A] {$b$}; 
+			
+			\path (B) edge (A) 
+				  (C) edge (A);
+		\end{tikzpicture}
+	\end{center}
+	联合概率分布可以使用我们的一般结果得到 
+	\begin{equation}
+		p(a,b,c)=p(a)p(b)p(c|a,b)
+	\end{equation}
+	首先考虑没有变量是观测变量时的情形。对公式两侧关于c积分或求和，我们有
+	\begin{equation}
+		p(a,b)=p(a)p(b)
+	\end{equation}
+	因此当没有变量被观测时，a和b是独立的，这与前两个例子相反。我们可以把这个结果写成
+	\begin{equation}
+		a\indep b\ |\ \emptyset
+	\end{equation}
+	现在假设我们以c为条件，如图所示
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm,->,semithick]
+			\tikzstyle{every node} = [color=red]
+			\node[state,fill=gray,fill opacity=0.5](A) {$c$}; 
+			\node[state](B) [above left of=A] {$a$};
+			\node[state](C) [above right of=A] {$b$}; 
+			
+			\path (B) edge (A) 
+				  (C) edge (A);
+		\end{tikzpicture}
+	\end{center}
+	a和b的条件概率分布为
+	\begin{equation}
+		\begin{aligned}
+			p(a,b|c)&=\frac{p(a,b,c)}{p(c)}\\
+			&=\frac{p(a|c)p(b|c)p(c|a,b)}{p(c)}
+		\end{aligned}
+	\end{equation}
+	因此
+	\begin{equation}
+		a\nindep b\ |\ c
+	\end{equation}
+	图形上，我们说结点c关于从a到b的路径是“头到头”(head-to-head)，因为它连接了两个箭头的头。当结点c没有被观测到的时候，它“阻隔”了路径，从而变量a和b是独立的。然而，以c为条件时，路径被“解除阻隔”，使得a和b相互依赖了。
+\end{enumerate}
 \subsection*{d-划分}

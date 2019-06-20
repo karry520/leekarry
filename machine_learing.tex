@@ -2,6 +2,7 @@
 
 \usepackage{tikz}
 \usetikzlibrary{graphs,arrows,automata}
+\usepackage{cancel}
 
 \usepackage{pgfplots}
 \pgfplotsset{
@@ -11,6 +12,8 @@
 
 \newcommand*{\circled}[1]{\lower.7ex\hbox{\tikz\draw (0pt, 0pt)%
 		circle (.5em) node {\makebox[1em][c]{\small #1}};}}
+\newcommand{\indep}{\ \perp \!\!\! \perp\ }
+\newcommand{\nindep}{\ \bcancel{\perp \!\!\! \perp}\ }
 
 \title{子午线}
 \subtitle{学习笔记}

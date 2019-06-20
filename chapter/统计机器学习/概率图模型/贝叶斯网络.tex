@@ -79,7 +79,7 @@
 \begin{center}
 	\begin{tikzpicture}[node distance=2cm]
 	
-	\node [red,fill=gray,state] (A) {$t_n$};
+	\node [red,fill=gray,fill opacity=0.5,state] (A) {$t_n$};
 	\node [red,state] (B) [right of=A]{$\boldsymbol{w}$};
 
 
@@ -106,7 +106,7 @@
 \begin{center}
 	\begin{tikzpicture}[node distance=2cm]
 	
-	\node[red,fill=gray,state] (A) {$t_n$};
+	\node[red,fill=gray,fill opacity=0.5,state] (A) {$t_n$};
 	\node[red,state] (B) [right of=A]{$\boldsymbol{w}$};
 	\node[red,state] (F) [below of=B]{$\hat{t}$};
 	\node[fill=red,circle,label=right:$\hat{x}$,right of=F](G){};
@@ -225,3 +225,75 @@
 
 另一种控制离散变量模型参数数量的指数增长的方式是对条件概率分布使用参数化的模型，而不使用条件概率值的完整表格。
 \subsection*{线性高斯模型}
+在前一节中，我们看到了如何在一组离散变量上构建联合概率分布，构建方法是将变量表示为有向无环图上的结点。这里，我们将说明多元高斯分布如何表示为一个对应于成分变量上的线性高斯模型的有向无环图。这使得我们在概率分布上施加有趣的结构，这些结构中的两个相反的极端情况是一般的高斯分布和对角化协方差高斯分布。几种广泛使用的方法是线性高斯模型的例子，例如概率主成分分析，因子分析，以及线性动态系统。在后续章节中，当我们详细讨论一些方法时，我们会频繁使用本节的结果。
+
+考虑D个变量上的任意的有向无环图，其中结点$i$表示服从高斯分布的一元连续随机变量$x_i$。这个分布的均值是结点$i$的父结点$\textrm{pa}_i$的状态的线性组合，即
+\begin{equation}
+	p(x_i|\textrm{pa}_i)=\mathcal{N}\left(x_i\Bigg|\sum_{j\in \textrm{pa}_i}w_{ij}x_j+b_i,v_i \right)
+\end{equation}
+其中$w_{ij}$和$b_i$是控制均值的参数，$v_i$是$x_i$的条件概率分布的方差。这样，联合概率分布的对数为图中所有结点上的这些条件分布的乘积的对数，因此形式为
+\begin{equation}
+	\begin{aligned}
+	\ln p(\boldsymbol{x})&=\sum_{i=1}^{D}\ln p(x_i|\textrm{pa}_i)\\
+	&=-\sum_{i=1}^{D}\frac{1}{2v_i}\left(x_i-\sum_{j\in \textrm{pa}_i}w_{ij}x_j-b_i \right)^2+\text{常数}
+	\end{aligned}
+\end{equation}
+其中$\boldsymbol{x}=(x_1,\dots,x_D)^T$，“常数”表示与$\boldsymbol{x}$无关的项。我们看到这是$\boldsymbol{x}$的元素的二次函数，因此联合概率分布$p(\boldsymbol{x})$是一个多元高斯分布。
+
+我们可以递归地确定联合概率分布的均值和方差，方法如下，每个变量$x_i$的概率分布都是(以父结点状态为条件的)高斯分布。因此
+\begin{equation}
+\label{qi}
+	x_i=\sum_{j\in \textrm{pa}_i}w_{ij}x_j+b_i+\sqrt{v_i}\epsilon_i
+\end{equation}
+其中$\epsilon_i$是一个零均值单位方差的高斯随机变量，满足$\mathbb{E}[\epsilon_i]=0$且$\mathbb{E}[\epsilon_i\epsilon_j]=\boldsymbol{I}_{ij}$，其中$\boldsymbol{I}_{ij}$是单位矩阵的第$i,j$个元素。对公式$\ref{qi}$取期望，我们有
+\begin{equation}
+\label{wang}
+	\mathbb{E}[x_i]=\sum_{j\in \textrm{pa}_i}w_{ij}\mathbb{E}[x_j]+b_i
+\end{equation}
+这样，从一个序号最低的结点开始，沿着图递归地计算，我们就可以求出$\mathbb{E}[\boldsymbol{x}]=(\mathbb{E}[x_1],\dots,\mathbb{E}[x_D])^T$的各个元素。这样，我们再一次假设所有结点的序号都大于它父结点的序号。类似地，我们可以使用公式$\ref{qi}$和$\ref{wang}$以递归的方式得到$p(\boldsymbol{x})$的协方差矩阵的第i,j个元素，即
+\begin{equation}
+\begin{aligned}
+	cov[x_i,x_j]&=\mathbb{E}[(x_i-\mathbb{E}[x_i])(x_j-\mathbb{E}[x_j])]\\
+	&=\mathbb{E}\left[(x_i-\mathbb{E}[x_i])\left\{\sum_{j\in \textrm{pa}_i}w_{jk}x_k+b_i+\sqrt{v_j}\epsilon_j-\sum_{j\in \textrm{pa}_i}w_{jk}\mathbb{E}[x_k]-b_i\right\} \right]\\
+	&=\mathbb{E}\left[(x_i-\mathbb{E}[x_i])\left\{\sum_{j\in \textrm{pa}_j}w_{jk}(x_k-\mathbb{E}[x_k])+\sqrt{v_j}\epsilon_j \right\} \right]\\
+	&=\mathbb{E}\left[\sum_{j\in \textrm{pa}_j}w_{jk}(x_i-\mathbb{E}[x_i])(x_k-\mathbb{E}[x_k])+\sqrt{v_j}\epsilon_j(x_i-\mathbb{E}[x_j])  \right]\\
+	&=\sum_{j\in \textrm{pa}_j}w_{jk}\mathbb{E}[(x_i-\mathbb{E}[x_i])(x_k-\mathbb{E}[x_k])]+\mathbb{E}[\sqrt{v_j}\epsilon_j(x_i-\mathbb{E}[x_i])]\\
+	&=\sum_{k\in \textrm{pa}_i}w_{jk}cov[x_i,x_k]+\underbrace{\boldsymbol{I}_{ij}v_j}_{\text{看只保留了哪些项得出！}}
+\end{aligned}
+\end{equation}
+
+考虑两个极端的情形，首先，假设图中不存在链接，因此图由D个孤立的结点组成。在这种情况下，不存在参数$w_{ij}$，因此只有D个参数$b_i$和D个参数$v_i$。根据递归关系，我们看到$p(\boldsymbol{x})$的均值为$(b_1,\dots,b_D)^T$，协方差矩阵是一个对角矩阵，形式为$\textrm{diag}(v_1,\dots,v_D)$。
+
+现在考虑一个全连接的图，其中每个结点的序号都低于其父结点的序号，这样矩阵$w_{ij}$的第$i$行有$i-1$项，因此矩阵是一个下三角矩阵(对角线上没有元素)。
+
+复杂度处于两种极端情况之间的图对应于协方差矩阵取特定形式的联合高斯分布。考虑下图
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {$x_1$};
+		\node[state] (B) [right of=A] {$x_2$};
+		\node[state] (C) [right of=B] {$x_3$};
+		
+		\path (A) edge[->,semithick] (B)
+			  (B) edge[->,semithick] (C);
+	\end{tikzpicture}
+\end{center}
+它在变量$x_1$和$x_3$之间不存在链接。使用递归关系，我们看到联合高斯分布的均值和协方差为
+\begin{equation}
+	\boldsymbol{\mu}=(b_1,b_2+w_{21}b_1,b_3+w_{32}b_2+w_{32}w_{21}b_1)^T
+\end{equation}	
+\begin{equation}
+	\boldsymbol{\Sigma}=
+	\begin{pmatrix}
+	v_1	&w_{21}v_1&w_{32}w_{21}v_1\\
+	w_{21}v_1&v_2+w_{21}^2v_1&w_{32}(v_2+w_{21}^2v_1)\\
+	w_{32}w_{21}v_1&w_{32}(v_2+w_{21}^2v_1)&v_3+w_{32}^2(v_2+w_{21}^2v_1)
+	\end{pmatrix}
+\end{equation}
+
+我们已经可以将线性高斯图模型扩展到结点表示多元高斯变量的情形。在这种情况下，我们可以将结点$i$的条件概率分布写成下面的形式
+\begin{equation}
+	p(\boldsymbol{x}_i|\textrm{pa}+i)=\mathcal{N}\left(\boldsymbol{x}_i\Bigg|\sum_{j\in \textrm{pa}_i}\boldsymbol{W}_{ij}\boldsymbol{x}_{j}+\boldsymbol{b}_i,\boldsymbol{\Sigma}_i \right)
+\end{equation}
+现在$\boldsymbol{W}_{ij}$是一个矩阵。如果$\boldsymbol{x}_i$和$\boldsymbol{x}_j$的维度不同，那么$\boldsymbol{W}_{ij}$不是方阵。很容易证明所有变量上的联合概率分布是高斯分布。
