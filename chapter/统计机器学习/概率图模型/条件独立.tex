@@ -165,3 +165,42 @@ p(a,b|c)&=p(a|b,c)p(b|c)\\
 	图形上，我们说结点c关于从a到b的路径是“头到头”(head-to-head)，因为它连接了两个箭头的头。当结点c没有被观测到的时候，它“阻隔”了路径，从而变量a和b是独立的。然而，以c为条件时，路径被“解除阻隔”，使得a和b相互依赖了。
 \end{enumerate}
 \subsection*{d-划分}
+现在给出有向图d-划分性质的一个一般的叙述。考虑一个一般的有向图，其中A，B，C是任意无交集的结点集合(它们的并集可能比图中结点的完整集合要小)。我们希望弄清楚，一个有向无环图是否暗示了一个特定的条件依赖表述$A\indep B\ |\ C$。为了解决这个问题，我们考虑从A中任意结点到B中任意结点的所有可能的路径。我们说这样的路径被“阻隔”，如果它包含一个结点满足下面两个性质中的任何一个
+\begin{enumerate}
+	\item 路径上的箭头以头到尾或者尾到尾的方式交汇于这个结点，且这个结点在集合C中。
+	\item 箭头以头到头的方式交汇于这个结点，且这个结点和它的所有后继都不在集合C中。
+\end{enumerate}
+如果所有的路径都被“阻隔”，那么我们说C把A从B中d-划分开，且图中所有变量上的联合概率分布将会满足$A\indep B\ |\ C$。下图说明了d-划分的概念。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,->,semithick]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (E1) {$e$};
+		\node[state] (A1) [above left of=E1]{$a$};
+		\node[state] (F1) [above right of=E1]{$f$};
+		\node[state,fill=gray,fill opacity=0.5] (C1) [below of =E1]{$c$};
+		\node[state] (B1) [below right of=F1]{$b$};
+		
+		\node (N1) [right of=B1]{};
+		
+		\path (A1) edge (E1)
+			  (F1) edge (E1)
+			  (E1) edge (C1)
+			  (F1) edge (B1);
+		
+		\node[state] (E2) [right of=N1]{$e$};
+		\node[state] (A2) [above left of=E2]{$a$};
+		\node[state,fill=gray,fill opacity=0.5] (F2) [above right of=E2]{$f$};
+		\node[state] (C2) [below of =E2]{$c$};
+		\node[state] (B2) [below right of=F2]{$b$};
+		
+		\path (A2) edge (E2)
+			(F2) edge (E2)
+			(E2) edge (C2)
+			(F2) edge (B2);
+	\end{tikzpicture}
+\end{center}
+在图(a)中，从a到b的路径没有被结点f阻隔，因为对于这个路径来说，它是一个尾到尾结点，并且没有被观测到。这个路径也没有被结点e阻隔，因为虽然后者是一个头到头的结点，但是它有一个后继c在集合中。因此条件独立关系$a\indep b\ |\ c$在这个图中不成立。在图(b)中，从a到b的路径被结点f阻隔，因为它是一个尾到尾的结点，并且被观测到。因此使用这幅图进行分解的任何概率分布都满足条件独立性质$a\indep b\ |\ f$。注意，这个路径也被结点e阻隔，因为e是一个头到头的结点，并且它和它的后继都没在条件集合中。
+
+对于d-划分的目的来说，用小实心圆表示的参数与观测结点的行为相同。然而，这些结点没有边缘概率分布。结果，参数结点本身没有父结点，因此所有通过这些结点的路径总是尾到尾的，因此是阻隔的。从而它们在d-划分中没有作用。
+
