@@ -1,6 +1,200 @@
 \section{图模型中的推断}
+我们现在考虑图模型中的推断问题，图中的一些结点被限制为观测值，我们想要计算其他结点中的一个或多个子集的后验概率分布。正如我们看到的那样，我们可以利用图结构找到高效的推断算法，也可以让这些算法的结构变得透明。具体地说，我们会看到许多算法可以用图中局部信息传播的方式表示。本节中，我们会把注意力主要集中于精确推断的方法。后面的章节中，我们会考虑许多近似推断的算法。
+
+首先，考虑贝叶斯定理的图表示。假设我们将两个变量$x$和$y$上的联合概率分布$p(x,y)$分解为因子的乘积的形式$p(x,y)=p(x)p(y|x)$。这可以用图表示。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\node[state,red] (A) {$x$};
+		\node[state,red] (B) [below of=A]{$y$};
+		\path (A) edge[->,semithick] (B);
+	\end{tikzpicture}
+\end{center}
+现在假设我们观测到了$y$的值，如图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\node[state,red] (A) {$x$};
+		\node[state,red,fill=gray!50] (B) [below of=A] {$y$};
+		
+		\path (A) edge[->] (B);
+	\end{tikzpicture}
+\end{center}
+我们可以将边缘概率分布$p(x)$看成潜在变量$x$上的先验概率分布，我们的目标是推断$x$上对应的后验概率分布。使用概率的加和规则和乘积规则，我们可以计算 
+\begin{equation}
+	p(y) =\sum_{x^{'}}p(y|x^{'})p(x^{'})
+\end{equation}
+这个式子然后被用于贝叶斯定理中，计算 
+\begin{equation}
+	p(x|y)=\frac{p(y|x)p(x)}{p(y)}
+\end{equation}
+因此现在联合概率分布可以通过$p(y)$和$p(x|y)$。从图的角度看，联合概率分布$p(x,y)$现在可以表示为下图，其中箭头的方向翻转了。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+	\node[state,red] (A) {$x$};
+	\node[state,red,fill=gray!50] (B) [below of=A] {$y$};
+	
+	\path (B) edge[->] (A);
+	\end{tikzpicture}
+\end{center}
+这是图模型中推断问题的最简单的例子。
 \subsection*{链推断}
+现在考虑一个更加复杂的问题，涉及到图示中的结点链。这个例子是本节中对更一般的图的精确推断的讨论的基础。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {};
+		\node[state] (B) [right of=A]{};
+		\node (C) [right of=B]{$\dots$};
+		\node[state] (D) [right of=C]{};
+		\node[state] (E) [right of=D]{};
+		
+		\path (A) edge (B)
+			  (B) edge (C)
+			  (C) edge (D)
+			  (D) edge (E);
+	\end{tikzpicture}
+\end{center}
+这个图的联合概率分布形式为
+\begin{equation}
+\label{ruf}
+	p(\boldsymbol{x})=\frac{1}{Z}\psi_{1,2}(x_1,x_2)\psi_{2,3}(x_2,x_3)\dots\psi_{N-1,N}(x_{N-1},x_N)
+\end{equation}
+我们考虑一个具体的情形，即N个结点表示N个离散变量，每个变量都有K个状态。这种情况下的势函数$\psi_{n-1,n}(x_{n-1},x_n)$由一个$K\times K$的表组成，因此联合概率分布有$(N-1)K^2$个参数。
+
+让我们考虑寻找边缘概率分布$p(x_n)$这一推断问题，其中$x_n$是链上的一个具体的结点。注意，现阶段，没有观测结点。根据定义，这个边缘概率分布可以通过对联合概率分布在除$x_n$以外的所有变量上进行求和的方式得到。
+\begin{equation}
+\label{daif}
+	p(x_n)=\sum_{x_1}\dots\sum_{x_{n-1}}\sum_{x_{n+1}}\dots\sum_{x_N}p(\boldsymbol{x})
+\end{equation}
+在一个朴素的实现中，我们首先计算联合概率分布，然后显式地进行求和。联合概率分布可以表示为一组数，对应于$\boldsymbol{x}$的每个可能的值。因为有N个变量，每个变量有K个可能的状态，因此$\boldsymbol{x}$有$K^N$个可能的值，从而联合概率的计算和存储以及得到$p(x_n)$所需的求和过程，涉及到的存储量和计算量都会随着链的长度N而指数增长。
+
+然而，通过利用图模型的条件独立性质，我们可以得到一个更加高效的算法。如果我们将联合概率分布的分解表达式$\ref{ruf}$代入到公式$\ref{daif}$中，那么我们可以重新整理加和与乘积的顺序，使得需要求解的边缘分布可以更加高效地计算。例如，考虑对$x_N$的求和。势函数$\psi_{N-1,N}(x_{N-1},x_N)$是唯一与$x_N$有关系的势函数，因此我们可以进行下面的求和
+\begin{equation}
+	\sum_{x_N}\psi_{N-1,N}(x_{N-1},x_N)
+\end{equation}
+得到一个关于$x_{N-1}$的函数。$x_1$上的求和式只涉及到势函数$\psi_{1,2}(x_1,x_2)$，因此可以单独进行，得到$x_2$的函数，以此类推。因为每个求和式都移除了概率分布中的一个变量，因此这可以被看成从图中移除一个结点。
+
+如果我们使用这种方式对势函数和求和式进行分组，那么我们可以将需要求解的边缘概率密度写成下面的形式
+\begin{equation}
+\label{www}
+	\begin{aligned}
+	p(x_n)=&\frac{1}{Z}\\
+	&\underbrace{\left[\sum_{x_{n-1}}\psi_{n-1,n}(x_{n-1},x_n)\dots\left[\sum_{x_2}\psi_{2,3}(x_2,x_3)\left[\sum_{x_1}\psi_{1,2}(x_1,x_2) \right] \right]\dots \right]}_{\mu_\alpha(x_n)}\\
+	&\underbrace{\left[\sum_{x_{n+1}}\psi_{n,n+1}(x_{n},x_{n+1})\dots \left[\sum_{x_N}\psi_{N-1,N}(x_{N-1},x_N) \right]\dots \right]}_{\mu_\beta(x_n)}
+	\end{aligned}
+\end{equation}
+这个重排列的方式，背后的思想组成了后续对于一般的加和-乘积算法的讨论的基础，这里，我们利用的关键概率是乘法对加法的分配率，即
+\begin{equation}
+	ab+ac=a(b+c)
+\end{equation}
+使用这种重排序的表达式之后，计算边缘概率分布所需的计算总代价是$O(NK^2)$。这是链长度的一个线性函数，与朴素方法的指数代价不同。
+
+现在使用图中局部信息传递的思想，给出这种计算的一个强大的直观意义。根据公式$\ref{www}$，我们看到边缘概率分布$p(x_n)$的表达式分解成了两个因子的乘积乘以归一化常数
+\begin{equation}
+	p(x_n)=\frac{1}{Z}\mu_\alpha(x_n)\mu_\beta(x_n)
+\end{equation}
+我们把$\mu_\alpha(x_n)$看成从结点$x_{n-1}$到结点$x_n$的沿着链向前传递的信息。类似地，$\mu_\beta(x_n)$可以看成从结点$x_{n+1}$到结点$x_n$的沿着链向后传递的信息。
+
+信息$\mu_\alpha(x_n)$可以递归地计算，因为 
+\begin{equation}
+\label{rang}
+	\begin{aligned}
+	\mu_\alpha(x_n)&=\sum_{x_{n-1}}\psi_{n-1,n}(x_{n-1},x_n)\left[\sum_{x_{n-2}}\dots \right]\\
+	&=\sum_{x_{n-1}}\psi_{n-1,n}(x_{n-1},x_n)\mu_\alpha(x_{n-1})
+	\end{aligned}
+\end{equation}
+因此我们首先计算 
+\begin{equation}
+	\mu_\alpha(x_2)=\sum_{x_1}\psi_{1,2}(x_1,x_2)
+\end{equation}
+然后重复应用公式$\ref{rang}$直到我们到达需要求解的结点。
+
+类似地，信息$\mu_\beta(x_n)$可以递归的计算。计算方法为：从结点$x_N$开始，使用
+\begin{equation}
+	\begin{aligned}
+	\mu_\beta(x_n)&=\sum_{x_{n+1}}\psi_{n,n+1}(x_n,x_{n+1})\left[\sum_{x_{n+2}}\dots \right]\\
+	&=\sum_{x_{n+1}}\psi_{n,n+1}(x_n,x_{n+1})\mu_\beta(x_{n+1})
+	\end{aligned}
+\end{equation}
+这种递归的信息传递如图所示。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=red]
+		\node[state] (A) {$x_1$};
+		\node (B) [right of=A]{$\dots$};
+		\node[state] (C) [right of=B]{$x_{n-1}$};
+		\node[state] (D) [right of=C]{$x_n$};
+		\node[state] (E) [right of=D]{$x_{n+1}$};
+		\node (F) [right of=E]{$\dots$};
+		\node[state] (G) [right of=F]{$x_N$};
+		
+		\path (A) edge (B)
+			(B) edge (C)
+			(C) edge node[yshift=0.5cm,label=above:$\underrightarrow{\mu_\alpha(x_{n-1})}$]{} (D)
+			(D) edge node[yshift=0.5cm,label=above:$\underleftarrow{\mu_\beta(x_n)}$]{}(E)
+			(E) edge (F)
+			(F) edge (G);
+	\end{tikzpicture}
+\end{center}
+上图被称为马尔可夫链。对应的信息传递方程是马尔可夫过程的Chapman-Kolmogorov方程的一个例子。
+
+现在我们想计算结点链中两个相邻结点的联合概率分布$p(x_{n-1},x_n)$。这类似于计算单一结点的边缘概率分布，区别在于现在有两个变量没有被求和出来。需要求解的边缘概率分布可以写成下面的形式
+\begin{equation}
+	p(x_{n-1},x_n)=\frac{1}{Z}\mu_\alpha(x_{n-1})\psi_{n-1,n}(x_{n-1},x_n)\mu_\beta(x_n)
+\end{equation}
+因此一旦我们完成了计算边缘概率分布所需的信息传递，我们就可以直接得到每个势函数中的所有变量上的联合概率分布。
 \subsection*{树}
+我们已经看到，一个由结点链组成的图的精确推断可以在关于结点数量的线性时间内完成，方法是使用通过链中信息传递表示的算法。更一般地，通过局部信息在更大的一类图中的传递，我们可以高效地进行推断。这类图被称为树(tree)。特别地，我们会对之前在结点链的情形中得到的信息传递公式进行简单的推广，得到加和-乘积算法(sum-product algorithm)，它为树结构图的精确推断提供了一个高效的框架。
+
+三个树结构的例子。(a)一个无向树，(b)一个有向树，(c)一个有向多树
+\begin{center}
+	\begin{tikzpicture}[node distance=1.5cm]
+	\tikzstyle{every node} = [color=red]
+	
+	\node[state] (A1) {};
+	\node[state] (B1) [above left of=A1] {};
+	\node[state] (C1) [above right of=A1]{};
+	\node[state] (D1) [below left of=A1]{};
+	\node[state] (E1) [below right of=A1]{};
+	
+	\path (A1) edge (B1) 
+			   edge (C1) 
+			   edge (D1) 
+			   edge (E1);
+	
+	\node (N1) [right of=C1]{};
+	\node (M1) [right of=N1]{};
+	
+	\node[state] (A2) [right of=M1]{};
+	\node[state] (B2) [below left of=A2]{};
+	\node[state] (C2) [below right of=A2]{};
+	\node[state] (D2) [below left of=B2]{};
+	\node[state,xshift=-0.5cm] (E2) [below right of=B2]{};
+	\node[state,xshift=0.5cm] (F2) [below left of=C2]{};
+	\node[state] (G2) [below right of=C2]{};
+	
+	
+	\path (A2) edge[->] (B2)
+		  	   edge[->] (C2)
+		  (B2) edge[->] (D2)
+		  	   edge[->] (E2)
+		  (C2) edge[->] (F2)
+		  	   edge[->] (G2);
+	
+	\node (N2) [right of=A2]{};
+	\node (M2) [right of=N2]{};
+	
+	\node[state] (A3) [right of=M2]{};
+	\node[state] (B3) [below right of=A3]{};
+	\node[state] (C3) [above right of=B3]{};
+	\node[state] (D3) [below left of=B3]{};
+	\node[state] (E3) [below right of=B3]{};
+	
+	\path (A3) edge[->] (B3)
+		  (C3) edge[->] (B3)
+		  (B3) edge[->] (D3) edge[->] (E3);
+	\end{tikzpicture}
+\end{center}
 \subsection*{因子图}
 \subsection*{加和-乘积算法}
 \subsection*{一般图的精确推断}
