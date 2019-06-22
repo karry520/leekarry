@@ -204,3 +204,33 @@ p(a,b|c)&=p(a|b,c)p(b|c)\\
 
 对于d-划分的目的来说，用小实心圆表示的参数与观测结点的行为相同。然而，这些结点没有边缘概率分布。结果，参数结点本身没有父结点，因此所有通过这些结点的路径总是尾到尾的，因此是阻隔的。从而它们在d-划分中没有作用。
 
+我们已经看到一个特定的有向图表示将联合概率分布分解为条件概率分布乘积形式的一个具体的分解方式。图也表示一组条件独立的性质，这些性质通常d-划分的方式得到，并且d-划分定理实际上是一个等价于这两个性质的表示。为了让这一点更明显，将有向图想象成滤波器。假设我们考虑$\boldsymbol{x}$上的一个特定的联合概率分布$p(\boldsymbol{x})$，其中$\boldsymbol{x}$对应于图中的(未观测)结点。一个概率分布能够通过滤波器当且仅当它能够用与图对应的公式给出的分解方式进行分解。如果我们将变量$\boldsymbol{x}$的集合上的所有可能的概率分布$p(\boldsymbol{x})$输入到滤波器中，那么通过滤波器的概率分布的子集被记作$\mathcal{DF}$，表示有向分解(directed factorization)。
+
+考虑一个联合概率分布$p(\boldsymbol{x}_1,\dots,\boldsymbol{x}_D)$，它由一个具有D个结点的有向图表示。考虑变量$\boldsymbol{x}_i$对应的结点上的条件概率分布，其中条件为所有剩余的变量$\boldsymbol{x}_{j\ne i}$。使用分解性质，我们可以将条件概率分布表示为下面的形式
+\begin{equation}
+	\begin{aligned}
+		p(\boldsymbol{x}_i|\boldsymbol{x}_{\{j\ne i \}})&=\frac{p(\boldsymbol{x}_1,\dots,\boldsymbol{x}_D)}{\int p(\boldsymbol{x}_1,\dots,\boldsymbol{x}_D)d\boldsymbol{x}_i}\\
+		&=\frac{\prod_{k}p(\boldsymbol{x}_k|\mathrm{pa}_k)}{\int \prod_{k}p(\boldsymbol{x}_k|\mathrm{pa}_k)d\boldsymbol{x}_i}
+	\end{aligned}
+\end{equation}
+观察到任何与$\boldsymbol{x}_i$没有函数依赖关系的因子都可以提到$\boldsymbol{x}_i$的积分外面，从而在分子和分母之间消去。唯一剩余的因子是结点$\boldsymbol{x}_i$本身的条件概率分布$p(\boldsymbol{x}_i|\mathrm{pa}_i)$，以及满足下面性质的结点$\boldsymbol{x}_k$的条件概率分布：结点$\boldsymbol{x}_i$在$p(\boldsymbol{x}_k|\mathrm{pa}_k)$的条件集合中，即$\boldsymbol{x}_i$是$\boldsymbol{x}_k$的父结点。由父结点、子结点、同父结点组成的结点集合被称为马尔可夫毯(Markov blanket)或者马尔可夫边界(Markov boundary)。如图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,->,semithick]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {$x_i$};
+		\node[state,fill=gray,fill opacity=0.5,label=left:$\text{父结点}$] (B) [above left of=A] {};
+		\node[state,fill=gray,fill opacity=0.5] (C) [above right of=A] {};
+		\node[state,fill=gray,fill opacity=0.5,label=left:$\text{子结点}$] (D) [below left of=A] {};
+		\node[state,fill=gray,fill opacity=0.5] (E) [below right of=A] {};
+		\node[state,fill=gray,fill opacity=0.5,label=left:$\text{同父结点}$] (F) [above left of=D] {};
+		\node[state,fill=gray,fill opacity=0.5] (G) [above right of=E] {};
+		
+		\path (B) edge (A)
+			  (C) edge (A)
+			  (A) edge (D) edge (E) 
+			  (F) edge (D)
+			  (G) edge (E);
+	\end{tikzpicture}
+\end{center}
+我们可以将结点$\boldsymbol{x}_i$的马尔可夫毯想象成将$\boldsymbol{x}_i$与图的剩余部分隔离开的最小结点集合。

@@ -1,5 +1,116 @@
 \section{马尔科夫随机场}
+我们现在考虑图模型的第二大类，使用无向图描述的图模型，与之前一样，它表示一个分解方式，也表示一组条件独立关系。一个马尔可夫随机场(Markov random field)，也被称为马尔可夫网络(Markov network)或者无向图模型(undirected graphical model)，包含一组结点，每个结点都对应着一个变量或一组变量。链接是无向的，即不含有箭头。
 \subsection*{条件独立性}
+在有向图的情形下，我们看到可以通过使用被称为d-划分的图检测方法判断一个特定的条件独立性质是否成立。这涉及到判断链接两个结点集合的路径是否被“阻隔”。然而，由于头到头结点的存在，阻隔的定义多少有些微妙。对应于无向图模型，通过移除图中链接的方向性，父结点和子结点的非对称性也被移除了，因此头到头的微妙性也就不再存在了。
+
+假设在一个无向图中，我们有三个结点集合，记作A，B，C。我们考虑条件独立性质 
+\begin{equation}
+	A\indep B\ |\ C
+\end{equation}
+为了判定由图定义的概率分布是否满足这个性质，我们考虑连接集合A的结点和集合B的结点的所有可能路径。如果所有这些路径都通过了集合C中的一个或多个结点，那么所有这样的路径都被“阻隔”，因此条件独立质成立。然而，如果存在至少一条未被阻隔的路径，那么条件独立的性质未必成立，或者更精确地说，存在至少某些对应于图的概率分布不满足条件独立性质。如下图中的例子
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,semithick]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state,label=below:$A$] (A) {};
+		\node[state,fill=gray!50] (B) [above right of=A] {};
+		\node[state,fill=gray!50,label=below:$C$] (C) [below right of=A] {};
+		\node[state,label=below:$B$] (D) [below right of=B] {};
+		
+		\path (A) edge (B) edge (C)
+			  (B) edge (C)
+			  (C) edge (D)
+			  (B) edge (D);
+			  
+		\draw[color=green] (1.425,0) ellipse [x radius=0.8cm,y radius=2.2cm];
+	\end{tikzpicture}
+\end{center}
+与d-划分的准则完全相同，唯一的差别在于没有头到头的现象。因此，无向图的条件独立性的检测比有向图简单。
+
+另一种条件独立性的检测的方法是假设从图中把集合C中的结点及与这些结点相连的链接全部删除。然后，我们考虑是否存在一条从A中任意结点到B中任意结点的路径。如果没有这样的路径，那么条件独立的性质一定成立。
+
+无向图的马尔可夫毯的形式相当简单，因为结点只条件依赖于相信结点，而条件独立于任何其他的结点，如图所示
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,semithick]
+	\tikzstyle{every node} = [color=red]
+	
+	\node[state] (A) {};
+	\node[state,fill=gray,fill opacity=0.5] (B) [above left of=A] {};
+	\node[state,fill=gray,fill opacity=0.5] (C) [above right of=A] {};
+	\node[state,fill=gray,fill opacity=0.5] (D) [below left of=A] {};
+	\node[state,fill=gray,fill opacity=0.5] (E) [below right of=A] {};
+
+	
+	\path (B) edge (A)
+		  (C) edge (A)
+		  (A) edge (D) edge (E) ;
+	\end{tikzpicture}
+\end{center}
+
 \subsection*{分解性质}
-\subsection*{例子：图像去噪}
+我们现在寻找无向图的一个分解规则，对应于上述条件独立性检测。与之前一样，这涉及到将联合概率分布$p(\boldsymbol{x})$表示为在图的局部范围内的变量集合上定义的函数的乘积。于是，我们需要给出这种情形下，局部性的一个合适定义。
+
+如果我们考虑两个结点$x_i$和$x_j$，它们不存在链接，那么给定图中的所有其他结点，这两个结点一定是条件独立的。这是因为两个结点之间没有直接的路径，并且所有其他的路径都通过了观测的结点，因此这些路径都是被阻隔的。这个条件独立性可以表示为
+\begin{equation}
+	p(x_i,x_j|\boldsymbol{x}_{\backslash \{i,j\}})=p(x_i|\boldsymbol{x}_{\backslash\{i,j\}})p(x_j|\boldsymbol{x}_{\backslash\{i,j\}})
+\end{equation}
+其中$\boldsymbol{x}_{\backslash\{i,j\}}$表示所有变量$\boldsymbol{x}$去掉$x_i$和$x_j$的集合。于是，联合概率分布的分解一定要让$x_i$和$x_j$不出现在同一个因子中，从而让属于这个图的所有可能的概率分布都满足条件独立性质。
+
+这将我们引向一个图形的概念，团块(clique)。它被定义为图中结点的一个子集，使得在这个子集中的每对结点之间都存在链接。换句话说，团块中的结点集合是全连接的。
+
+于是，我们可以将联合概率分布分解的因子定义为团块中变量的函数。事实上，我们可以考虑最大团块的函数而不失一般性，因为其他团块一定是最大团块的子集。因此，如果$\{x_1,x_2,x_3 \}$是一个最大团块，并我们在这个团块上定义了任意的一个函数，那么定义在这些变量的一个子集上的其他因子都是冗余的。
+
+让我们将团块记作C，将团块中的变量的集合记作$\boldsymbol{x}_C$。这样，联合概率分布可以写成图的最大团块的势函数(potential function)$\psi_C(\boldsymbol{x}_C)$的乘积的形式
+\begin{equation}
+\label{gongshi}
+	p(\boldsymbol{x})=\frac{1}{Z}\prod_{C}\psi_C(\boldsymbol{x}_C)
+\end{equation}
+这里，Z有时被称为划分函数(partition function)，是一个归一化常数，等于
+\begin{equation}
+	Z=\sum_{\boldsymbol{x}} \prod_{C}\psi_C(\boldsymbol{x}_C)
+\end{equation}
+它确保了公式给出的概率分布被正确地归一化。注意，我们不把势函数的选择限制为具有具体的概率含义(例如边缘概率分布或者条件概率分布)的函数。势函数$\psi_C(\boldsymbol{x}_C)$的这一通用性产生的一个结果是它们的乘积通常没有被正确地归一化。于是，我们必须引入一个显式的归一化因子。回忆一下，对于有向图的情形，由于分解后的每个作为因子的条件概率分布都被归一化了，因此联合概率分布会自动地被归一化。
+
+归一化常数的存在是无向图的一个主要缺点。但是，对于局部条件概率分布的计算，划分函数是不需要的，因为条件概率是两个边缘概率的比值，当计算这个比值时，划分函数在分子和分母之间被消去了。类似地，对于计算局部边缘概率，我们可以计算未归一化的联合概率分布，然后在计算的最后阶段显式地归一化边缘概率。
+
+目前为止，我们基于简单的图划分，讨论了条件独立性的概念，并且我们提出了对联合概率分布的分解，来尝试对应条件独立的图结构。然而，我们并没有将条件独立性和无向图的分解形式化地联系起来。
+
+为了给出精确的关系，我们再次回到作为滤波器的图模型的概念中。考虑定义在固定变量集合上的所有可能的概率分布，其中这些变量对应于一个具体的无向图的节点。我们可以将$\mathcal{UI}$定义为满足下面条件的概率分布的集合：从使用图划分的方法得到的图中可以读出条件独立性质，这个概率分布应该与这些条件独立性质相容。类似地，我们可以将$\mathcal{UF}$定义为满足下面条件的概率分布的集合：可以表示为关于图中最大团块的分解的形式的概率分布，其中分解方式由公式$\ref{gongshi}$给出。Hammersley-Clifford定理表明，集合$\mathcal{UI}$和$\mathcal{UF}$是完全相同的。
+
+由于我们的势函数被限制为严格大于零，因此将势函数表示为指数的形式更方便，即
+\begin{equation}
+	\psi_C(\boldsymbol{x}_C)=\exp\{-E(\boldsymbol{x}_C)\}
+\end{equation}
+其中$E(\boldsymbol{x}_C)$被称为能量函数(energy function)，指数表示被称为玻尔兹曼分布(Boltzmann distribution)。联合概率分布被定义为势函数的乘积，因此总的能量可以通过将每个最大团块的能量相加的方法得到。
+
+与有向图的联合分布的因子不同，无向图中的势函数没有一个具体的概率意义。虽然这使得选择势函数具有更大的灵活性，因为没有归一化的限制，但是这确实产生了一个问题，即对于一个具体的应用来说，如何选择势函数。可以这样做：势函数看成一种度量，它表示了局部变量的哪种配置优于其他的配置。具有相对高概率的全局配置对于各个团块的势函数的影响进行了很好的平衡。
 \subsection*{与有向图的关系}
+通常为了将有向图转化为无向图，我们首先在图中每个结点的所有父结点之间添加额外的无向链接，然后去掉原始链接的箭头，得到道德图。之后，我们将道德图的所有的团块势函数初始化为1.接下来，我们拿出原始有向图中所有的条件概率分布因子，将它乘到一个团块势函数中去。由于“伦理”步骤的存在，总会存在至少一个最大的团块，包含因子中的所有变量。注意，在所有情形下，划分函数都分Z=1。
+
+如图所示(a)一个简单的有向图的例。(b)对应的道德图
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm,semithick]
+	\tikzstyle{every node} = [color=red]
+	
+	\node[state] (A1){$x_2$};
+	\node[state] (B1) [above left of=A1] {$x_1$};
+	\node[state] (C1) [above right of=A1]{$x_3$};
+	\node[state] (D1) [below of=A1]{$x_4$};
+	
+	\node (N1) [right of=A1]{};
+	\node (N2) [right of=N1]{};
+	
+	\node[state] (A2) [right of=N2] {$x_2$};
+	\node[state] (B2) [above left of=A2] {$x_1$};
+	\node[state] (C2) [above right of=A2]{$x_3$};
+	\node[state] (D2) [below of=A2]{$x_4$};	
+	
+	\path (A1) edge[->] (D1)
+		  (B1) edge[->] (D1)
+		  (C1) edge[->] (D1);
+		  
+	\path (B2) edge (A2) edge (C2) edge (D2)
+		  (C2) edge (A2) edge (D2)
+		  (A2) edge (D2);
+	\end{tikzpicture}
+\end{center}
