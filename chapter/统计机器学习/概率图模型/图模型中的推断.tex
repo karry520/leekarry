@@ -202,6 +202,7 @@
 
 让我们将一组变量上的联合概率分布写成因子的乘积形式
 \begin{equation}
+\label{fasheng}
 	p(\boldsymbol{x})=\prod_{s}f_s(\boldsymbol{x}_s)
 \end{equation}
 其中$\boldsymbol{x}_s$表示变量的一个子集。每个因子$f_s$是对应的变量集合$\boldsymbol{x}_s$的函数。
@@ -300,6 +301,88 @@
 
 我们已经看到了树结构图对于进行高维推断的重要性。如果我们将一个有向树或者无向树转化为因子图，那么生成的因子图也是树(即，因子图没有环，且任意两个结点之间有且只有一条路径)。在有向多树的情形中，由于“伦理”的步骤的存在，转化为无向图会引入环，而转化后的因子图仍然是树。事实上，有向图中由于链接父结点和子结点产生的局部环可以转换到因子图时被移除，只需定义合适的因子函数即可。
 \subsection*{加和-乘积算法}
+我们会使用因子图框架推导一类强大的、高效的精确推断算法，这些算法适用于树结构的图。这里，我们把注意力集中于计算结点或者结点子集上的局部边缘概率分布，这会引出加和-乘积算法(sum-product algorithm)。稍后，我们会修改这个方法，使得概率最大的状态被找到，这就引出了最大加和算法(max-sum algorithm)。
+
+我们假设原始的图是一个无向树或者有向树或者多树，从而对应的因子图有一个树结构。首先，我们将原始的图转化为因子图，使得我们可以使用同样的框架处理有向模型和无向模型。我们的目标是利用图的结构完成两件事：
+\begin{enumerate}
+	\item 得到一个高效的精确推断算法来寻找边缘概率；
+	\item 在需要求解多个边缘概率的情形，计算可以高效地共享。
+\end{enumerate}
+首先，对于特定的变量结点$x$，我们寻找边缘概率$p(x)$。现阶段，我们假设所有的变量都是隐含变量。稍后我们会看到如何修改这个算法，使得观测变量被整合到算法中。根据定义，边缘概率分布通过对所有$x$之外的变量上的联合概率分布进行求和的方式得到，即
+\begin{equation}
+\label{jiao}
+	p(x)=\sum_{\boldsymbol{x}\backslash x}p(\boldsymbol{x})
+\end{equation}
+其中$\boldsymbol{x}\backslash x$表示变量$\boldsymbol{x}$的集合去掉变量$x$。算法的思想是使用因子图的表达式$\ref{fasheng}$替换$p(\boldsymbol{x})$，然后交换加和与乘积的顺序，得到一个高效的算法。
+
+考虑下图
+\begin{center}
+	\begin{tikzpicture}[node distance=1.5cm]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[rectangle,minimum size=0.5cm,fill=red,draw,label=below:$f_s$](A) {};
+		
+		\node[state,above left of=A](C) {};
+		\node[state,below left of=A](D) {};
+		
+		\path (A) edge (C) edge (D)
+			  (C) edge[dashed] (D);
+		
+		\begin{pgfonlayer}{background}
+			\node[fill=gray!25,ellipse,draw,fit=(A)(C)(D)](P){};
+		\end{pgfonlayer}
+		\node[color=black,left of=A,xshift=-0.2cm]{\rotatebox{90}{$F_s(x,X_s)$}};
+		
+		\node[state,right of=A](E) {$x$};
+		\path (A) edge node[color=black,above,yshift=0.3cm] {$\underrightarrow{\mu_{f_{s\to x}}(x)}$} (E);
+		
+		\node[rectangle,fill=red,draw,minimum size=0.5cm,above right of=E] (F) {};
+		\node[rectangle,fill=red,draw,minimum size=0.5cm,below right of=E] (G) {};
+		
+		\path (E) edge (F) edge (G)
+			  (F) edge[dashed] (G);		
+	\end{tikzpicture}
+\end{center}
+我们看到图的树结构使得我们可以将联合概率分布中的因子划分为若干组，每组对应于变量结点$x$的相邻结点组成的因子结点集合。我们看到联合概率分布可以写成乘积的形式
+\begin{equation}
+\label{huan}
+	p(\boldsymbol{x})=\prod_{s\in \mathrm{ne}(x)}F_s(x,X_s)
+\end{equation}
+其中$\mathrm{ne}(x)$表示与$x$相邻的因子结点的集合，$X_s$表示子树中通过因子结点$f_s$与变量结点$x$相连的所有变量的集合，$F_s(x,X_s)$表示分组中与因子$f_s$相关联的所有因子的乘积。
+
+将公式$\ref{huan}$代入$\ref{jiao}$，交换加和与乘积的顺序，我们有
+\begin{equation}
+	\begin{aligned}
+		p(x)&=\prod_{s\in \mathrm{ne}(x)}\left[\sum_{\boldsymbol{X}_s}F_s(x,X_s) \right]\\
+		&=\prod_{s\in \mathrm{ne}(x)}\mu_{f_{s\to x}}(x)
+	\end{aligned}
+\end{equation}
+这里我们引入了一组新的函数$\mu_{f_{s\to x}}(x)$，定义为
+\begin{equation}
+\label{juli}
+	\mu_{f_{s\to x}}(x)\equiv \sum_{\boldsymbol{X}_s}F_s(x,X_s)
+\end{equation}
+这可以被看做从因子结点$f_s$到变量结点$x$的信息(message)。我们看到，需要求解的边缘概率分布$p(x)$等于所有到达结点$x$的输入信息的乘积。
+
+为了计算这些信息，我们再次回到上图。我们注意到每个因子$F_s(x,X_s)$有一个因子图(因子子图)，因此本身可以被分解。特别地，我们有
+\begin{equation}
+\label{MMa}
+	F_s(x,X_s)=f_s(x,x_1,\dots,x_M)G_1(x_1,X_{s1})\dots,G_M(x_M,X_{sM})
+\end{equation}
+其中，为了方便，我们将$x$之外的与因子$f_s$相关的变量记作$x_1,\dots,x_M$。因此也可以记作$\boldsymbol{x}_s$。
+
+将公式$\ref{MMa}$代入公式$\ref{juli}$，我们有
+\begin{equation}
+	\begin{aligned}
+	\mu_{f_{s\to x}}(x)&=\sum_{x_1}\dots\sum_{x_M}f_s(x,x_1,\dots,x_M)\prod_{m\in \mathrm{ne}(f_s)\backslash x}\left[\sum_{X_{sm}}G_m(x_m,X_{sm}) \right]\\
+	&=\sum_{x_1}\dots\sum_{x_M}f_s(x,x_1,\dots,x_M)\prod_{m\in \mathrm{ne}(f_s)\backslash x}\mu_{x_{m}\to f_s}(x_m)
+	\end{aligned}
+\end{equation}
+其中$\mathrm{ne}(f_s)$表示因子结点$f_s$的相邻变量结点的集合，$\mathrm{ne}(f_s)\backslash x$表示同样的集合，但是移除了结点$x$。这里，我们定义了下面的从变量结点到因子结点的信息
+\begin{equation}
+	\mu_{x_{m}\to f_s}(x_m)\equiv \sum_{X_{sm}}G_m(x_m,X_{sm})
+\end{equation}
+于是，我们引入了两类不同的信息。一类信息是从因子结点到变量结点的信息，记作$\mu_{f\to x}(x)$，另一类信息是从变量结点到因子结点的信息，记作$\mu_{x\to f}(x)$。在任何一种情况下，我们看到沿着一条链接传递的信息总是一个函数，这个函数是与那个链接相连的变量结点相关的变量的函数。
 \subsection*{一般图的精确推断}
 \subsection*{循环置信传播}
 \subsection*{学习图结构}
