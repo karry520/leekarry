@@ -196,6 +196,109 @@
 	\end{tikzpicture}
 \end{center}
 \subsection*{因子图}
+在推导加和-乘积算法之前，引入一个新的图结构，被称为因子图(factor graph)，那么算法的形式会变得特别简单并且具有一般性。
+
+有向图和无向图都使得若干个变量的一个全局函数能够表示为这些变量的子集上的因子图的乘积。因子图显式地表示出了这个分解，方法是：在表示变量的结点的基础上，引入额外的结点表示因子本身。因子图也使我们能够更加清晰地了解分解的细节。
+
+让我们将一组变量上的联合概率分布写成因子的乘积形式
+\begin{equation}
+	p(\boldsymbol{x})=\prod_{s}f_s(\boldsymbol{x}_s)
+\end{equation}
+其中$\boldsymbol{x}_s$表示变量的一个子集。每个因子$f_s$是对应的变量集合$\boldsymbol{x}_s$的函数。
+
+在因子图中，概率分布中的每个变量都有一个结点(与之前一样，用圆圈表示)，这与有向图和无向图的情形相同。还存在其他的结点(用小正方形表示)，表示联合概率分布中的每个因子$f_s(\boldsymbol{x}_s)$。最后，在每个因子结点和因子所依赖的变量结点之间，存在无向链接。例如，考虑一个表示为因子图形式的概率分布
+\begin{equation}
+	p(\boldsymbol{x})=f_a(x_1,x_2)f_b(x1,x_2)f_c(x_2,x_3)f_d(x_3) 
+\end{equation}
+这可表示为下图所示的因子图。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+	
+		\node[state,color=red] (A) {$x_1$};
+		\node[state,color=red] (B) [right of=A] {$x_2$};
+		\node[state,color=red] (C) [right of=B] {$x_3$};
+		
+		\node[rectangle,color=red,fill=red,minimum size=0.5cm,label=below:$f_a$] (D) at (-1,-2) {};
+		\node[rectangle,color=red,fill=red,minimum size=0.5cm,label=below:$f_b$] (E) at (1,-2) {};
+		\node[rectangle,color=red,fill=red,minimum size=0.5cm,label=below:$f_c$] (F) at (3,-2) {};
+		\node[rectangle,color=red,fill=red,minimum size=0.5cm,label=below:$f_d$] (G) at (5,-2) {};	
+		
+		\path (A) edge (D) edge (E)
+			  (B) edge (D) edge (E) edge (F)
+			  (C) edge (F) edge (G); 	
+	\end{tikzpicture}
+\end{center}
+注意有两个因子$f_a(x_1,x_2)$和$f_b(x_1,x_2)$定义在同一个变量集合上。在一个无向图中，两个这样的因子的乘积被简单地合并到同一个团块势函数中。类似地，$f_c(x_2,x_3)$和$f_d(x_3)$可以结合到$x_2$和$x_3$上的一个单一势函数中。然而，因子图显示地写出这些因子，因此能够表达出关于分解本身的更加细节的信息。
+
+如果我们有一个通过无向图表示的概率分布，那么我们可以将其转化为因子图。为了完成这一点，我们构造变量结点，对应于原始无向图，然后构造额外的因子结点，对应于最大团块$\boldsymbol{x}_s$。因子$f_s(\boldsymbol{x}_s)$被设置为与团块势函数相等。注意，对于同一个无向图，可能存在几个不同的因子图。下图说明了这些概念。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A1) {$x_1$};
+		\node[state,yshift=-0.5cm] (B1) [below right of=A1]{$x_2$};
+		\node[state,yshift=0.5cm] (C1) [above right of=B1]{$x_3$};
+		
+		\path (A1) edge (B1) edge (C1)
+			  (B1) edge (C1);
+			
+		\node[state] (A2) [right of=C1]{$x_1$};
+		\node[state,yshift=-0.5cm] (B2) [below right of=A2]{$x_2$};
+		\node[state,yshift=0.5cm] (C2) [above right of=B2]{$x_3$};
+		
+		\node[rectangle,draw,fill=red,minimum size=0.5cm,above of=B2,yshift=-0.7cm,label=above:$f$](R1){}; 
+			
+		\path (R1) edge (A2) edge (B2) edge (C2);	
+			
+		\node[state] (A3) [right of=C2]{$x_1$};
+		\node[state,yshift=-0.5cm] (B3) [below right of=A3]{$x_2$};
+		\node[state,yshift=0.5cm] (C3) [above right of=B3]{$x_3$};
+		
+		\node[rectangle,draw,fill=red,minimum size=0.5cm,above of=B3,yshift=-0.7cm,label=above:$f_a$](R2){}; 
+		\node[rectangle,draw,fill=red,minimum size=0.5cm,below of=C3,yshift=0.7cm,label=right:$f_b$](R3){}; 
+		
+		\path (R2) edge (A3) edge (B3) edge (C3)
+			  (R3) edge (B3) edge (C3);
+	\end{tikzpicture}
+\end{center}
+(a)一个无向图，有一个单一的团块势函数$\psi(x_1,x_2,x_3)$。(b)一个因子图，因子$f(x_1,x_2,x_3)=\psi(x_1,x_2,x_3)$。(c)一个不同的因子图，表示相同的概率分布，它的因子满足$f_a(x_1,x_2,x_3)f_b(x_2,x_3)=\psi(x_1,x_2,x_3)$。
+
+类似地，为了将有向图转化为因子图，我们构造变量结点对应于有向图中的结点，然后构造因子结点，对应于条件概率分布，最后添加上合适的链接。与之前一样，同一个有向图可能对应于多个因子图。有向图到因子图的转化如图所示。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+	\tikzstyle{every node} = [color=red]
+	
+	\node[state] (A1) {$x_1$};
+	\node[state,yshift=-0.5cm] (B1) [below right of=A1]{$x_2$};
+	\node[state,yshift=0.5cm] (C1) [above right of=B1]{$x_3$};
+	
+	\path (A1) edge[->] (B1) 
+		  (C1) edge[->] (B1);
+	
+	\node[state] (A2) [right of=C1]{$x_1$};
+	\node[state,yshift=-0.5cm] (B2) [below right of=A2]{$x_2$};
+	\node[state,yshift=0.5cm] (C2) [above right of=B2]{$x_3$};
+	
+	\node[rectangle,draw,fill=red,minimum size=0.5cm,above of=B2,yshift=-0.7cm,label=above:$f$](R1){}; 
+	
+	\path (R1) edge (A2) edge (B2) edge (C2);	
+	
+	\node[state] (A3) [right of=C2]{$x_1$};
+	\node[state,yshift=-0.5cm] (B3) [below right of=A3]{$x_2$};
+	\node[state,yshift=0.5cm] (C3) [above right of=B3]{$x_3$};
+	
+	\node[rectangle,draw,fill=red,minimum size=0.5cm,above of=B3,yshift=-0.7cm,label=above:$f_c$](R2){}; 
+	\node[rectangle,draw,fill=red,minimum size=0.5cm,below of=C3,label=right:$f_b$](R3){}; 
+	\node[rectangle,draw,fill=red,minimum size=0.5cm,below of=A3,label=left:$f_a$](R4){}; 
+		
+	\path (R2) edge (A3) edge (B3) edge (C3)
+		  (R3) edge (C3) 
+		  (R4) edge (A3);
+	\end{tikzpicture}
+\end{center}
+(a)一个有向图，可以分解为$p(x_1)p(x_2)p(x_3|x_1,x_2)$。(b)一个因子图，表示与有向图相同的概率分布，它的因子满足$f(x_1,x_2,x_3)=p(x_1)p(x_2)p(x_3|x_1,x_2)$。(c)一个不同的因子图，表示同样的概率分布，因子为$f_a(x_1)=p(x_1),f_b(x_2)=p(x_2),f_c(x_1,x_2,x_3)=p(x_3|x_1,x_2)$。
+
+我们已经看到了树结构图对于进行高维推断的重要性。如果我们将一个有向树或者无向树转化为因子图，那么生成的因子图也是树(即，因子图没有环，且任意两个结点之间有且只有一条路径)。在有向多树的情形中，由于“伦理”的步骤的存在，转化为无向图会引入环，而转化后的因子图仍然是树。事实上，有向图中由于链接父结点和子结点产生的局部环可以转换到因子图时被移除，只需定义合适的因子函数即可。
 \subsection*{加和-乘积算法}
 \subsection*{一般图的精确推断}
 \subsection*{循环置信传播}
