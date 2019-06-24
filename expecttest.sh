@@ -3,7 +3,7 @@ commit=$1
 git add *
 git commit -m "$commit"
 /usr/bin/expect<<-EOF
-set timeout 2
+set timeout 5
 spawn git push
 expect {
     "Username*"{send "karry520\r";exp_continue}
