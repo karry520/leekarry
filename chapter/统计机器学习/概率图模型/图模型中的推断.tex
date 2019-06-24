@@ -373,6 +373,7 @@
 
 将公式$\ref{MMa}$代入公式$\ref{juli}$，我们有
 \begin{equation}
+\label{lin}
 	\begin{aligned}
 	\mu_{f_{s\to x}}(x)&=\sum_{x_1}\dots\sum_{x_M}f_s(x,x_1,\dots,x_M)\prod_{m\in \mathrm{ne}(f_s)\backslash x}\left[\sum_{X_{sm}}G_m(x_m,X_{sm}) \right]\\
 	&=\sum_{x_1}\dots\sum_{x_M}f_s(x,x_1,\dots,x_M)\prod_{m\in \mathrm{ne}(f_s)\backslash x}\mu_{x_{m}\to f_s}(x_m)
@@ -383,6 +384,8 @@
 	\mu_{x_{m}\to f_s}(x_m)\equiv \sum_{X_{sm}}G_m(x_m,X_{sm})
 \end{equation}
 于是，我们引入了两类不同的信息。一类信息是从因子结点到变量结点的信息，记作$\mu_{f\to x}(x)$，另一类信息是从变量结点到因子结点的信息，记作$\mu_{x\to f}(x)$。在任何一种情况下，我们看到沿着一条链接传递的信息总是一个函数，这个函数是与那个链接相连的变量结点相关的变量的函数。
+
+公式$\ref{lin}$给出的结果表明，一个变量结点通过一个链接发送到一个因子结点的信息可以按照如下的方式计算：计算沿着所有进行因子结点的其他链接的输入信息的乘积，乘以与那个结点关联的因子，然后对所有与输入信息关联的变量进行求和。
 \subsection*{一般图的精确推断}
 \subsection*{循环置信传播}
 \subsection*{学习图结构}

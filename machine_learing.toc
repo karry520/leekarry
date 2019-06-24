@@ -51,7 +51,7 @@
 \contentsline {section}{\numberline {10.2}条件独立}{106}{section.10.2}
 \contentsline {section}{\numberline {10.3}马尔科夫随机场}{111}{section.10.3}
 \contentsline {section}{\numberline {10.4}图模型中的推断}{114}{section.10.4}
-\contentsline {section}{\numberline {10.5}隐马尔可夫模型}{121}{section.10.5}
+\contentsline {section}{\numberline {10.5}隐马尔可夫模型}{122}{section.10.5}
 \contentsline {section}{\numberline {10.6}条件随机场}{128}{section.10.6}
 \contentsline {chapter}{\numberline {11}混合模型和EM算法}{129}{chapter.11}
 \contentsline {section}{\numberline {11.1}一般形式的EM算法}{129}{section.11.1}
