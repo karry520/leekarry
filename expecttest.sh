@@ -10,4 +10,5 @@ expect {
 }
 interact
 EOF
+echo "完毕"
 
