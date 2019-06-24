@@ -6,7 +6,7 @@ git commit -m "$commit"
 set timeout 5
 spawn git push
 expect {
-    "Username*" {send "karry520\r";exp_continue;}
-    "Password*" {send "654123githubLKY\r"}
+    "Username*" {set timeout 2;send "karry520\r";exp_continue;}
+    "Password*" {set timeout 5;send "654123githubLKY\r";}
 }
 interact
