@@ -551,6 +551,75 @@
 
 目前为止，我们已经假定图中所有的变量都是隐含变量。在大多数实际应用中，变量的一个子集会被观测到，我们希望计算以这些观测为条件的后验概率分布。观测结点在加和-乘积算法中很容易处理，如下所述。假设我们将$\boldsymbol{x}$划分为隐含变量$\boldsymbol{h}$和观测变量$\boldsymbol{v}$，且$\boldsymbol{v}$的观测值被记作$\hat{\boldsymbol{v}}$。然后，我们简单地将联合概率分布$p(\boldsymbol{x})$乘以$\prod_iI(v_i,\hat{v}_i)$，其中如果$v=\hat{v}$，则$I(v_i,\hat{v}_i)=1$，否则$I(v,\hat{v})=0$。这个乘积对应于$p(\boldsymbol{h},\boldsymbol{v}=\hat{\boldsymbol{v}})$，因此$p(\boldsymbol{h}|\boldsymbol{v}=\hat{\boldsymbol{v}})$的一个未归一化版本。通过运行加和-乘积算法，我们可以高效地计算后验边缘概率$p(h_i|\boldsymbol{v}=\hat{\boldsymbol{v}})$，忽略归一化系数。归一化系数的值可以使用一个局部的计算高效地计算出来。$\boldsymbol{v}$中变量上的任意求和式就退化成了单一的项。
 \subsection*{最大加和算法}
+加和-乘积算法使得我们能够将联合概率分布$p(\boldsymbol{x})$表示为一个因子图，并且高效地求出成分变量上的边缘概率分布。有两个其他的比较常见的任务，即找到变量的具有最大概率的一个设置，以及找到这个概率的值。这两个任务可以通过一个密切相关的算法完成，这个算法被称为最大加和(max-sum)，可以被看成动态规划(dynamic programming)在图模型中的一个应用。
+
+一个简单的寻找具有最大概率的潜在变量值的方法是，运行加和-乘积算法，得到每个变量的边缘概率分布$p(x_i)$，然后，反过来对于每个边缘概率分布，找到使边缘概率最大的$x_i^*$。然而，这会给出一组值，每个值都单独取得最大的概率。在实际应用中，我们通常希望找到联合起来具有最大概率的值的集合，换句话说，找到向量$\boldsymbol{x}^{\text{最大}}$，使得联合概率分布达到最大值，即
+\begin{equation}
+	\boldsymbol{x}^{\text{最大}}=\mathrm{arg}\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}p(\boldsymbol{x})
+\end{equation}
+这样，联合概率分布的对应值为
+\begin{equation}
+p(\boldsymbol{x}^{\text{最大}})=\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}p(\boldsymbol{x})
+\end{equation}
+通常，$\boldsymbol{x}^{\text{最大}}$与$x_i^*$的集合不同。于是，我们寻找一个高效的算法，来求出最大化联合概率分布$p(\boldsymbol{x})$的$\boldsymbol{x}$的值，这会使得我们得到在最大值处的联合概率分布的值。为了解决第二个问题，我们只需简单地写出分量的最大值算符，即
+\begin{equation}
+\label{zhengzha}
+	\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}p(\boldsymbol{x})=\mathop{\mathrm{max}}\limits_{x_1}\dots\mathop{\mathrm{max}}\limits_{x_M}p(\boldsymbol{x})
+\end{equation}
+其中M是变量的总数。之后，使用$p(\boldsymbol{x})$的用因子乘积形式表示的展开式替换$p(\boldsymbol{x})$即可。
+
+在推导加和-乘积臭汗时，我们使用了乘法的分配律。这里，我们使用最大化算符的类似定律
+\begin{equation}
+	\mathrm{max}(ab,ac)=a\mathrm{max}(b,c)
+\end{equation}
+这对于$a\geqslant 0$的情形成立(这对于图模型的因子总成立)。这使得我们交换乘积与最大化的顺序。
+
+首先考虑公式$\ref{ruf}$描述的结点链这一简单的例子。概率最大值的计算可以写成
+\begin{equation}
+	\begin{aligned}
+	\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}p(\boldsymbol{x})&=\frac{1}{Z}\mathop{\mathrm{max}}\limits_{x_1}\dots\mathop{\mathrm{max}}\limits_{x_N}[\psi_{1,2}(x_1,x_2)\dots\psi_{N-1,N}(x_{N-1},x_N)]\\
+	&=\frac{1}{Z}\mathop{\mathrm{max}}\limits_{x_1}\left[\mathop{\mathrm{max}}\limits_{x_2}\left[\psi_{1,2}(x_1,x_2)\left[\dots\mathop{\mathrm{max}}\limits_{x_N}\psi_{N-1,N}(x_{N-1},x_N) \right]\dots \right] \right]
+	\end{aligned}
+\end{equation}
+正如边缘概率的计算一样，我们看到交换最大值算符和乘积算法会产生一个更高效的计算，并且更容易表示为从结点$x_N$沿着结点链传递回结点$x_1$的信息。
+
+我们可以将这个结点推广到任意树结构的因子图上，推广的方法为：将因子图表达式$\ref{fasheng}$代入公式$\ref{zhengzha}$中，然后交换乘积与最大化的计算顺序。这种计算的结构与加和-乘积算法完全相同，因此我们能够简单地将那些结果转化到当前的问题中。特别地，假设我们令图中的一个特定的变量结点为根结点。之后，我们计算起始的一组信息，然后从树的叶结点向内部传递到根结点。对于每个结点，一旦它接收到来自其他相邻结点的输入信息，那么它就向根结点发送信息。最后对所有到达根结点的信息的乘积进行最大化，得出$p(\boldsymbol{x})$的最大值。这可以被称为最大化乘积算法(max-produce algorithm)，与加和-乘积算法完全相同，唯一的区别是求和被替换为了求最大值。注意，现阶段，信息被从叶结点发送到根结点，而没有相反的方向。
+
+在实际应用中，许多小概率的乘积可以产生数值下溢的问题，因此更方便的做法是对联合概率分布的对数进行操作。对数函数是一个单调函数，因此求最大值的运算符可以与取对数的运算交换顺序，即
+\begin{equation}
+	\ln \left(\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}p(\boldsymbol{x}) \right)=\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}\ln p(\boldsymbol{x})
+\end{equation}
+分配性质仍然成立，因为
+\begin{equation}
+	\mathrm{max}(a+b,a+c)=a+\mathrm{max}(b,c)
+\end{equation}
+所以取对数的唯一效果是把最大化乘积算法中的乘积替换成了加和，因此我们得到了最大化加和算法(max-sum algorithm)。根据之前在加和-乘积算法中得到的公式给出的结果，我们可以基于信息传递写出最大化加和算法，只需把“加和”替换为“最大化”，把“乘积”替换为对数求和即可。结果为
+\begin{flalign}
+	\mu_{f_{s\to x}}(x)&=\mathop{\mathrm{max}}\limits_{x_1,\dots,x_M}\left[\ln f(x,x_1,\dots,x_M)+\sum_{m\in \mathrm{ne}(f)\backslash x} \mu_{x_m\to f}(x_m) \right]\\
+	\mu_{x\to f}(x)&=\sum_{l\in \mathrm{ne}(x)\backslash f}\mu_{f_l\to x}(x)
+\end{flalign}
+最开始的由叶结点发送的信息可以通过类比公式得到，结果为
+\begin{flalign}
+	\mu_{f\to x}(x)&=\ln f(x)\\
+	\mu_{x\to f}(x)&=0
+\end{flalign}
+根结点处的最大概率为
+\begin{equation}
+\label{zuida}
+	p^{\text{最大}}=\mathop{\mathrm{max}}\limits_{\boldsymbol{x}}\left[\sum_{s\in \mathrm{ne}(x)}\mu_{f_s\to x}(x) \right]
+\end{equation}
+目前为止，我们已经看到了如何通过从叶结点到任意选择的根结点传递信息的方式找到联合概率分布的最大值。这个结果与根结点的选择无关。现在，我们转向第二个问题，即寻找联合概率达到最大值的变量的配置。目前，我们已经将信息从叶结点发送到了根结点。计算公式$\ref{zuida}$的过程也会得到根结点变量的概率最高的值$x^{\text{最大}}$，定义为
+\begin{equation}
+	x^{\text{最大}}=\mathop{\mathrm{arg\ max}}\limits_{x}\left[\sum_{s\in \mathrm{ne}(x)}\mu_{f_s\to x}(x) \right]
+\end{equation}
+使用动态规划的方法应用在图模型上就可以给出变量的精确最大化配置。这种方法的一个重要应用是寻找隐马尔可夫模型中隐含状态的最可能序列，这种情况下被称为Viterbi算法。
 \subsection*{一般图的精确推断}
+加和-乘积算法和最大化加和算法提供了树结构图中的推断问题的高效精确解法。然而，对于许多实际应用，我们必须处理带有环的图。
+
+信息传递框架可以被推广到任意的图拓扑结构，从而得到一个精确的推断步骤，被称为联合树算法(junction tree algorithm)。联合树对于任意的图都是精确的、高效的。对于一个给定的图，通常不存在计算代价更低的算法。不幸的是，算法必须的计算代价由最大团块中的变量数量确定。在离散变量的情形中，计算代价会随着这个数量指数增长。
 \subsection*{循环置信传播}
+对于许多实际应用问题来说，使用精确推断是不可行的，因此我们需要研究有效的近似方法。这种近似方法中，一个重要的类别被称为变分法(variational)。作为这些确定性方法的补充，有一大类取样(sampling)方法，也被称为蒙特卡罗(Monte Carlo)方法。这些方法基于从概率分布中的随机数值取样，这两种方法将在后续章节详细讨论。
+
+这里，我们考虑带有环的图中的近似推断的一个简单方法，它直接依赖于之前对树的精确推断的讨论。主要思想就是简单地应用加和-乘积算法，即使不保证能够产生好找结果。这种方法被称为循环置信传播(loopy belief propagation)。
 \subsection*{学习图结构}
+在我们关于图模型的推断的讨论中，我们假设图的结构已知且固定。然而，也有一些研究超出了推断问题的范围，关注于从数据推断图结构本身。这需要我们定义一个可能结构的空间，以及用于对每个结构评分的度量。
