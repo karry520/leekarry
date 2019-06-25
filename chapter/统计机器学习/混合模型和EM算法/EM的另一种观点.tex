@@ -1,1 +1,6 @@
 \section{EM的另一种观点}
+EM算法的目标是找到具有潜在变量的模型的最大似然解。我们将所有观测数据的集合记作$\boldsymbol{X}$，其中第n行表示$\boldsymbol{x}_n^T$。类似地，我们将所有潜在变量的集合记作$\boldsymbol{Z}$，对应的行为$\boldsymbol{z}_n^T$。所有模型参数的集合被记作$\boldsymbol{\theta}$，因此对数似然函数为
+\begin{equation}
+	\ln p(\boldsymbol{X}|\boldsymbol{\theta})=\ln \left\{\sum_{\boldsymbol{Z}}p(\boldsymbol{X},\boldsymbol{Z}|\boldsymbol{\theta}) \right\}
+\end{equation}
+一个关键的现象是，对于潜在变量的求和位于对数的内部。即使联合概率分布$p(\boldsymbol{X},\boldsymbol{Z}|\boldsymbol{\theta})$属于指数族分布，由于这个求和式的存在，边缘概率分布$p(\boldsymbol{X}|\boldsymbol{\theta})$通常也不是指数族分布。求和式的出现阻止了对数运算直接作用于联合概率分布，使得最大似然解的形式更加复杂。

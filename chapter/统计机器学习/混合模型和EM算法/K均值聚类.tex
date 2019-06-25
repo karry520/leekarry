@@ -1,1 +1,37 @@
 \section{K均值聚类}
+首先，我们考虑寻找多维空间中数据点的分组或的聚类的问题。假设我们有一个数据集$\boldsymbol{x}_1,\dots,\boldsymbol{x}_N$，它由D维欧几里德空间中的随机变量$\boldsymbol{x}$的N次观测组成。我们的目标是将数据集划分为K个类别。现阶段我们假定K的值是给定的。直观上讲，我们会认为由一组数据点构成的一个聚类中，聚类内部点之间的距离应该小于数据点与聚类外部的点之间的距离。我们可以形式化地说明这个概念。引入一组D维向量$\mu_k$，其中$k=1,\dots,K$，且$\boldsymbol{\mu}_k$是与第k个聚类关联的一个代表。我们可以认为$\boldsymbol{\mu}_k$表示了聚类的中心。我们的目标是找到数据点分别属于的聚类，以及一组向量$\{\boldsymbol{\mu}_k \}$，使得每个数据点和与它最近的向量$\boldsymbol{\mu}_k$之间的距离的平方和最小。
+
+现在，比较方便的做法是定义一些记号来描述数据点的聚类情况。对于每个数据点$\boldsymbol{x}_n$，我们引入一组对应的二值指示变量$r_{nk}\in      \{0,1\}$，其中$k=1,\dots,K$表示数据点$\boldsymbol{x}_n$属于K个聚类中的哪一个，从而如果数据点$\boldsymbol{x}_n$被分配到类别k，那么$r_{nk}=1$，且对于$j\ne k$，有$r_{nj}=0$。这被称为“1-of-K”表示方式。之后我们可以定义一个目标函数，有时被称为失真度量(distortion measure)，形式为
+\begin{equation}
+\label{kaitou}
+	J=\sum_{n=1}^{N}\sum_{k=1}^{K}r_{nk}\lVert \boldsymbol{x}_n-\boldsymbol{\mu}_k\rVert^2
+\end{equation}
+它表示每个数据点与它被分配的向量$\boldsymbol{\mu}_k$之间的距离的平方和。我们的目标是找到$\{r_{nk} \}$和$\{\boldsymbol{\mu}_k \}$的值，使得J达到最小值。我们可以用一种迭代的方法完成这件事，其中每次迭代涉及到两个连续的步骤，分别对应$r_{nk}$的最优化和$\boldsymbol{\mu}_k$的最优化。首先，我们为$\boldsymbol{\mu}_k$选择一些初始值。然后，在第一阶段，我们关于$r_{nk}$最小化J，保持$\boldsymbol{\mu}_k$固定。在第二阶段，我们关于$\boldsymbol{\mu}_k$最小化J，保持$r_{nk}$固定。不断重复这个二阶段优化直到收敛。我们会看到，更新$r_{nk}$和更新$\boldsymbol{\mu}_k$的两个阶段分别对应于EM算法中的E(期望)t步骤和M(最大化)步骤。
+
+首先考虑确定$r_{nk}$。由于公式$\ref{kaitou}$给出的J是$r_{nk}$的一个线性函数，因此最优化过程可以很容易地进行，得到一个解析解。与不同的n相关的项是独立的，因此我们可以对每个n分别进行最优化，只要k的值使$\lvert \boldsymbol{x}_n-\boldsymbol{\mu}_k\rVert^2$最小，我们就令$r_{nk}=1$。换句话说，我们可以简单地将数据点的聚类设置为最近的聚类中心。更形式化地，这可以表达为
+\begin{equation}
+	r_{nk}=\begin{cases}
+	1\qquad \text{如果}k=\mathrm{arg\ min}_j\lvert \boldsymbol{x}_n-\boldsymbol{\mu}_j\rVert^2\\
+	0\qquad \text{其他情况}
+	\end{cases}
+\end{equation}
+
+现在考虑$r_{nk}$固定时，关于$\boldsymbol{\mu}_k$的最优化。目标函数J是$\boldsymbol{\mu}_k$的一个二次函数，令它关于$\boldsymbol{\mu}_k$的导数等于零，即可达到最小值，即
+\begin{equation}
+	2\sum_{n=1}^{N}r_{nk}(\boldsymbol{x}_n-\boldsymbol{\mu}_k)=0
+\end{equation}
+解出$\boldsymbol{\mu}_k$，结果为
+\begin{equation}
+	\boldsymbol{\mu}_k=\frac{\sum_n r_{nk}\boldsymbol{x}}{\sum_n r_{nk}}
+\end{equation}
+这个表达式的分母等于聚类k中数据点的数量，因此这个结果有一个简单的含义，即令$\boldsymbol{\mu}_k$等于类别k的所有数据点的均值。因此，上述步骤被称为K均值(K-means)算法。
+
+重新为数据点分配聚类的步骤以及重新计算聚类均值的步骤重复进行，直到聚类的分配不改变(或者直到迭代次数超过了某个最大值)。由于每个阶段都减小了目标函数J的值，因此算法的收敛性得到了保证。然而，算法可能收敛到J的一个局部最小值而不是全局最小值。
+
+还有一点值得注意的地方，K均值算法本身经常被用于在EM算法之前初始化高斯混合模型的参数。直接实现这里讨论的K均值算法会相当慢，因为在每个E步骤中，必须计算每个代表向量与每个数据点之间的欧几里德距离。关于加速K均值算法，有很多方法被提出来，一些方法基于对数据结构的预先计算，例如数据组织成树结构，使得相信的数据点属于同一个子树。另一些方法使用距离的三角不等式，因此避免了不必要的距离计算。
+
+目前为止，我们已经研究了K均值算法的一个批处理版本，其中每次更新代表向量时都使用了整个数据集。我们也可以推导一个在线随机算法，方法是：将Robbins-Monro步骤应用于寻找回归函数的根问题中，其中回归函数由公式$\ref{kaitou}$给出的J关于$\boldsymbol{\mu}_k$的导数给出。这产生了顺序更新算法，其中对于每个数据点$\boldsymbol{x}_n$，我们使用下式更新最近的代表向量$\boldsymbol{\mu}_k$。
+\begin{equation}
+	\boldsymbol{\mu}_k^{\text{新}}=\boldsymbol{\mu}_k^{\text{旧}}+\eta_n(\boldsymbol{x}_n-\boldsymbol{\mu}_k^{\text{旧}})
+\end{equation}
+其中$\eta_n$是学习率参数，通常令其关于数据点的数量单调递减。
