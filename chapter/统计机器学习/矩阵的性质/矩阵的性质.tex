@@ -1,0 +1,227 @@
+\section{矩阵的基本性质}
+矩阵$A$的第$i$行和第$j$列的元素为$A_{ij}$。我们用$I_N$表示$N\times N$的单位矩阵。在没有歧义的情形下，我们简单地记作$I$。转置矩阵$A^T$的元素为$(A^T)_{ij}=A_{ji}$。根据转置的定义，我们有
+\begin{equation}
+	(AB)^T=B^TA^T
+\end{equation}
+$A$的逆矩阵，记作$A^{-1}$，满足
+\begin{equation}
+	AA^{-1}=A^{-1}A=I
+\end{equation}
+由于$ABB^{-1}A^{-1}=I$，我们有
+\begin{equation}
+\label{c3}
+	(AB)^{-1}=B^{-1}A^{-1}
+\end{equation}
+我们还有
+\begin{equation}
+	(A^T)^{-1}=(A^{-1})^T
+\end{equation}
+关于矩阵的逆矩阵，下面这个恒等式很有用
+\begin{equation}
+\label{guji}
+	(P^{-1}+B^TR^{-1}B)^{-1}B^TR^{-1}=PB^T(BPB^T+R)^{-1}
+\end{equation}
+两侧同时右乘$(BPB^T+R)$，很容易证明上式的正确性。假设$P$的维度为$N\times N$，而$R$的维度为$M\times M$，从而$B$的维度为$M\times N$。这样，如果$M\ll N$，那么估计公式$\ref{guji}$的右侧所花费的低价就远远小于估计左侧的代价。经常出现的一种情况是
+\begin{equation}
+	(I+AB)^{-1}A=A(I+BA)^{-1}
+\end{equation}
+另一个与矩阵的逆矩阵相背的有用的恒等式为
+\begin{equation}
+	(A+BD^{-1}C)^{-1}=A^{-1}-A^{-1}B(D+CA^{-1}B)^{-1}CA^{-1}
+\end{equation}
+这被称为Woodbury恒等式。将两侧同时乘以$(A+BD^{-1}C)$即可证明。例如，假设$A$是一个很大的对角矩阵(因此很容易求逆矩阵)，$B$的行数很多列数很少($C$恰好相反)，此时计算右侧的代价就远远小于计算左侧的代价。
+
+一组向量$\{a_1,\dots,a_N\}$被称为线性相关(linearly independent)如果关系$\sum_n a_n \boldsymbol{a}_n=0$只在所有$a_n=0$时成立。这表明，没有任何一个向量能够表示为其余向量的线性组合。矩阵的秩是线性无关的行的最大数量(或者等价地，线性无关的列的最大数量)。
+\section{迹和行列式}
+迹和行列式适用于方阵。矩阵$A$的迹$\mathrm{Tr}(A)$被定义为主对角线上元素的和。我们可以看到
+\begin{equation}
+	\mathrm{Tr}(AB)=\mathrm{Tr}(BA)
+\end{equation}
+通过多次把这个公式应用到三个矩阵的乘积上，我们看到
+\begin{equation}
+	\mathrm{Tr}(ABC)=\mathrm{Tr}(CAB)=\mathrm{Tr}(BCA)
+\end{equation}
+这被称为迹操作符的循环(cyclic)性质。很明显这个性质可以扩展到任意数量矩阵的乘积。一个$N\times N$矩阵的行列式$|A|$定义为
+\begin{equation}
+	|A|=\sum (\pm 1)A_{1i_1}A_{2i_2}\dots A_{Ni_N}
+\end{equation}
+这个式子对所有满足下面性质的乘积进行求和：乘积包含每行的恰好一个元素和每列的恰好一个元素。系数$+1$或者$-1$取决于排列$i_1\dots i_N$是大奇排列还是偶排列。注意$|I|=1$，因此对于一个$2\times 2$矩阵，行列式的形式为
+\begin{equation}
+	|A|=\begin{vmatrix}
+		a_{11}&a_{12}\\
+		a_{21}&a_{22}
+	\end{vmatrix}
+	=a_{11}a_{22}-a_{12}a_{21}
+\end{equation}
+两个矩阵乘积的行列式为
+\begin{equation}
+\label{c12}
+	|AB|=|A||B|
+\end{equation}
+此外，矩阵的逆矩阵的行列式为
+\begin{equation}
+	|A^{-1}|=\frac{1}{|A|}
+\end{equation}
+如果$A$和$B$是$N\times M$的矩阵，那么 
+\begin{equation}
+	|I_N+AB^T|=|I_M+A^TB|
+\end{equation}
+一种特殊情况是
+\begin{equation}
+	|I_N+ab^T|=1+a^Tb
+\end{equation}
+其中$a$和$b$是N维列向量。
+\section{矩阵的导数}
+有时，我们需要考虑向量和矩阵关于标量的导数。向量$\boldsymbol{a}$关于标量$x$的导数本身是一个向量，它的分量为
+\begin{equation}
+	\left(\frac{\partial \boldsymbol{a}}{\partial x} \right)_i=\frac{\partial a_i}{\partial x}
+\end{equation}
+矩阵的导数的定义与些类似。关于向量和矩阵的导数也可以被定义。例如
+\begin{equation}
+	\left(\frac{\partial x}{\partial \boldsymbol{a}} \right)_i=\frac{\partial x}{\partial a_i}
+\end{equation}
+类似地
+\begin{equation}
+	\left(\frac{\partial a}{\partial b} \right)_{ij}=\frac{\partial a_i}{\partial b_j}
+\end{equation}
+写出矩阵的各个元素，下面的性质很容易证明
+\begin{equation}
+	\frac{\partial }{\partial \boldsymbol{x}}(\boldsymbol{x}^T\boldsymbol{a})=\frac{\partial }{\partial \boldsymbol{x}}(\boldsymbol{a}^T\boldsymbol{x})=\boldsymbol{a}
+\end{equation}
+类似地
+\begin{equation}
+\label{weifen}
+	\frac{\partial }{\partial \boldsymbol{x}}(AB)=\frac{\partial A}{\partial \boldsymbol{x}}B+A\frac{\partial B}{\partial \boldsymbol{x}}
+\end{equation}
+矩阵的逆矩阵的导数可以表示为
+\begin{equation}
+	\frac{\partial }{\partial x}(A^{-1})=-A^{-1}\frac{\partial A}{\partial x}A^{-1}
+\end{equation}
+使用公式$\ref{weifen}$对方程$A^{-1}A=I$求微分，然后右乘$A^{-1}$即可证明。并且 
+\begin{equation}
+	\frac{\partial }{\partial x}\ln |A|=\mathrm{Tr}\left(A^{-1}\frac{\partial A}{\partial x} \right)
+\end{equation}
+如果我们把$x$选成$A$中的元素，那么我们有
+\begin{equation}
+	\frac{\partial }{\partial A_{ij}}\mathrm{Tr}(AB)=B_{ji}
+\end{equation}
+写出矩阵的下标即可证明这个等式。我们可以把这个结论写成更加简洁的形式
+\begin{equation}
+	\frac{\partial }{\partial A}\mathrm{Tr}(AB)=B^T
+\end{equation}
+使用这种记号，我们有下列性质 
+\begin{flalign}
+	\frac{\partial }{\partial A}\mathrm{Tr}(A^TB)&=B\\
+	\frac{\partial }{\partial A}\mathrm{Tr}(A)&=I\\
+	\frac{\partial }{\partial A}\mathrm{Tr}(ABA^T)&=A(B+B^T)
+\end{flalign}
+这些也可以通过写出矩阵下标的方式证明出。我们也有
+\begin{equation}
+	\frac{\partial }{\partial A}\ln |A|=(A^{-1})^T
+\end{equation}
+
+\section{特征向量方程}
+对于一个$M\times M$的方阵$A$，特征向量方程的定义为
+\begin{equation}
+\label{luqu}
+	\boldsymbol{A}\boldsymbol{\mu}_i=\lambda_i\boldsymbol{\mu}_i
+\end{equation}
+其中$i=1,\dots,M$，$\boldsymbol{\mu}_i$被称为特征向量(eigenvector)，$\lambda_i$被称为对应的特征值(eigenvalue)。这可以看成M个齐次线性方程组，角存在的条件为
+\begin{equation}
+	|A-\lambda_i I|=0
+\end{equation}
+这被称为特征方程(characteristic equation)。由于这是$\lambda_i$的M阶多项式，因此它一定有M个解(虽然这些解未必不同)。$A$的秩等于非零特征值的个数。
+
+我们特别感兴趣的是对称矩阵。协方差矩阵、核矩阵、Hessian矩阵都是对称矩阵。对称矩阵的性质为$A_{ij}=A_{ji}$或者等价地，$A=A^T$。对称矩阵的逆矩阵也是对称的。将$A^TA=I$取转置，然后使用$AA^{-1}=I$以及$I$的对称性即可证明这一点。
+
+通常情况下，矩阵的特征值是复数。但是对于对称矩阵，特征值$\lambda_i$为实数。这点可以用下面的方式证明。首先将公式$\ref{luqu}$左乘$(\boldsymbol{\mu}_i^*)^T$，其中$*$表示复共轭，我们可以得到 
+\begin{equation}
+	(\boldsymbol{\mu}_i^*)^TA\boldsymbol{\mu}_i=\lambda_i(\boldsymbol{\mu}_i^*)^T\boldsymbol{\mu}_i
+\end{equation}
+之后，我们对公式$\ref{luqu}$取复共轭，然后左乘$\boldsymbol{\mu}_i^T$，可得
+\begin{equation}
+	\boldsymbol{\mu}_i^TA\boldsymbol{\mu}_i^*=\lambda_i^*\boldsymbol{\mu}_i^T\boldsymbol{\mu}_i^*
+\end{equation}
+推导过程中，我们使用了$A^*=A$，因为我们只考虑实对称矩阵$A$。将第二个方程取转置，使用$A^T=A$，我们看到两个方程在左侧相同，从而$\lambda_i^*=\lambda_i$，因此$\lambda_i$一定是实数。
+
+实对称矩阵的特征向量$\boldsymbol{\mu}_i$可以被选成单位正交的(即正交的并且长度为单位长度)，使得
+\begin{equation}
+	\boldsymbol{\mu}_i^T\boldsymbol{\mu}_j=I_{ij}
+\end{equation}
+其中$I_{ij}$是单位矩阵$I$的元素。为了证明这一点，我们首先将公式$\ref{luqu}$左乘$\boldsymbol{\mu}_j^T$，得到 
+\begin{equation}
+	\boldsymbol{\mu}_j^T\boldsymbol{A}\boldsymbol{\mu}_i=\lambda_i\boldsymbol{\mu}_j^T\boldsymbol{\mu}_i
+\end{equation}
+因此，通过交换下标，我们有
+\begin{equation}
+	\boldsymbol{\mu}_i^T\boldsymbol{A}\boldsymbol{\mu}_j=\lambda_j\boldsymbol{\mu}_i^T\boldsymbol{\mu}_j
+\end{equation}
+我们现在对第二个方程取转置，使用对称性质$\boldsymbol{A}^T=\boldsymbol{A}$，然后将两个方程相减，可得
+\begin{equation}
+	(\lambda_i-\lambda_j)\boldsymbol{\mu}_i^T\boldsymbol{\mu}_j=0
+\end{equation}
+因此，对于$\lambda_i\ne \lambda_j$，我们有$\boldsymbol{\mu}_i^T\boldsymbol{\mu}_j=0$，因此$\boldsymbol{\mu}_i$和$\boldsymbol{\mu}_j$是正交的。如果两个特征值是相等的，那么任意线性组合$\alpha \boldsymbol{\mu}_i+\beta \boldsymbol{\mu}_j$也是一个有着相同特征值的特征向量，因此我们可以任意选择一个线性组合，然后选择第二个特征向量正交于第一个(可以证明这种退化的特征向量永远不会线性相关)。因此特征向量可以选择为正交的，然后归一化为单位长度。由于有M个特征值，对应的M个特征向量组成了一个完备集，因此任意一个M维的向量都可以表示为特征向量的线性组合。
+
+我们可以令特征向量$\boldsymbol{\mu}_i$是$M\times M$的矩阵$\boldsymbol{U}$，根据单位正交性，我们有
+\begin{equation}
+\label{zhengming}
+	\boldsymbol{U}^T\boldsymbol{U}=\boldsymbol{I}
+\end{equation}
+这样的矩阵被称为正交的(orthogonal)。有趣的是，矩阵的行也是正交的，即$\boldsymbol{U}\boldsymbol{U}^T=\boldsymbol{I}$。为了证明这一点，我们注意到，公式$\ref{zhengming}$表明$\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{U}^{-1}=\boldsymbol{U}^{-1}=\boldsymbol{U}^T$，因此$\boldsymbol{U}\boldsymbol{U}^{-1}=\boldsymbol{U}\boldsymbol{U}^T=\boldsymbol{I}$。使用公式$\ref{c12}$，也可以看出$|U|=1$。
+
+特征向量方程$\ref{luqu}$可以使用$\boldsymbol{U}$表示成下面的形式
+\begin{equation}
+\label{c38}
+	\boldsymbol{AU}=\boldsymbol{U\Lambda}
+\end{equation}
+其中$\boldsymbol{\Lambda}$是一个$M\times M$的对角矩阵，对角线上的元素为特征值$\lambda_i$。
+
+如果我们考虑一个列向量$\boldsymbol{x}$，它经过正交矩阵$\boldsymbol{U}$进行变换，得到新向量 
+\begin{equation}
+	\tilde{\boldsymbol{x}}=\boldsymbol{Ux}
+\end{equation}
+变换前后向量的长度不变，因为 
+\begin{equation}
+	\tilde{\boldsymbol{x}}^T\tilde{\boldsymbol{x}}=\boldsymbol{x}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{x}=\boldsymbol{x}^T\boldsymbol{x}
+\end{equation}
+类似地，任意两个向量的角度在变换前后也不变，因为
+\begin{equation}
+	\tilde{\boldsymbol{x}}^T\tilde{\boldsymbol{y}}=\boldsymbol{x}^T\boldsymbol{U}^T\boldsymbol{U}\boldsymbol{y}=\boldsymbol{x}^T\boldsymbol{y}
+\end{equation}
+因此，乘以$\boldsymbol{U}$可以表示为坐标第的刚性旋转.
+
+根据公式$\ref{c38}$可得
+\begin{equation}
+	\boldsymbol{U}^T\boldsymbol{AU}=\boldsymbol{\Lambda}
+\end{equation}
+因为$\boldsymbol{\Lambda}$是对角矩阵，我们说矩阵$\boldsymbol{A}$被矩阵$\boldsymbol{U}$对角化(diagonalised)。如果我们左乘$\boldsymbol{U}$然后右乘$\boldsymbol{U}^T$，我们有
+\begin{equation}
+\label{c43}
+	\boldsymbol{A}=\boldsymbol{U\Lambda U}^T
+\end{equation}
+取这个方程的逆，然后使用公式$\ref{c3}$以及$\boldsymbol{U}^{-1}=\boldsymbol{U}^T$，我们有
+\begin{equation}
+	\boldsymbol{A}^{-1}=\boldsymbol{U}\boldsymbol{\Lambda}^{-1}\boldsymbol{U}^T
+\end{equation}
+最后两个方程也可以写成 
+\begin{flalign}
+	\boldsymbol{A}&=\sum_{i=1}^{M}\lambda_i\boldsymbol{\mu}_i\boldsymbol{\mu}_i^T\\
+	\boldsymbol{A}^{-1}&=\sum_{i=1}^{M}\frac{1}{\lambda_i}\boldsymbol{\mu}_i\boldsymbol{\mu}_i^T
+\end{flalign}
+如果我们取公式$\ref{c43}$的行列式，然后使用公式$\ref{c12}$，我们有
+\begin{equation}
+	|\boldsymbol{A}|=\prod_{i=1}^{M}\lambda_i
+\end{equation}
+类似地，取公式$\ref{c43}$的迹，使用迹运算的循环性以及$\boldsymbol{U}^T\boldsymbol{U}^T=\boldsymbol{I}$，我们有
+\begin{equation}
+	\mathrm{Tr}(\boldsymbol{A})=\sum_{i=1}^{M}\lambda_i
+\end{equation}
+
+一个矩阵$\boldsymbol{A}$被称为正定的(positive definite)，记作$\boldsymbol{A}\succ 0$，如果对于向量$\boldsymbol{w}$的所有非零值都有$\boldsymbol{w}^T\boldsymbol{Aw}>0$。等价地，一个正定矩阵的所有特征值都有$\lambda_i>0$。令$\boldsymbol{w}$为每一个特征向量，然后注意到任意的向量都可以展开为特征向量的组合，我们即可以证明这一点。注意，正定不同于所有元素都为正。例如，矩阵
+\begin{equation}
+	\begin{pmatrix}
+		1&2\\
+		3&4
+	\end{pmatrix}
+\end{equation}
+的特征值$\lambda_1 \simeq 5.37$且$\lambda_2\simeq -0.37$。一个矩阵被称为半正定的(positive semidefinite)，如果对于$\boldsymbol{w}$的所有值都有$\boldsymbol{w}^T\boldsymbol{Aw}\geqslant 0$，记作$\boldsymbol{A}\succeq 0$。它等价于$\lambda_i \geqslant 0$。
