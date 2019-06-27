@@ -1,1 +1,78 @@
 \section{变分推断}
+变分的方法起源于18世纪的欧拉、拉格朗日，以及其他的关于变分法(calculus of variations)的研究。虽然变分方法本质上没有任何近似的东西，但是它们通常会被用于寻找近似解。寻找近似解的过程可以这样完成：限制需要最优化算法搜索的函数的范围，例如只考虑二次函数，或者考虑由固定的基函数线性组合而成的函数，其中只有线性组合的系数可以发生变化。在概率推断的应用中，限制条件的形式可以是可分解的假设。
+
+现在，让我们详细讨论变分最优化的概念如何应用于推断问题。假设我们有一个纯粹的贝叶斯模型，其中每个参数都有一个先验概率分布。这个模型也可以有潜在变量以及参数，我们会把所有潜在变量和参数组成的集合记作$\boldsymbol{Z}$。类似地，我们会把所有观测变量的集合记作$\boldsymbol{X}$。例如，我们可能有N个独立同分布的数据，其中$\boldsymbol{X}=\{\boldsymbol{x}_1,\dots,\boldsymbol{x}_N \}$且$\boldsymbol{Z}=\{\boldsymbol{z}_1,\dots,\boldsymbol{z}_N \}$。我们的概率模型确定了联合概率分布$p(\boldsymbol{X},\boldsymbol{Z})$，我们的目标是找到后验概率分布$p(\boldsymbol{Z}|\boldsymbol{X})$以及模型证据$p(\boldsymbol{X})$的近似。我们可以将对数边缘概率分解，即
+\begin{equation}
+\begin{aligned}
+	\ln p(\boldsymbol{X})&=\ln p(\boldsymbol{X},\boldsymbol{Z}) - \ln p(\boldsymbol{Z}|\boldsymbol{X})\\
+	&=\ln \frac{p(\boldsymbol{X},\boldsymbol{Z})}{q(\boldsymbol{Z})}-\ln \frac{p(\boldsymbol{Z}|\boldsymbol{X})}{q(\boldsymbol{Z})}
+\end{aligned}
+\end{equation}
+等式左右两边乘以$q(\boldsymbol{Z})$并对z求积分有
+\begin{equation}
+	\begin{aligned}
+		\text{左边}&=\int_{\boldsymbol{Z}}\ln p(\boldsymbol{X})q(\boldsymbol{Z})d\boldsymbol{Z}=\ln p(\boldsymbol{X})\\
+		\label{fenjie}
+		\text{右边}&=\underbrace{\int_{\boldsymbol{Z}}q(\boldsymbol{Z} )\cdot\ln \frac{p(\boldsymbol{X},\boldsymbol{Z})}{q(\boldsymbol{Z})}d\boldsymbol{Z}}_{\mathrm{ELBO}(evidence\ lower\ bound)}+\underbrace{\int_{\boldsymbol{Z}}-q(\boldsymbol{Z} )\cdot\ln \frac{p(\boldsymbol{Z}|\boldsymbol{X})}{q(\boldsymbol{Z})}d\boldsymbol{Z}}_{KL(q\| p)}
+	\end{aligned}
+\end{equation}
+即
+\begin{equation}\dfrac{num}{den}
+	\ln p(\boldsymbol{X})=\zeta (q)+\mathrm{KL}(q\| p)
+\end{equation}
+与之前一样，我们可以通过关于概率分布$q(\boldsymbol{Z})$的最优化来使下界$\zeta(q)$达到最大值，这等价于最小化$\mathrm{KL}$散度。如果我们允许任意选择$q(\boldsymbol{Z})$的最优化来使下界$\zeta(q)$达到最大值出现在$\mathrm{KL}$散度等于零的时刻，此时$q(\boldsymbol{Z})$等于后验概率分布$p(\boldsymbol{Z}|\boldsymbol{X})$。即
+\begin{equation}
+	\begin{aligned}
+		-\int_{\boldsymbol{Z}}q(\boldsymbol{Z} )\cdot\ln \frac{p(\boldsymbol{Z}|\boldsymbol{X})}{q(\boldsymbol{Z})}d\boldsymbol{Z}&=0\\
+		&\Rightarrow \frac{p(\boldsymbol{Z}|\boldsymbol{X})}{q(\boldsymbol{Z})}=1\\
+		&\Rightarrow q(\boldsymbol{Z})=p(\boldsymbol{Z}|\boldsymbol{X})
+	\end{aligned}
+\end{equation}
+然而，我们假定在需要处理的模型中，对真实的概率分布进行操作是不可行的。
+
+于是，我们转而考虑概率分布$q(\boldsymbol{Z})$的一个受限制的类别，然后寻找这个类别中使得$\mathrm{KL}$散度达到最小值的概率分布。我们的目标是充分限制$q(\boldsymbol{Z})$可以取得的概率分布的类别范围，使得这个范围中的所有概率分布都是可以处理的概率分布。同时，我们还要使得这个范围充分大、充分灵活，从而它能够提供对真实后验概率分布的一个足够好的近似。需要强调的是，施加限制条件的唯一目的是为了计算方便，并且在这个限制条件下，我们应该使用尽可能丰富的近似概率分布。特别地，对于高度灵活的概率分布来说，没有“过拟合”现象。使用灵活的近似仅仅使得我们更好好近似真实的后验概率分布。
+
+限制近似概率分布的范围的一种方法是使用参数概率分布$q(\boldsymbol{Z}|\omega)$，它由参数集合$\omega$控制。这样，下界$\zeta(q)$变成了$\omega$的函数，我们可以利用标准的非线性最优化方法确定参数的最优值。
+
+\subsection*{分解概率分布}
+这里，我们考虑另一种方法，这种方法里，我们限制概率分布$q(\boldsymbol{Z})$的范围。假设我们将$\boldsymbol{Z}$的元素划分成若干个互不相交的组，记作$\boldsymbol{Z}_i$，其中$i=1,\dots,M$。然后，我们假定$q$分布关于这些分布可以进行分解，即
+\begin{equation}
+\label{bianfen}
+	q(\boldsymbol{Z})=\prod_{i=1}^{M}q_i(\boldsymbol{Z}_i)
+\end{equation}
+需要强调的是，我们关于概率分布没有做更多的假设。特别地，我们没有限制各个因子$q_i(\boldsymbol{Z}_i)$的函数形式。变分推断的这个分解的形式对应于物理学中的一个近似框架，叫做平均场理论(mean field theory)。
+
+在所有具有公式$\ref{bianfen}$的形式的概率分布$q(\boldsymbol{Z})$中，我们现在寻找下界$\zeta(q)$最大的概率分布。于是，我们希望对$\zeta(q)$关于所有的概率分布$q_i(\boldsymbol{Z}_i)$进行一个自由形式的(变分)最优化。我们通过关于每个因子进行最优化来完成整体的最优化过程。为了完成这一点，我们首先将公式$\ref{bianfen}$代入公式$\ref{fenjie}$，然后分离出依赖于一个因子$q_j(\boldsymbol{Z}_j)$的项。为了记号的简洁，我们简单地将$q_j(\boldsymbol{Z}_j)$记作$q_j$，这样我们有
+\begin{equation}
+\label{chang}
+	\begin{aligned}
+		\zeta(q)&=\int_{\boldsymbol{Z}}q(\boldsymbol{Z} )\cdot\ln \frac{p(\boldsymbol{X},\boldsymbol{Z})}{q(\boldsymbol{Z})}d\boldsymbol{Z}\\
+		&=\underbrace{\int_{\boldsymbol{Z}}q(\boldsymbol{Z} )\cdot\ln p(\boldsymbol{X},\boldsymbol{Z})}_{\circled{1}}-\underbrace{\int_{\boldsymbol{Z}}q(\boldsymbol{Z} )\cdot\ln q(\boldsymbol{Z})d\boldsymbol{Z}}_{\circled{2}} \\
+		\circled{1}&=\int_{\boldsymbol{z}_1\dots\boldsymbol{z}_M}\prod_{i=1}^{M}q_i(\boldsymbol{z}_i)\ln p(\boldsymbol{X},\boldsymbol{Z})d\boldsymbol{z}_1\dots d\boldsymbol{z}_M\\
+		&=\int _{\boldsymbol{z}_j}q_j(\boldsymbol{z}_j)\left(\int_{\boldsymbol{Z}\backslash j}\prod_{i\ne j}^{M}q_i(\boldsymbol{z}_i)\ln p(\boldsymbol{X},\boldsymbol{Z})d\boldsymbol{Z}\backslash j \right)d\boldsymbol{z}_j\\
+		&=\int _{\boldsymbol{z}_j}q_j(\boldsymbol{z}_j)\cdot \underbrace{\mathbb{E}_{\prod_{i\ne j}^{M}q_i(\boldsymbol{Z}_i)}[\ln p(\boldsymbol{X},\boldsymbol{Z})]}_{\text{近似作$\ln \tilde{p}(\boldsymbol{X},\boldsymbol{z}_j)$}}d\boldsymbol{z}_j\\
+		\circled{2}&=\int_{\boldsymbol{z}_1\dots\boldsymbol{z}_M}\prod_{i=1}^{M}q_i(\boldsymbol{z}_i) \sum_{i=1}^{M}\ln q_i(\boldsymbol{z}_i)d\boldsymbol{z}_1\dots d\boldsymbol{z}_M\\
+		&=\sum_{i=1}^{M}\int_{\boldsymbol{z}_i}q_i(\boldsymbol{z}_i)\ln q_i(\boldsymbol{z}_i)d\boldsymbol{z}_i\\
+		&=\int_{\boldsymbol{z}_j}q_j(\boldsymbol{z}_j)\ln q_j(\boldsymbol{z}_j)d\boldsymbol{z}_j+\text{常数}\dots(\text{保持$\{q_{i\ne j}\}$}\text{固定})\\
+		\zeta(q)=\circled{1}-\circled{2}&=\int q_j\ln \tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)d\boldsymbol{Z}_j-\int q_j\ln q_j d\boldsymbol{Z}_j+\text{常数}
+	\end{aligned}
+\end{equation}
+其中我们定义了一个新的概率分布$\tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)$，形式为
+\begin{equation}
+	\ln \tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)=\mathbb{E}_{i\ne j}[\ln p(\boldsymbol{X},\boldsymbol{Z})]+\text{常数}
+\end{equation}
+这里，记号$\mathbb{E}_{i\ne j}[\dots]$表示关于定义在所有$\boldsymbol{z}_i(i\ne j)$上的q概率分布的期望，即
+\begin{equation}
+	\mathbb{E}_{i\ne j}[\ln p(\boldsymbol{X},\boldsymbol{Z})]=\int \ln p(\boldsymbol{X},\boldsymbol{Z})\prod_{i\ne j}q_i d\boldsymbol{Z}_i
+\end{equation}
+
+现在假设我们保持$\{q_{i\ne j}\}$固定，关于概率分布$q_j(\boldsymbol{Z}_j)$的所有可能的形式最大化公式$\ref{chang}$中的$\zeta(q)$。这很容易做，因为我们看到公式$\ref{chang}$是$q_j(\boldsymbol{Z}_j)$和$\tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)$之间的Kullback-Leibler散度的负值。因此，最大化$\ref{chang}$等价于最小化Kullback-Leibler散度，且最小值出现在$q_j(\boldsymbol{Z}_j)=\tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)$的位置。于是，我们得到了最优解$q_j^*(\boldsymbol{Z}_j)$的一般的表达式，形式为
+\begin{equation}
+	\ln q_j^*(\boldsymbol{Z}_j)=\mathbb{E}_{i\ne j}[\ln p(\boldsymbol{X},\boldsymbol{Z})] +\text{常数}
+\end{equation}
+这个解表明，为了得到因子$q_j$的最优解的对数，我们只需考虑所有隐含变量和可见变量上的联合概率分布的对数 ，然后关于所有其他的因子$\{q_i\}$取期望即可，其中$i\ne j$。
+
+公式中的可加性常数通过对概率分布$q_j^*(\boldsymbol{Z}_j)$进行归一化的方式来设定。
+\subsection*{分解近似的性质}
+\subsection*{例子：一元高斯分布}
+\subsection*{模型比较}
