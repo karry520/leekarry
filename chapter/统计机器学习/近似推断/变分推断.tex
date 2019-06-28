@@ -68,6 +68,7 @@
 
 现在假设我们保持$\{q_{i\ne j}\}$固定，关于概率分布$q_j(\boldsymbol{Z}_j)$的所有可能的形式最大化公式$\ref{chang}$中的$\zeta(q)$。这很容易做，因为我们看到公式$\ref{chang}$是$q_j(\boldsymbol{Z}_j)$和$\tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)$之间的Kullback-Leibler散度的负值。因此，最大化$\ref{chang}$等价于最小化Kullback-Leibler散度，且最小值出现在$q_j(\boldsymbol{Z}_j)=\tilde{p}(\boldsymbol{X},\boldsymbol{Z}_j)$的位置。于是，我们得到了最优解$q_j^*(\boldsymbol{Z}_j)$的一般的表达式，形式为
 \begin{equation}
+\label{zuiyou}
 	\ln q_j^*(\boldsymbol{Z}_j)=\mathbb{E}_{i\ne j}[\ln p(\boldsymbol{X},\boldsymbol{Z})] +\text{常数}
 \end{equation}
 这个解表明，为了得到因子$q_j$的最优解的对数，我们只需考虑所有隐含变量和可见变量上的联合概率分布的对数 ，然后关于所有其他的因子$\{q_i\}$取期望即可，其中$i\ne j$。
@@ -75,4 +76,64 @@
 公式中的可加性常数通过对概率分布$q_j^*(\boldsymbol{Z}_j)$进行归一化的方式来设定。
 \subsection*{分解近似的性质}
 \subsection*{例子：一元高斯分布}
+我们现在使用一元变量$x$上的高斯分布来说明分解变分近似。我们的目标是在给定$x$的观测值的数据集$D=\{x_1,\dots,x_N \}$的情况下，推断均值$\mu$和精度$\tau$的后验概率分布。其中，我们假设数据是独立地从高斯分布中抽取的。似然函数为
+\begin{equation}
+	p(D|\mu,\tau)=\left(\frac{\tau}{2\pi} \right)^{\frac{N}{2}}\exp \left\{-\frac{\tau}{2}\sum_{n=1}^{N}(x_n-\mu)^2 \right\}
+\end{equation}
+我们现在引入$\mu$和$\tau$的共轭先验分布 ，形式为
+\begin{flalign}
+	p(\mu|\tau)&=\mathcal{N}(\mu|\mu_0,(\lambda_0 \tau)^{-1})\\
+	p(\tau)&=\mathrm{Gam}(\tau|a_0,b_0)
+\end{flalign}
+这些分布共同给出了一个高斯-Gamma共轭先验分布。
+
+对于这个简单的问题，后验概率可以求出精确解，并且形式还是高斯-Gamma分布。然而，为了讲解的目的，我们会考虑对后验概率分布的一个分解变分近似，形式为
+\begin{equation}
+	q(\mu,\tau)=q_{\mu}(\mu)q_{\tau}(\tau)
+\end{equation}
+注意，真实的后验概率分布还可以按照这种形式进行分解。最优的因子$q_{\mu}(\mu)$和$q_{\tau}(\tau)$可以从一般的结果$\ref{zuiyou}$中得到，如下所述。对于$q_{\mu}(\mu)$，我们有
+\begin{equation}
+	\begin{aligned}
+	\ln q_{\mu}^*(\mu) &= \mathbb{E}_{\tau}[\ln p(D|\mu,\tau)+\ln p(\mu|\tau)]+\text{常数}\\
+	&=-\frac{\mathbb{E}[\tau]}{2}\left\{\lambda_0(\mu-\mu_0)^2+\sum_{n=1}^{N}(x_n-\mu)^2 \right\}+\text{常数}
+	\end{aligned}
+\end{equation}
+对于$\mu$配平方，我们看到$q_{\mu}(\mu)$是一个高斯分布$\mathcal{N}(\mu|\mu_N,\lambda_N^{-1})$，其中，均值和方差为
+\begin{flalign}
+	\label{16}
+	\mu_N&=\frac{\lambda_0\mu_0 +N\bar{x}}{\lambda_0+N}\\
+	\label{17}
+	\lambda_N&=(\lambda_0+N)\mathbb{E}[\tau]
+\end{flalign}
+类似地，因子$q_{\tau}(\tau)$的最优解为
+\begin{equation}
+	\begin{aligned}
+	\ln q_{\tau}^*(\tau)&=\mathbb{E}_{\mu}[\ln p(D|\mu,\tau)+\ln p(\mu|\tau)]+\ln p(\tau)+\text{常数}\\
+	&=(a_0-1)\ln \tau -b_0\tau +\frac{N+1}{2}\ln \tau \\
+	&\quad -\frac{\tau}{2}\mathbb{E}_{\mu}\left[\sum_{n=1}^{N}(x_n-\mu)^2+\lambda_0(\mu-\mu_0)^2 \right]+\text{常数}
+	\end{aligned}
+\end{equation}
+因此$q_{\tau}(\tau)$是一个Gamma分布$\mathrm{Gam}(\tau|a_N,b_N)$，参数为
+\begin{flalign}
+	a_N&=a_0+\frac{N+1}{2}\\
+	b_N&=b_0+\frac{1}{2}\mathbb{E}_{\mu}\left[\sum_{n=1}^{N}(x_n-\mu)^2+\lambda_0(\mu-\mu_0)^2 \right]
+\end{flalign}
+
+应该强调的是，我们不假设最优概率分布$q_{\mu}(\mu)$和$q_{\tau}(\tau)$的具体的函数形式。它们的函数形式从似然函数和对应的共轭先验分布中自然地得到。
+
+因此，我们得到了最优概率分布$q_{\mu}(\mu)$和$q_{\tau}(\tau)$的表达式，每个表达式依赖于关于其他概率分布计算得到的矩。因此，一种寻找解的方法是对$\mathbb{E}[\tau]$进行一个初始的猜测，然后使用这个猜测来重新计算概率分布$q_{\mu}(\mu)$。给定这个修正的概率分布之后，我们接下来可以计算所需的矩$\mathbb{E}[\mu]$和$\mathbb{E}[\mu^2]$，并且使用这些矩来重新计算概率分布$q_{\tau}(\tau)$，以此类推。
+
+通常，我们需要使用一种迭代的方法来得到最优分解后验概率分布的解。然而，对于我们这里讨论的非常简单的例子来说，我们可以通过求解最优因子$q_{\mu}(\mu)$和$q_{\tau}(\tau)$的方程。得到一个显式的解。在做这件事之前，我们可以通过考虑无信息先验来简化表达式。无信息先验分布中，$\mu_0=a_0=b_0=\lambda_0=0$。虽然这些参数设置对应于一个反常先验，但是我们看到后验概率分布仍然具有良好的定义。使用Gamma分布的均值的标准结果$\mathbb{E}[\tau]=\frac{a_N}{b_N}$。我们有
+\begin{equation}
+	\frac{1}{\mathbb{E}[\tau]}=\frac{b_N}{a_N}=\mathbb{E}\left[\frac{1}{N+1}\sum_{n=1}^{N}(x_n-\mu)^2 \right]=\frac{N}{N+1}(\bar{x^2}-2\bar{x}\mathbb{E}[\mu]+\mathbb{E}[\mu^2])
+\end{equation}
+之后，使用公式$\ref{16}$和公式$\ref{17}$，我们得到了$q_{\mu}(\mu)$的一阶矩和二阶矩，形式为
+\begin{flalign}
+	\mathbb{E}[\mu]&=\mathbb{E}\left[\frac{\lambda_0\mu_0 +N\bar{x}}{\lambda_0+N} \right]=\bar{x}\\
+	\mathbb{E}[\mu^2]&=\lambda_0+\mathbb{E}[\mu]^2=\bar{x}^2+\frac{1}{N\mathbb{E}[\tau]}
+\end{flalign}
+现在，我们可以将这些矩代入公式中，然后解出$\mathbb{E}[\tau]$，可得
+\begin{equation}
+	\frac{1}{\mathbb{E}[\tau]}=(\bar{x^2}-\bar{x}^2)=\frac{1}{N}\sum_{n=1}^{N}(x_n-\bar{x})^2
+\end{equation}
 \subsection*{模型比较}
