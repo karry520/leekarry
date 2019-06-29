@@ -23,10 +23,12 @@
 \end{center}
 对于每个观测$\boldsymbol{x}_n$，我们有一个对应的潜在变量$\boldsymbol{z}_n$，它是一个“1-of-K”的二值向量，元素为$z_{nk}$，其中$k=1,\dots,K$。与之前一样，我们将观测数据集记作$\boldsymbol{X}=\{\boldsymbol{x}_1,\dots,\boldsymbol{x}_N\}$，类似地，我们瘵潜在变量记作$\boldsymbol{Z}=\{\boldsymbol{z}_1,\dots,\boldsymbol{z}_N \}$。给定混合系数$\boldsymbol{\pi}$，我们可以写出$\boldsymbol{Z}$的条件概率分布，形式为
 \begin{equation}
+\label{wei}
 	p(\boldsymbol{Z}|\boldsymbol{\pi})=\prod_{n=1}^{N}\prod_{k=1}^{K}\pi_k^{z_{nk}}
 \end{equation}
 类似地，给定潜在变量和分量参数，我们可以写出观测数据向量的条件概率分布，形式为 
 \begin{equation}
+\label{jue}
 	p(\boldsymbol{X}|\boldsymbol{Z},\boldsymbol{\mu},\boldsymbol{\Lambda})=\prod_{n=1}^{N}\prod_{k=1}^{K}\mathcal{N}(\boldsymbol{x}_n|\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k^{-1})^{z_{nk}}
 \end{equation}
 其中$\boldsymbol{\mu}=\{\boldsymbol{\mu}_k \}$且$\boldsymbol{\Lambda}=\{\boldsymbol{\Lambda}_k \}$。注意，我们计算时使用的是精度矩阵而不是协方差矩阵，因为这在一定程度上简化了数学计算的复杂度。
@@ -147,7 +149,8 @@
 \end{equation}
 我们观察到，这个表达式的右侧分解成了若干项的和，一些项只与$\boldsymbol{\pi}$相关，一些项只与$\boldsymbol{\mu}$和$\boldsymbol{\Lambda}$相关，这表明变分后验概率$q(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda})$可以分解为$q(\boldsymbol{\pi})q(\boldsymbol{\mu},\boldsymbol{\Lambda})$。此外，与$\boldsymbol{\mu}$和$\boldsymbol{\Lambda}$的项本身由k个与$\boldsymbol{\mu}_k$和$\boldsymbol{\Lambda}_k$相关的项有关，因此可以进一步分解，即
 \begin{equation}
-	q(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda})=\boldsymbol{\pi}\prod_{k=1}^{K}q(\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k)
+\label{bea}
+	q(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda})=q(\boldsymbol{\pi})\prod_{k=1}^{K}q(\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k)
 \end{equation}
 分离出公式$\ref{xiaoxin}$右侧的与$\boldsymbol{\pi}$相关的项，我们有
 \begin{equation}
@@ -197,6 +200,28 @@
 
 正如我们已经看到的那样，高斯分布的贝叶斯混合的变分解与最大似然的EM算法的解很相似。事实上，如果我们考虑$N\to \infty$的极限情况，那么贝叶斯方法就收敛于最大似然方法的EM解。对于不是特别小的数据集来说，高斯混合模型的变分算法的主要的代价来自于“责任”的计算，以及加权数据协方差矩阵的计算与求逆。这些计算与最大似然EM算法中产生的计算相对应，因此使用这种贝叶斯方法几乎没有更多的计算代价。然而，这种方法有一些重要的优点。首先，在最大似然方法中，当一个高斯分量“退化”到一个具体的数据点时，会产生奇异性，而这种奇异性在贝叶斯方法中不存在。实际上，如果我们简单地引入一个先验分布，煞有然后使用MAP估计而不是最大似然估计，这种奇异性就会被消除。此外，当我们在混合分布中将混合分量的数量K选得较大时，不会出现过拟合问题。最后，变分方法使得我们可以在确定混合分布中分量的最优数量时不必借助于交互验证的技术。
 \subsection*{变分下界}
+下界提供了另一种推导变分重估计方程的方法。为了说明这一点，我们使用下面的事实：由于模型有共轭先验，因此变分后验分布(即$\boldsymbol{Z}$的离散分布、$\pi$的狄利克雷分布以及$(\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k)$的高斯-Wishart分布)的函数形式是已知的。通过使用这些分布的一般的参数形式，我们可以推导出下界的形式，将下界作为概率分布的参数的函数。关于这些参数最大化下界就会得到所需的重估计方程。
 \subsection*{预测概率密度}
+在高斯模型的贝叶斯混合的应用中，我们通常对观测变量的新值$\hat{\boldsymbol{x}}$的预测概率密度感兴趣。与这个观测相关联的有一个潜在变量$\hat{\boldsymbol{z}}$，从而预测概率分布为
+\begin{equation}
+	p(\hat{\boldsymbol{x}}|\boldsymbol{X})=\sum_{\hat{\boldsymbol{z}}}\iiint p(\hat{\boldsymbol{x}}|\hat{\boldsymbol{z}},\boldsymbol{\mu},\boldsymbol{\Lambda})p(\hat{\boldsymbol{z}}|\boldsymbol{\pi})p(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda}|\boldsymbol{X})d\boldsymbol{\pi}d\boldsymbol{\mu}d\boldsymbol{\Lambda}
+\end{equation}
+其中$p(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda}|\boldsymbol{X})$是参数的(未知)真实后验概率分布。使用公式$\ref{wei}$和公式$\ref{jue}$，我们可以首先完成在$\hat{\boldsymbol{z}}$上的求和，得到 
+\begin{equation}
+	p(\hat{\boldsymbol{x}}|\boldsymbol{X})=\sum_{k=1}^{K}\iiint \pi_k\mathcal{N}(\hat{\boldsymbol{x}}|\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k^{-1})p(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda}|\boldsymbol{X})d\boldsymbol{\pi}d\boldsymbol{\mu}d\boldsymbol{\Lambda}
+\end{equation}
+由于剩下的积分是无法计算的，因此我们通过将真实后验概率分布$p(\boldsymbol{\pi},\boldsymbol{\mu},\boldsymbol{\Lambda}|\boldsymbol{X})$用它的变分近似$q(\boldsymbol{\pi})q(\boldsymbol{\mu},\boldsymbol{\Lambda})$替换的方式来近似预测概率分布，结果为
+\begin{equation}
+		p(\hat{\boldsymbol{x}}|\boldsymbol{X})\simeq \sum_{k=1}^{K}\iiint \pi_k\mathcal{N}(\hat{\boldsymbol{x}}|\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k^{-1})q(\boldsymbol{\pi})q(\boldsymbol{\mu}_k,\boldsymbol{\Lambda}_k)d\boldsymbol{\pi}d\boldsymbol{\mu}_kd\boldsymbol{\Lambda}_k
+\end{equation}
+其中我们使用了公式$\ref{bea}$给出的分解方式，并且在每一项中，我们已经隐式地将$j\ne k$的全部$\{\boldsymbol{\mu}_j,\boldsymbol{\Lambda}_j \}$变量积分出去。剩余的积分现在可以解析地计算，得到一个学生t分布的混合，即
+\begin{equation}
+	p(\hat{\boldsymbol{x}}|\boldsymbol{X})\simeq\frac{1}{\hat{\alpha}}\sum_{k=1}^{K}\alpha_k\mathrm{St}(\hat{\boldsymbol{x}}|\boldsymbol{m}_k,\boldsymbol{L}_k,v_k+1-D)
+\end{equation}
+其中第k个分量的均值为$\boldsymbol{m}_k$，精度为
+\begin{equation}
+	\boldsymbol{L}_k=\frac{(v_k+1-D)\beta_k}{1+\beta_k}\boldsymbol{W}_k
+\end{equation}
+当数据集的大小N很大时，预测分布就变成了高斯混合。
 \subsection*{确定分量的数量}
 \subsection*{诱导分解}
