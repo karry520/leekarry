@@ -1,0 +1,17 @@
+对于大多数应用中的概率模型来说，精确推断是不可行的，因此我们不得不借助与某种形式的近似。上一章，我们讨论了基于确定性近似的推断方法，它包括诸如变分贝叶斯方法以及期望传播。这里，我们考虑基于数值采样的近似推断方法，也被称为蒙特卡罗(Monte Carlo)方法。
+
+虽然对于一些应用来说，我们感兴趣的是非观测变量上的后验概率分布本身，但是在大部分情况下，后验概率分布的主要用途是计算期望，例如在做预测的情形下就是这样。因此，本章中，我们希望解决的基本的问题涉及到关于一个概率分布$p(\boldsymbol{z})$寻找某个函数$f(\boldsymbol{z})$的期望。这里，$\boldsymbol{z}$的元素可能是离散变量、连续变量或者二者的结合。因此，在连续变量的情形下，我们希望计算下面的期望
+\begin{equation}
+	\mathbb{E}[f]=\int f(\boldsymbol{z})p(\boldsymbol{z}d\boldsymbol{z})
+\end{equation}
+采样方法背后的一般思想是得到从概率分布$p(\boldsymbol{z})$中独立抽取的一组变量$\boldsymbol{z}^{(l)}$，其中$l=1,\dots,L$。这使得期望可以通过有限和的方式计算，即
+\begin{equation}
+	\hat{f}=\frac{1}{L}\sum_{l=1}^{L}f(\boldsymbol{z}^{(l)})
+\end{equation}
+只要样本$\boldsymbol{z}^{(l)}$是从概率分布$p(\boldsymbol{z})$中抽取的，那么$\mathbb{E}[\hat{f}]=\mathbb{E}[f]$，因此估计$\hat{f}$具有正确的均值。估计$f$的方差为
+\begin{equation}
+	\mathrm{var}[\hat{f}]=\frac{1}{L}\mathbb{E}[(f-\mathbb{E}[f])^2]
+\end{equation}
+它是函数$f(\boldsymbol{z})$在概率分布$p(\boldsymbol{z})$下的方差。因此，值得强调的一点是，估计的精度不依赖于$\boldsymbol{z}$的维度，并且原则上，对于数量相对较少的样本$\boldsymbol{z}^{(l)}$，可能会达到较高的精度。
+
+\textbf{补充一个逻辑关系图}
