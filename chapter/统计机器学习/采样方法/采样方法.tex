@@ -2,6 +2,7 @@
 
 虽然对于一些应用来说，我们感兴趣的是非观测变量上的后验概率分布本身，但是在大部分情况下，后验概率分布的主要用途是计算期望，例如在做预测的情形下就是这样。因此，本章中，我们希望解决的基本的问题涉及到关于一个概率分布$p(\boldsymbol{z})$寻找某个函数$f(\boldsymbol{z})$的期望。这里，$\boldsymbol{z}$的元素可能是离散变量、连续变量或者二者的结合。因此，在连续变量的情形下，我们希望计算下面的期望
 \begin{equation}
+\label{zhongyao}
 	\mathbb{E}[f]=\int f(\boldsymbol{z})p(\boldsymbol{z}d\boldsymbol{z})
 \end{equation}
 采样方法背后的一般思想是得到从概率分布$p(\boldsymbol{z})$中独立抽取的一组变量$\boldsymbol{z}^{(l)}$，其中$l=1,\dots,L$。这使得期望可以通过有限和的方式计算，即
