@@ -7,6 +7,7 @@
 \end{equation}
 采样方法背后的一般思想是得到从概率分布$p(\boldsymbol{z})$中独立抽取的一组变量$\boldsymbol{z}^{(l)}$，其中$l=1,\dots,L$。这使得期望可以通过有限和的方式计算，即
 \begin{equation}
+\label{youxian}
 	\hat{f}=\frac{1}{L}\sum_{l=1}^{L}f(\boldsymbol{z}^{(l)})
 \end{equation}
 只要样本$\boldsymbol{z}^{(l)}$是从概率分布$p(\boldsymbol{z})$中抽取的，那么$\mathbb{E}[\hat{f}]=\mathbb{E}[f]$，因此估计$\hat{f}$具有正确的均值。估计$f$的方差为
