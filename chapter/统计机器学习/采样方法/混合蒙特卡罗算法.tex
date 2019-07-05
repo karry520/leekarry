@@ -3,4 +3,70 @@
 
 本节中，我们介绍一类更加复杂的转移方法。这些方法基于对物理系统的一个类比，能够让系统发生较大的改变，同时让拒绝的概率较低。它适用于连续变量上的概率分布，对于连续变量，我们已经能够计算对数概率关于状态变量的梯度。我们会讨论动态系统框架，然后，我们会解释这个框架如何与Metroplolis算法结合，产生出一个强大的混合蒙特卡罗算法。
 \subsection*{动态系统}
+随机采样的动态方法起源于模拟哈密顿动力学下进行变化的物理系统的行为。在马尔可夫链蒙特卡罗模拟中，目标是从一个给定的概率分布$p(z)$中采样。通过将概率仿真转化为哈密顿系统的形式，我们可以利用哈密顿动力学(Hamiltonian dynamics)的框架。
+
+我们考虑的动力学对应于在连续时刻(记作$\tau$)下的状态变量$z=\{z_i\}$的演化。经典的动力学由牛顿第二定律描述。我们可以将一个二阶微分方程分解为两个相互偶合的一阶方程，方法是引入中间的动量(momentum)变量$r$，对应于状态变量$z$的变化率，元素为
+\begin{equation}
+	r_i=\frac{\mathrm{d}z_i}{\mathrm{d}\tau}
+\end{equation}
+从动力学的角度，$z_i$可以被看做位置(position)变量。因此对于每个位置变量，都存在一个对应的动量变量，位置和动量组成的联合空间被称为相空间(phase space)。
+
+不失一般性，我们可以将概率分布$p(z)$写成下面的形式
+\begin{equation}
+	p(z)=\frac{1}{Z_p}\exp (-E(z))
+\end{equation}
+其中$E(z)$可以看做状态$z$处的势能(potential energy)。系统的加速度是动量的变化率，通过施加力的方式确定，它本身是势能的负梯度，即
+\begin{equation}
+	\frac{\mathrm{d}r_i}{\mathrm{d}\tau}=-\frac{\partial E(z)}{\partial z_i}
+\end{equation}
+
+使用哈密顿框架重新写出这个动态系统的公式是比较方便的。为了完成这一点，我们首先将动能(kinetic energy)定义为
+\begin{equation}
+	K(r)=\frac{1}{2}\lVert r\rVert^2=\frac{1}{2}\sum_ir_i^2
+\end{equation}
+系统的总能量是势能和动能之和，即
+\begin{equation}
+	H(z,r)=E(z)+K(r)
+\end{equation}
+其中$H$是哈密顿函数(Hamiltonian function)。我们现在可以将系统的动力学用哈密顿方程的形式表示出来，形式为
+\begin{flalign}
+	\frac{\mathrm{d}z_i}{\mathrm{d}\tau}&=\frac{\partial H}{\partial r_i}\\
+	\frac{\mathrm{d}r_i}{\mathrm{d}\tau}&=-\frac{\partial H}{\partial z_i}
+\end{flalign}
+在动态系统的变化过程中，哈密顿函数$H$的值是一个常数，这一点通过求微分的方式很容易看出来。
+\begin{equation}
+	\begin{aligned}
+		\frac{\mathrm{d}H}{\mathrm{d}\tau}&=\sum_i\left\{\frac{\partial H}{\partial z_i}\frac{\mathrm{d}z_i}{\mathrm{d}\tau}+\frac{\partial H}{\partial r_i}\frac{\mathrm{d}r_i}{\mathrm{d}\tau} \right\}\\
+		&=\sum_i\left\{\frac{\partial H}{\partial z_i}{\color{red}{\frac{\partial H}{\partial r_i}}-}\frac{\partial H}{\partial r_i}{\color{red}{\frac{\partial H}{\partial z_i}}} \right\}\\
+		&=0
+	\end{aligned}
+\end{equation}
+哈密顿动态系统的第二个重要性质是动态系统在相空间中体积不变，这被称为Liouville定理。换句话说，如果我们考虑变量$(z,r)$空间中的一个区域，那么当这个区域在哈密顿动态方程下的变化时，它的形状可能会改变，但是它的体积不会改变。可以这样证明：我们注意到流场(位置在相空间的变化率)为
+\begin{equation}
+	V=\left(\frac{\mathrm{d}z}{\mathrm{d}\tau},\frac{\mathrm{d}r}{\mathrm{d}\tau} \right)
+\end{equation}
+这个场的散度为零，即
+\begin{equation}
+	\begin{aligned}
+		\mathrm{div}V&=\sum_i \left\{\frac{\partial }{\partial z_i}\frac{\mathrm{d}z_i}{\mathrm{d}\tau}+\frac{\partial }{\partial r_i}\frac{\mathrm{d}r_i}{\mathrm{d}\tau} \right\}\\
+		&=\sum_i \left\{\frac{\partial }{\partial z_i}\frac{\partial H}{\partial r_i}-\frac{\partial }{\partial r_i}\frac{\partial H}{\partial z_i} \right\}\\
+		&=0
+	\end{aligned}
+\end{equation}
+
+现在考虑相空间上的联合概率分布，它的总能量是哈密顿函数，即概率分布的形式为
+\begin{equation}
+	p(z,r)=\frac{1}{Z_H}\exp (-H(z,r))
+\end{equation}
+使用体系的不变性和H的守恒性，可以看到哈密顿动态系统会使得$p(z,r)$保持不变。可以这样证明：考虑相空间的一个小区域，区域中H近似为常数。如果我们跟踪一段有限时间内的哈密顿方程的变化，那么这个区域的体积不会发生改变，从而这个区域的H的值不会发生改变，因此概率密度(只是H的函数)也不会改变。
+
+虽然H是不变的，但是$z$和$r$是会发生变换，因此通过在一个有限的时间间隔上对哈密顿动态系统积分，我们就可以让z以一种系统化的方式发生圈套的变化，避免了随机游走的行为。
+
+然而，哈密顿动态系统的变化对$p(z,r)$的采样不具有各态历经性，因为H的值是一个常数。为了得到一个具有各态历经性的采样方法，我们可以在相空间中引入额外的移动，这些移动会改变H的值，同时也保持了概率分布$p(z,r)$的不变性。达到这个目标的最简单的方式是将$r$的值为一个从以$z$为条件的概率分布中抽取的样本。这可以被看成吉布斯采样的步骤，因此，我们看到这也使得所求的概率分布保持了不变性。
+
+在这种方法的一个实际应用中，我们必须解决计算哈密顿方程的数值积分的问题。这会引入一些数值的误差，因此我们要设计一种方法来最小化这些误差产生的影响。完成这件事的一种方法是蛙跳(leapfrog)离散化。
+
+总结一下，哈密顿动力学方法涉及到交替地进行一系列蛙跳更新以及根据动量变量的边缘分布进行重新采样。
+
+注意，与基本的Metropolis方法不同，哈密顿动力学方法能够利用对数概率分布的梯度信息以及概率分布本身的信息。在函数最优化领域有一个类似的情形。大多数可以得到梯度信息的情况下，使用哈密顿动力学方法是很有优势的。非形式化地说，这种现象是由于下面的事实造成的：在D维空间中，与计算函数本身的代价相比，计算梯度所带来的额外的计算代价通常是一个与D无关的固定因子。而与函数本身只能传递一条信息相比，D维梯度向量可以传递D条信息。
 \subsection*{混合蒙特卡罗方法}
