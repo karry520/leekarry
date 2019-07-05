@@ -1,1 +1,44 @@
 \section{吉布斯采样}
+吉布斯采样是一个简单的并且广泛应用的马尔可夫链蒙特卡罗算法，可以被看做Metropolis-Hastings算法的一个具体的情形。
+
+考虑我们想采样的概率分布$p(z)=p(z_1,\dots,z_M)$，并且假设我们已经选择了马尔可夫链的某个初始的状态。吉布斯采样的每个步骤及到将一个变量的值替换为以剩余变量的值为条件，从这个概率分布中抽取的那个变量的值。因此我们将$z_i$替换为从概率分布$p(z_i|z_{\backslash i})$中抽取的值，其中$z_i$表示$z$的第$i$个元素，$z_{\backslash i}$表示$z_1,\dots,z_M$去掉$z_i$这一项。这个步骤要么按照某种特定的顺序在变量之间进行循环，要么每一步中按照某个概率分布随机地选择一个变量进行更新。
+
+例如，假设我们有一个在三个变量上的概率分布$p(z_1,z_2,z_3)$，在算法的第$\tau$步，我们已经选择了$z_1^{(\tau)},z_2^{(\tau)},z_3^{(\tau)}$的值。首先，我们将$z_1^{(\tau)}$替换为新值$z_1^{(\tau+1)}$，这个新值是从条件概率分布
+\begin{equation}
+	p(z_1|z_2^{(\tau)},z_3^{(\tau)})
+\end{equation}
+中采样得到的。接下来，我们将$z_2^{\tau}$替换为新值$z_2^{\tau+1}$，这个新值是从条件概率分布
+\begin{equation}
+	p(z_2|z_1^{(\tau+1)},z_3^{(\tau)})
+\end{equation}
+中采样得到的，即$z_1$的新值可以在接下来的采样步骤中直接使用。然后，我们使用样本$z_3^{\tau+1}$更新$z_3$，其中$z_3^{(\tau+1)}$
+是从
+\begin{equation}
+	p(z_3|z_1^{(\tau+1)},z_2^{(\tau+1)})
+\end{equation}
+中抽取的。以此类推，在这三个变量之间进行循环。
+\begin{enumerate}
+	\item 初始化$\{z_i:i=1,\dots,M \}$。
+	\item 对于$\tau=1,\dots,T:$
+	\begin{enumerate}[-]
+		\item 采样$z_1^{(\tau+1)}\sim p(z_1|z_2^{(\tau)},z_3^{(\tau)},\dots,z_M^{(\tau)})$。
+		\item 采样$z_2^{(\tau+1)}\sim p(z_2|z_1^{(\tau+1)},z_3^{(\tau)},\dots,z_M^{(\tau)})$。
+		\item $\vdots$
+		\item 采样$z_j^{(\tau+1)}\sim p(z_j|z_1^{(\tau+1)},\dots,z_{j-1}^{(\tau+1)},z_{j+1}^{(\tau)},\dots,z_M^{(\tau)})$。
+		\item $\vdots$
+		\item 采样$z_M^{(\tau+1)}\sim p(z_M|z_1^{(\tau+1)},z_2^{(\tau+1)},\dots,z_{M-1}^{(\tau+1)})$。
+	\end{enumerate}
+\end{enumerate}
+为了证明这个步骤能够从所需的概率分布中采样，我们首先注意到对于吉布斯采样的每个步骤来说，概率分布$p(z)$是不变的，因此对于整个马尔可夫链来说也是不变的。为了让吉布斯采样能够从正确的概率分布中得到样本，第二个需要满足的要求为各态历经性。各态历经性的一个充分条件是没有条件概率分处处为零。为了完成算法，初始状态的概率分布也应该被指定，虽然在多轮迭代之后，样本与初始状态的分布无关。当然，马尔可夫链中的连续的样本是高度相关的，因此为了得到近似独立的样本，需要对序列进行下采样。
+
+我们可以将吉布斯采样步骤看成Metropolis-Hastings算法的一个特定的情况，如下所述。考虑一个Metropolis-Hastings采样的步骤，它涉及到变量$z_k$，同时保持剩余的变量$z_{\backslash k}$不变，并且对于这种情形来说，从$z$到$z^*$的转移概率为$q_k(z^*|z)=p(z_k^*|z_{\backslash})$。我们注意到$z_{\backslash k}^*=z_{\backslash k}$，因为在采样的步骤中，向量的各个元素都不改变。并且，$p(z)=p(z_k|z_{\backslash k})p(z_{\backslash k})$。因此，确定Metropolis-Hastings算法中的接受概率的因子为
+\begin{equation}
+\begin{aligned}
+	A(z^*,z)=\frac{p(z^*)q_k(z|z^*)}{p(z)q_k(z^*|z)}&=\frac{p(z_k^*|z_{\backslash k}^*)p(z_{\backslash k}^*)p(z_k|z_{\backslash k}^*)}{p(z_k|z_{\backslash k})p(z_{\backslash k})p(z_k^*|z_{\backslash k})}\\
+	&=\frac{p(z_k^*|z_{\backslash k}^*)p(z_{\backslash k}^*)p(z_k|z_{\backslash k}^*)}{p(z_k|{\color{red}{z_{\backslash k}^*}})p({\color{red}{z_{\backslash k}^*}})p(z_k^*|{\color{red}{z_{\backslash k}^*}})}\\
+	&=1
+\end{aligned}
+\end{equation}
+推导时我们用到了$z_{\backslash k}^*=z_{\backslash k}$。因此Metropolis-Mastings步骤问题被接受的。
+
+由于基本的吉布斯采样方法每次只考虑一个变量，因此它在连续样本之间具有很强的依赖性。在另一个极端情况下，如果我们直接从联合概率分布中采样(我们一直假定这种操作无法完成)，那么连续地对一组变量进行采样，而不是对一个变量进行采样。这就是分块吉布斯(blocking Gibbs)采样算法。这种算法中，将变量集合分块(未必互斥)，然后在每个块内部联合地采样，采样时以剩余的变量为条件。
