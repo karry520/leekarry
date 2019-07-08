@@ -10,5 +10,271 @@
 	\item 概率PCA可以被用来对类条件概率密度建模，因此可以应用于分类问题。
 	\item 概率PCA模型可以用一种生成式的方式运行，从而可以按照某个概率分布生成样本。
 \end{itemize}
+这种概率模型形式的PCA由Tipping and Bishop和Roweis独立提出。它与因子分析(factor analysis)密切相关。
+
+概率PCA是线性高斯框架的一个简单的例子，其中所有的边缘概率分布和条件概率分布都是高斯分布。我们可以按照下面的方式建立概率PCA模型。首先显式地引入潜在变量$\boldsymbol{z}$，对应于主成分子空间。接下来我们定义潜在变量上的一个高斯先验分布$p(z)$以及以潜在变量的值为条件，观测变量$\boldsymbol{x}$的高斯条件概率分布$p(\boldsymbol{x}|\boldsymbol{z})$。具体地说，$\boldsymbol{z}$上的先验概率分布是一个零均值单位协方差的高斯分布
+\begin{equation}
+	p(\boldsymbol{z})=\mathcal{N}(\boldsymbol{z}|0,\boldsymbol{I})
+\end{equation}
+类似地，以潜在变量$\boldsymbol{z}$的值为条件，观测变量$\boldsymbol{x}$的条件概率分布还是高斯分布，形式为
+\begin{equation}
+	p(\boldsymbol{x}|\boldsymbol{z})=\mathcal{N}(\boldsymbol{x}|\boldsymbol{W}\boldsymbol{z}+\boldsymbol{\mu},\sigma^2\boldsymbol{I})
+\end{equation}
+其中$\boldsymbol{x}$的均值是$\boldsymbol{z}$的一个一般的线性函数，由$D\times M$的矩阵$\boldsymbol{W}$和D维向量$\boldsymbol{\mu}$控制。注意，可以关于$\boldsymbol{x}$的各个元素进行分解，换句话说，这是朴素贝叶斯模型的一个例子。
+
+我们可以从生成式的观点看待概率PCA模型，其中观测值的一个采样值通过下面的方式获得：首先为潜在变量选择一个值，然后以这个潜在变量的值为条件，对观测变量采样。具体来说，D维观测变量$\boldsymbol{x}$由M
+维潜在变量$\boldsymbol{z}$的一个线性变换附加一个高斯“噪声”定义，即
+\begin{equation}
+\label{1233}
+	\boldsymbol{x}=\boldsymbol{Wz}+\boldsymbol{\mu}+\boldsymbol{\epsilon}
+\end{equation}
+其中$\boldsymbol{z}$是一个M维高斯潜在变量，$\boldsymbol{\epsilon}$是一个D维零均值高斯分布的噪声变量，协方差为$\sigma^2\boldsymbol{I}$。注意，这个框架基于的是从潜在空间到数据空间的一个映射，这与之前讨论的PCA的传统观点不同。从数据空间到潜在空间的逆映射可以通过使用贝叶斯定理的方式得到。
+
+假设我们希望使用最大似然的方式确定参数$\boldsymbol{W,\mu}$和$\sigma^2$的值。为了写出似然函数的表达式，我们需要观测变量的边缘概率分布$p(\boldsymbol{x})$的表达式。
+\begin{equation}
+	p(\boldsymbol{x})=\int p(\boldsymbol{x}|\boldsymbol{z})p(\boldsymbol{z})d\boldsymbol{z}
+\end{equation}
+由于这对应于一个线性高斯模型，因此边缘概率分布还是高斯分布，形式为
+\begin{equation}
+\label{1235}
+	p(\boldsymbol{x})=\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu,C})
+\end{equation}
+其中$D\times D$协方差矩阵$C$被定义为
+\begin{equation}
+	\begin{aligned}
+	C&=\mathrm{var}[\boldsymbol{x}]=\mathrm{var}[\boldsymbol{Wz}+\boldsymbol{\mu}+\boldsymbol{\epsilon}]\\
+	&=\mathrm{var}[\boldsymbol{Wz}]+\mathrm{var}[\boldsymbol{\epsilon}]\\
+	&=\boldsymbol{WIW}^T+\sigma^2\boldsymbol{I}\\
+	&=\boldsymbol{WW}^T+\sigma^2\boldsymbol{I}
+	\end{aligned}
+\end{equation}
+我们注意到预测概率分布是高斯分布，然后使用公式$\ref{1233}$计算它的均值和协方差，结果为
+\begin{flalign}
+	\mathbb{E}[\boldsymbol{x}]&=\mathbb{E}[\boldsymbol{Wz}+\boldsymbol{\mu}+\boldsymbol{\epsilon}]=\boldsymbol{\mu}\\
+	\mathrm{var}[\boldsymbol{x}]&=\boldsymbol{WW}^T+\sigma^2\boldsymbol{I}
+\end{flalign}
+其中我们使用了下面的事实：$\boldsymbol{z}$和$\boldsymbol{\epsilon}$是独立的随机变量，因此非相关。
+
+预测分布$p(\boldsymbol{x})$由参数$\boldsymbol{W,\mu}$和$\sigma^2$控制。然而，这些参数中存在冗余性，对应于潜在空间坐标的旋转。
+
+与预测分布$p(\boldsymbol{x})$一样，我们也需要后验概率分布$p(\boldsymbol{z}|\boldsymbol{x})$，这可以直接使用公式给出的线性高斯模型的结果写出来，结果为
+\begin{equation}
+	p(\boldsymbol{z}|\boldsymbol{x})=\mathcal{N}(\boldsymbol{z}|\boldsymbol{M}^{-1}\boldsymbol{W}^T(\boldsymbol{x}-\boldsymbol{\mu}),\sigma^2\boldsymbol{M}^{-1})
+\end{equation}
+注意，后验均值依赖于$\boldsymbol{x}$，而后验协方差与$\boldsymbol{x}$无关。
 \subsection*{最大似然PCA}
+我们接下来考虑使用最大似然法确定模型的参数，给定观测数据点的数据点$\boldsymbol{X}=\{\boldsymbol{x}_n\}$，概率PCA模型可以表示为一个有向图。
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=red]
+		
+		\node[state] (A) {$Z_n$};
+		\node[state,below of=A,fill=gray!25] (B) {$X_n$};
+		
+		\node[circle,inner sep=0.1cm,fill=red,left of=A,label=left:$\sigma^2$](C){}; 
+		\node[circle,inner sep=0.1cm,fill=red,left of=B,label=left:$\boldsymbol{\mu}$](D){}; 
+		\node[circle,inner sep=0.1cm,fill=red,right of=B,label=right:$\boldsymbol{W}$](E){}; 
+		\node[right of=B,xshift=-1.4cm,yshift=-0.6cm,blue](G) {$N$};
+		\node[draw,color=blue,inner sep=0.3cm,rectangle,fit=(A)(B),rounded corners](F){};
+		
+		\path (A) edge[->] (B)
+		(C) edge[->] (B)
+		(D) edge[->] (B)
+		(E) edge[->] (B);
+	\end{tikzpicture}
+\end{center}
+根据公式$\ref{1235}$，对应的对数似然函数为
+\begin{equation}
+	\begin{aligned}
+		\ln p(\boldsymbol{X}|\boldsymbol{\mu},\boldsymbol{W},\sigma^2)&=\sum_{n=1}^{N}\ln p(\boldsymbol{x}_n|\boldsymbol{\mu},\boldsymbol{W},\sigma^2)\\
+		&=-\frac{ND}{2}\ln (2\pi)-\frac{N}{2}\ln |C|-\frac{1}{2}\sum_{n=1}^{N}(\boldsymbol{x}_n-\boldsymbol{\mu})^TC^{-1}(\boldsymbol{x}_n-\boldsymbol{\mu})
+	\end{aligned}
+\end{equation}
+令似然函数关于$\boldsymbol{\mu}$的导数等于零，可以得到预期的结果$\boldsymbol{\mu}=\bar{\boldsymbol{x}}$，代回到似然函数中，我们有
+\begin{equation}
+\begin{aligned}
+	\ln p(\boldsymbol{X}|\boldsymbol{\mu},\boldsymbol{W},\sigma^2)&=-\frac{N}{2}\{D\ln (2\pi)+\ln |C|\}+\frac{N}{2}\mathrm{Tr}\left(C^{-1}\frac{1}{N}\sum_{n=1}^{N}(\boldsymbol{x}_n-\boldsymbol{\mu})^T(\boldsymbol{x}_n-\boldsymbol{\mu}) \right)\\
+	&=-\frac{N}{2}\{D\ln (2\pi)+\ln |C|+\mathrm{Tr}(C^{-1}S) \}
+\end{aligned}
+\end{equation}
+其中$S$是协方差矩阵。由于对数似然函数是$\boldsymbol{\mu}$的二次函数，因此解具有唯一的最大值，可以通过计算二阶导数的方式验证这一点。
+
+\begin{proof}迹运算描述Frobenius范数
+	
+	设$A$是m行n列的矩阵，A的行向量是$\overrightarrow{b}_1^T,\dots,\overrightarrow{b}_m^T$。那么 
+	\begin{equation}
+		A=\begin{pmatrix}
+			\overrightarrow{b}_1^T\\
+			\overrightarrow{b}_2^T\\
+			\vdots\\
+			\overrightarrow{b}_m^T
+		\end{pmatrix},\qquad 
+		A^T=\begin{pmatrix}
+			\overrightarrow{b}_1,
+			\overrightarrow{b}_2,
+			\dots
+			\overrightarrow{b}_m^T
+		\end{pmatrix}
+	\end{equation}
+	\begin{equation}
+		AA^T=\begin{pmatrix}
+			\overrightarrow{b}_1^T\\
+			\overrightarrow{b}_2^T\\
+			\vdots\\
+			\overrightarrow{b}_m^T
+		\end{pmatrix}\begin{pmatrix}
+			\overrightarrow{b}_1,
+			\overrightarrow{b}_2,
+			\dots
+			\overrightarrow{b}_m^T
+		\end{pmatrix}=\begin{pmatrix}
+			\overrightarrow{b}_1^T\overrightarrow{b}_1&\overrightarrow{b}_1^T\overrightarrow{b}_2&
+			\dots&
+			\overrightarrow{b}_1^T\overrightarrow{b}_m\\
+			\overrightarrow{b}_2^T\overrightarrow{b}_1&\overrightarrow{b}_2^T\overrightarrow{b}_2&
+			\dots&
+			\overrightarrow{b}_2^T\overrightarrow{b}_m\\
+			\vdots&\vdots&\ddots&\vdots\\
+			\overrightarrow{b}_m^T\overrightarrow{b}_1&\overrightarrow{b}_m^T\overrightarrow{b}_2&
+			\dots&
+			\overrightarrow{b}_m^T\overrightarrow{b}_m			
+		\end{pmatrix}
+	\end{equation}
+	因为迹运算返回的是矩阵对角线元素的和，所以：
+	\begin{equation}
+		\mathrm{Tr}(AA^T)=\sum_{i=1}^{m}\overrightarrow{b}_i^T\overrightarrow{b}_i
+	\end{equation}
+	$\overrightarrow{b}_i^T$是矩阵A的第i行。$\overrightarrow{b}_i^T=(A_{i,1},\dots,A_{i,n})$，$\overrightarrow{b}_i^T\overrightarrow{b}_i$是矩阵A第i行行向量的内积。那么
+	\begin{equation}
+		\overrightarrow{b}_i^T\overrightarrow{b}_i=\sum_{j=1}^{n}A_{ij}^2
+	\end{equation}
+	推出
+	\begin{equation}
+		\mathrm{Tr}(AA^T)=\sum_{i=1}^{m}\sum_{j=1}^{n}A_{ij}^2
+	\end{equation}
+	即
+	\begin{equation}
+		\lVert A \rVert_F=\sqrt{\sum_{i=1}^{m}\sum_{j=1}^{n}A_{ij}^2}=\sqrt{\mathrm{Tr}(AA^T)}
+	\end{equation}
+\end{proof}
+
+令$F=-\ln p(\boldsymbol{X}|\boldsymbol{\mu},\boldsymbol{W},\sigma^2)$(忽略掉常数项)。
+\begin{equation}
+	F=\ln |C|-\mathrm{Tr}(C^{-1}S)
+\end{equation}
+\begin{enumerate}
+	\item 令 $\frac{\mathrm{d}F}{\mathrm{d}\boldsymbol{W}}=0$求$\boldsymbol{W}$
+	\begin{equation}
+		\begin{aligned}
+			\mathrm{d}F&=\mathrm{d}\ln |\boldsymbol{C}| +\mathrm{d}\mathrm{Tr}(\boldsymbol{C}^{-1}\boldsymbol{S})\\
+			&=\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}C)+\mathrm{Tr}(\mathrm{d}C^{-1}\boldsymbol{S})\\
+			&=\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}C)-\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}\boldsymbol{C}\boldsymbol{C}^{-1}\boldsymbol{S})\\
+			&=\mathrm{Tr}(\boldsymbol{C}^{-1}(\mathrm{d}\boldsymbol{WW}^T+\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T))-\mathrm{Tr}(\boldsymbol{C}^{-1}(\mathrm{d}\boldsymbol{WW}^T+\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T)\boldsymbol{C}^{-1}\boldsymbol{S})
+		\end{aligned}
+	\end{equation}
+	根据迹的性质，有
+	\begin{equation}
+		\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}\boldsymbol{WW}^T)=\mathrm{Tr}(\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T\boldsymbol{C}^{-1})=\mathrm{Tr}(\boldsymbol{C}^{-1}\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T)
+	\end{equation}
+	代入上式中，有
+	\begin{equation}
+		\begin{aligned}
+			\mathrm{d}F&=2\mathrm{Tr}(\boldsymbol{C}^{-1}\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T)-2\mathrm{Tr}(\boldsymbol{C}^{-1}\boldsymbol{SC}^{-1}\boldsymbol{W}\mathrm{d}\boldsymbol{W}^T)\\
+			&=2\mathrm{Tr}[(\boldsymbol{C}^{-1}\boldsymbol{W}-\boldsymbol{C}^{-1}\boldsymbol{SC}^{-1}\boldsymbol{W})\mathrm{d}\boldsymbol{W}^T]
+		\end{aligned}
+	\end{equation}
+	因此，
+	\begin{equation}
+		\frac{1}{2}\frac{\mathrm{d}F}{\mathrm{d}\boldsymbol{W}}=\boldsymbol{C}^{-1}\boldsymbol{W}-\boldsymbol{C}^{-1}\boldsymbol{SC}^{-1}\boldsymbol{W}
+	\end{equation}
+	令$\frac{\mathrm{d}F}{\mathrm{d}\boldsymbol{W}}=0$，可求得
+	\begin{equation}
+	\begin{aligned}
+		\boldsymbol{W}&=\boldsymbol{SC}^{-1}\boldsymbol{W}\\
+		&=\boldsymbol{S}(\sigma^2\boldsymbol{I}_D+\boldsymbol{WW}^T)^{-1}\boldsymbol{W}\\
+		&=\boldsymbol{S}\boldsymbol{W}(\sigma^2\boldsymbol{I}_M+\boldsymbol{W}^T\boldsymbol{W})^{-1}
+	\end{aligned}
+	\end{equation}
+	对$\boldsymbol{W}^T\boldsymbol{W}=\boldsymbol{V}\Lambda \boldsymbol{V}^T$作分解，代入有
+	\begin{equation}
+		\begin{aligned}
+			&\boldsymbol{S}\boldsymbol{W}(\boldsymbol{V}\sigma^2\boldsymbol{I}_M\boldsymbol{V}^T+\boldsymbol{V}\Lambda \boldsymbol{V}^T)^{-1}=\boldsymbol{W}\\
+			&\Rightarrow\boldsymbol{S}\boldsymbol{W}{(\boldsymbol{V}^T)}^{-1}(\sigma^2\boldsymbol{I}_M+\Lambda )^{-1}\boldsymbol{V}^{-1}=\boldsymbol{W}\\
+			&\Rightarrow\boldsymbol{S}\boldsymbol{W}\boldsymbol{V}(\sigma^2\boldsymbol{I}_M+\Lambda )^{-1}=\boldsymbol{W}\boldsymbol{V}
+		\end{aligned}
+	\end{equation}
+	对$\boldsymbol{WV}$正交化，有
+	\begin{equation}
+		\Lambda^{-\frac{1}{2}}\boldsymbol{V}^T\boldsymbol{W}^T\boldsymbol{W}\boldsymbol{V}\Lambda^{-\frac{1}{2}}=\Lambda^{-\frac{1}{2}}\boldsymbol{V}^T\boldsymbol{V}\Lambda \boldsymbol{V}^T\boldsymbol{V}\Lambda^{-\frac{1}{2}}=\boldsymbol{I}
+	\end{equation}
+	因此，我们有
+	\begin{equation}
+		\boldsymbol{S}\boldsymbol{W}\boldsymbol{V}\Lambda^{-\frac{1}{2}}=\boldsymbol{W}\boldsymbol{V}\Lambda^{-\frac{1}{2}}(\sigma^2\boldsymbol{I}+\Lambda )
+	\end{equation}
+	令$U_M=\boldsymbol{WV\Lambda}^{-\frac{1}{2}},L_M=\sigma^2\boldsymbol{I}_M+\Lambda$，我们有
+	\begin{equation}
+		\begin{aligned}
+			\boldsymbol{S}U_M&=U_ML_M\\
+			\Rightarrow \boldsymbol{W}_{ML}&=U_M\Lambda^{\frac{1}{2}}\boldsymbol{V}^T= U_M(L_M-\sigma^2\boldsymbol{I}_M)^{\frac{1}{2}}\boldsymbol{V}^T
+		\end{aligned}
+	\end{equation}
+	
+	
+	\item 令$\frac{\mathrm{d}F}{\mathrm{d}\sigma^2}=0$求$\sigma^2$
+	
+	\begin{equation}
+		\begin{aligned}
+			\mathrm{d}F&=\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}\sigma^2\boldsymbol{I})-\mathrm{Tr}(\boldsymbol{C}^{-1}\mathrm{d}\sigma^2\boldsymbol{C}^{-1}\boldsymbol{S})\\
+			&=[\mathrm{Tr}(\boldsymbol{C}^{-1})-\mathrm{Tr}(\boldsymbol{C}^{-1}\boldsymbol{S}\boldsymbol{C}^{-1})]\mathrm{d}\sigma^2
+		\end{aligned}
+	\end{equation}
+	令
+	\begin{equation}
+		\frac{\mathrm{d}F}{\mathrm{d}\sigma^2}=\mathrm{Tr}(\boldsymbol{C}^{-1}-\boldsymbol{C}^{-1}\boldsymbol{S}\boldsymbol{C}^{-1})=0
+	\end{equation}
+	计算$\boldsymbol{C}^{-1}$
+	\begin{equation}
+		\boldsymbol{C}^{-1}=(\sigma^2\boldsymbol{I}_D+\boldsymbol{WW}^T)^{-1}=\sigma^{-2}\boldsymbol{I}_D-\sigma^{-2}\boldsymbol{W}(\sigma^2\boldsymbol{I}_M+\boldsymbol{W}^T\boldsymbol{W})^{-1}\boldsymbol{W}^T
+	\end{equation}
+	等式两边同乘$\boldsymbol{S}$有
+	\begin{equation}
+		\begin{aligned}
+			\boldsymbol{S}\boldsymbol{C}^{-1}&=\sigma^{-2}\boldsymbol{S}-\sigma^{-2}\boldsymbol{S}\boldsymbol{W}(\sigma^2\boldsymbol{I}_M+\boldsymbol{W}^T\boldsymbol{W})^{-1}\boldsymbol{W}^T\\
+			&=\sigma^{-2}\boldsymbol{S}-\sigma^{-2}\boldsymbol{WW}^T\quad (\text{因为}\boldsymbol{S}\boldsymbol{W}(\sigma^2\boldsymbol{I}_M+\boldsymbol{W}^T\boldsymbol{W})^{-1}=\boldsymbol{W})
+		\end{aligned}
+	\end{equation}
+	代入上式中，有
+	\begin{equation}
+	\begin{aligned}
+		\boldsymbol{C}^{-1}\boldsymbol{S}\boldsymbol{C}^{-1}-\boldsymbol{C}^{-1}&=\boldsymbol{C}^{-1}\sigma^{-2}\boldsymbol{S}-\boldsymbol{C}^{-1}\sigma^{-2}\boldsymbol{WW}^T-\boldsymbol{C}^{-1}\\
+		&=\sigma^{-2}\boldsymbol{C}^{-1}\boldsymbol{S}-\boldsymbol{C}^{-1}\sigma^{-2}\boldsymbol{WW}^T-\boldsymbol{C}^{-1}\\
+		&=\sigma^{-2}(\sigma^{-2}\boldsymbol{S}-\sigma^{-2}\boldsymbol{WW}^T)-\boldsymbol{C}^{-1}\sigma^{-2}\boldsymbol{WW}^T-\boldsymbol{C}^{-1}\\
+		&=\sigma^{-2}(\sigma^{-2}\boldsymbol{S}-\sigma^{-2}\boldsymbol{WW}^T)-\sigma^{-2}\boldsymbol{C}^{-1}(\boldsymbol{C}-\sigma^2\boldsymbol{I}_D)-\boldsymbol{C}^{-1}\\
+		&=\sigma^{-2}(\sigma^{-2}\boldsymbol{S}-\sigma^{-2}\boldsymbol{WW}^T)-\sigma^{-2}\boldsymbol{I_D}\\
+		&=\sigma^{-4}\boldsymbol{S}-\sigma^{-4}\boldsymbol{WW}^T-\sigma^{-2}\boldsymbol{I}_D\\
+	\end{aligned}
+	\end{equation}
+	求得
+	\begin{equation}
+		\begin{aligned}
+			\frac{\mathrm{d}F}{\mathrm{d}\sigma^2}=\mathrm{Tr}(\boldsymbol{C}^{-1}-\boldsymbol{C}^{-1}\boldsymbol{S}\boldsymbol{C}^{-1})=\sigma^{-4}\mathrm{Tr}(\boldsymbol{S}-\boldsymbol{WW}^T-\sigma^2\boldsymbol{I}_D)=0
+		\end{aligned}
+	\end{equation}
+	我们有
+	\begin{equation}
+		\begin{aligned}
+			\sigma^2\mathrm{Tr}(\boldsymbol{I}_D)&=\mathrm{Tr}(\boldsymbol{S})-\mathrm{Tr}(\boldsymbol{W}^T\boldsymbol{W})\\
+			D\sigma^2&=\mathrm{Tr}(\boldsymbol{S})-\mathrm{Tr}(L-\sigma^2\boldsymbol{I}_M)\\
+			&=\mathrm{Tr}(\boldsymbol{S})-\mathrm{Tr}(L_M)+M\sigma^2\\
+			(D-M)\sigma^2&=\mathrm{Tr}(\boldsymbol{S})-\mathrm{Tr}(L_M)\\
+			\sigma^2&=\frac{\mathrm{Tr}(\boldsymbol{S})-\mathrm{Tr}(L_M)}{D-M}\\
+			&=\frac{1}{D-M}\sum_{i=M+1}^{D}\lambda_i
+		\end{aligned}
+	\end{equation}
+\end{enumerate}
+总结一下，
+\begin{flalign}
+	\boldsymbol{W}_{ML}&=U_M(L_M-\sigma^2\boldsymbol{I}_M)^{\frac{1}{2}}\boldsymbol{V}^T\\
+	\sigma_{ML}^2&=\frac{1}{D-M}\sum_{i=M+1}^{D}\lambda_i
+\end{flalign}
 \subsection*{用于PCA的EM算法}
