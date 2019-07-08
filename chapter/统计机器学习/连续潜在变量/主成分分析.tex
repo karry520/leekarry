@@ -92,3 +92,35 @@ S是数据的协方差矩阵，优化问题变成
 	Su_i=\lambda_iu_i
 \end{equation}
 \subsection*{PCA的应用}
+首先考虑PCA对于数据压缩的应用。我们可以写出对数据向量$\boldsymbol{x}_n$的PCA近似，形式为
+\begin{equation}
+\begin{aligned}
+	\tilde{\boldsymbol{x}}_n&=\sum_{i=1}^{M}(\boldsymbol{x}_n^T\boldsymbol{u}_i)\boldsymbol{u}_i+\sum_{i=M+1}^{D}(\bar{\boldsymbol{x}}^T\boldsymbol{u}_i)\boldsymbol{u}_i\\
+	&=\bar{\boldsymbol{x}}+\sum_{i=1}^{M}(\boldsymbol{x}_n^T\boldsymbol{u}_i-\bar{\boldsymbol{x}}^T\boldsymbol{u}_i)\boldsymbol{u}_i
+\end{aligned}
+\end{equation}
+其中我们使用了关系
+\begin{equation}
+	\bar{\boldsymbol{x}}=\sum_{i=1}^{D}(\bar{\boldsymbol{x}}^T\boldsymbol{u}_i)\boldsymbol{u}_i
+\end{equation}
+这个关系来自于$\{\boldsymbol{u}_i\}$的完整性。这种方法表示了对数据集的一个压缩，因为对于每个数据点，我们将D维向量$\boldsymbol{x}_n$替换为M维向量，元素为$(\boldsymbol{x}_n^T\boldsymbol{u}_i-\bar{\boldsymbol{x}}^T\boldsymbol{u}_i)$。M的值越小，压缩的程度越大。
+
+主成分分析的另一个应用是数据预处理。在这种情况下，目标不是维度降低，而是对数据集进行变换，使得数据集的某些属性得到标准化。这对于后续将模式识别算法成功应用于数据集来说很重要。
+
+使用PCA，我们可以对数据进行更显著的归一化，得到零均值和单位方差的数据，从而不同的变量之间的相关性关系被消除。为了完成这一点，我们首先将特征向量方程写成下面的形式
+\begin{equation}
+	\boldsymbol{SU}=\boldsymbol{UL}
+\end{equation}
+其中，$\boldsymbol{L}$是一个$D\times D$的对角矩阵，元素为$\lambda_i$，$\boldsymbol{U}$是一个$D\times D$的正交矩阵，列为$\boldsymbol{u}_i$。然后对于每个数据点$\boldsymbol{x}_n$，我们定义一个变换，值为
+\begin{equation}
+	\boldsymbol{y}_n=\boldsymbol{L}^{-\frac{1}{2}}\boldsymbol{U}^T(\boldsymbol{x}_n-\bar{\boldsymbol{x}})
+\end{equation}
+其中$\bar{\boldsymbol{x}}$是样本均值。很明显，集合$\{\boldsymbol{y}_n\}$的均值为零，协方差是单位矩阵，因为
+\begin{equation}
+	\begin{aligned}
+		\frac{1}{N}\sum_{n=1}^{N}\boldsymbol{y}_n\boldsymbol{y}_n^T&=\frac{1}{N}\sum_{n=1}^{N}\boldsymbol{L}^{-\frac{1}{2}}\boldsymbol{U}^T(\boldsymbol{x}_n-\bar{\boldsymbol{x}})(\boldsymbol{x}_n-\bar{\boldsymbol{x}})^T\boldsymbol{UL}^{-\frac{1}{2}}\\
+		&=\boldsymbol{L}^{-\frac{1}{2}}\boldsymbol{U}^T\boldsymbol{SUL}^{-\frac{1}{2}}\\
+		&=\boldsymbol{L}^{-\frac{1}{2}}\boldsymbol{LL}^{-\frac{1}{2}}=\boldsymbol{I}
+	\end{aligned}
+\end{equation}
+\subsection*{高维数据的PCA}
