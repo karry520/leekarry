@@ -1,1 +1,38 @@
 \section{委员会}
+构建一个委员会的最简单的方法是对一组独立的模型的预测取平均。这样的方法的动机可以从频率学家的观点看出来。这种观点考虑偏置和方差之间的折中，它将模型的误差分解为偏置分量和方差分量，其中偏置分量产生于模型和真实的需要预测的函数之间的差异，方差分量表示模型对于单独的数据点的敏感性。
+
+在实际应用中，我们只有一个单独的数据集，因此我们必须寻找一种方式来表示委员会中不同模型之间的变化性。委员会预测为
+\begin{equation}
+	y_{COM}=\frac{1}{M}\sum_{m=1}^{M}y_m(\boldsymbol{x})
+\end{equation}
+这个方法被称为自助聚集(bootstrap aggregation)或者打包(bagging)。
+
+假设我们试图预测的真实的回归函数为$h(\boldsymbol{x})$，从而每个模型的输出可以写成真实值加上误差的形式，即
+\begin{equation}
+	y_m(\boldsymbol{x})=h(\boldsymbol{x})+\epsilon_m(\boldsymbol{x})
+\end{equation}
+这样，平方和误差函数的形式为
+\begin{equation}
+	\mathbb{E}_{\boldsymbol{x}}[\{y_m(\boldsymbol{x})-h(\boldsymbol{x}) \}^2]=\mathbb{E}_{\boldsymbol{x}}[\epsilon_m(\boldsymbol{x})^2]
+\end{equation}
+其中$\mathbb{E}[\cdot]$表示关于输入向量$\boldsymbol{x}$的一个频率学家的期望。于是，各个模型独立预测的平均误差为
+\begin{equation}
+	E_{AV}=\frac{1}{M}\sum_{m=1}^{M}\mathbb{E}_{\boldsymbol{x}}[\epsilon_m(\boldsymbol{x})^2]
+\end{equation}
+类似地，委员会方法的预测的期望误差为
+\begin{equation}
+	\begin{aligned}
+		E_{COM}&=\mathbb{E}_{\boldsymbol{x}}\left[\left\{\frac{1}{M}\sum_{m=1}^{M}y_m(\boldsymbol{x})-h(\boldsymbol{x}) \right\}^2 \right]\\
+		&=\mathbb{E}_{\boldsymbol{x}}\left[\left\{\frac{1}{M}\sum_{m=1}^{M}\epsilon_m(\boldsymbol{x}) \right\}^2 \right]
+	\end{aligned}
+\end{equation}
+如果我们假设误差的均值为零，且不具有相关性，即
+\begin{flalign}
+	\mathbb{E}_{\boldsymbol{x}}[\epsilon_m(\boldsymbol{x})]&=0\\
+	\mathbb{E}_{\boldsymbol{x}}[\epsilon_m(\boldsymbol{x})\epsilon_l(\boldsymbol{x})]&=0,\quad m\ne l
+\end{flalign}
+那么我们有
+\begin{equation}
+	E_{COM}=\frac{1}{M}E_{AV}
+\end{equation}
+结果表明，一个模型的平均误差可以仅仅通过对模型的M个版本求平均的方式减小M倍。不幸的是，它依赖于我们的关键假设，即由各个单独的模型产生的误差是不相关的。在实际应用中，误差通常是高度相关的，因此整体的误差下降通常是很小的。然而，可以证明，委员会误差的期望不会超过各个分量模型的期望误差，即$E_{COM}\leq E_{AV}$。为了得到更显著的提升，我们转向一种更加复杂的构建委员会的方法，被称为提升方法。

@@ -26,6 +26,7 @@ AdaBoost的做法是，提高那些被前一轮弱分类器错误分类样本的
 		\end{equation}
 		\item 计算$G_m(x)$在训练数据集上的分类误差率
 		\begin{equation}
+		\label{ouran}
 			e_m=\sum_{i=1}^NP(G_m(x_i)\ne y_i) = \sum_{i=1}^Nw_{mi}I(G_m(x_i)\ne y_i)
 		\end{equation}
 		这表明，$G_m(x)$在加权的训练数据集上的分类误差率是被$G_m(x)$误分类样本的权值之和。
@@ -44,15 +45,15 @@ AdaBoost的做法是，提高那些被前一轮弱分类器错误分类样本的
 		\end{center}
 		由上图可知，当$e_m\leqslant \frac{1}{2}$时，$a_m\geqslant 0$，并且$a_m$随着$e_m$的减小而增大，所以\textbf{分类误差率越小的基本分类器在最终分类器中的作用越大}。
 		\item 更新训练数据集的权值分布
-		\begin{equation}
-		\label{hhh}
-			\begin{aligned}
+		\begin{flalign}
+			\label{hhh}
 			D_{m+1}&=(w_{m+1,1},\dots,m_{m+1,i},\dots, w_{m+1,N})\\
+			\label{busan}
 			w_{m+1,i} &= \frac{w_{mi}}{Z_m}exp(-a_my_iG_m(x_i)),i=1,2,\dots,N
-			\end{aligned}
-		\end{equation}
+		\end{flalign}
 		这里，$Z_m$是规范化因子
 		\begin{equation}
+		\label{89}
 		Z_m = \sum_{i=1}^N w_{mi}exp(-a_m y_iG_m(x_i))
 		\end{equation}
 		它使$D_{m+1}$成为一个概率分布。式$\ref{hhh}$可以写成
@@ -67,16 +68,69 @@ AdaBoost的做法是，提高那些被前一轮弱分类器错误分类样本的
 	\end{enumerate}
 	\item 构建基本分类器的线性组合
 	\begin{equation}
+	\label{88}
 		f(x) = \sum_{m=1}^Ma_mG_m(x)
 	\end{equation}
 	得到最终分类器
 	\begin{equation}
+	\label{87}
 		G(x) = sign(f(x)) = sign\left( \sum_{m=1}^Ma_mG_m(x) \right)
 	\end{equation}
 	线性组合$f(x)$实现M个基本分类器的加权表决。系数$a_m$表示了基本分类器$G_m(x)$的重要性，这里，所有$a_m$之和并不为1.$f(x)$的符号决定实例$x$的类，$f(x)$的绝对值表示分类的确信度。利用基本分类器的线性组合构建最终分类器是AdaBoost的另一个特点。
 \end{enumerate}
 
 \subsection*{AdaBoost算法的训练误差分析}
-AdaBoost最基本的性质是它能在学习过程中不断减少训练误差，即在训练数据集上的分类误差率。
+AdaBoost最基本的性质是它能在学习过程中不断减少训练误差，即在训练数据集上的分类误差率。关于这个问题有下面的定理：
+\begin{theorem}{AdaBoost的训练误差界}{}
+	AdaBoost算法最终分类器的训练误差界为
+	\begin{equation}
+		\frac{1}{N}\sum_{i=1}^{N}I(G(x_i)\ne y_i)\leqslant \frac{1}{N}\sum_i\exp (-y_if(x_i))=\prod_mZ_m
+	\end{equation}
+	这里，$G(x)$，$f(x)$和$Z_m$分别由$\ref{87}$,\ref{88}和$\ref{89}$给出。
+\end{theorem}
+\begin{proof}
+	
+	当$G(x_i)\ne y_i$时，$y_if(x_i)<0$，因而$\exp(-y_if(x_i))\geqslant 1$。由此直接推导出前半部分。
+	
+	后半部分要用到$Z_m$的定义式$\ref{89}$及$\ref{busan}$的变形：
+	\begin{equation}
+		w_{mi}\exp(-\alpha_m y_iG_m(x_i))=Z_mw_{m+1,i}
+	\end{equation}
+	现推导如下
+	\begin{equation}
+		\begin{aligned}
+			\frac{1}{N}&\sum_i\exp(-y_if(x_i))\\
+			&=\frac{1}{N}\sum_i\exp\left(-\sum_{m=1}^{M}\alpha_my_iG_m(x_i)\right)\\
+			&=\sum_iw_{1i}\prod_{m=1}^{M}\exp(-\alpha_my_iG_m(x_i))\\
+			&=Z_1\sum_iw_{2i}\prod_{m=2}^{M}\exp(-\alpha_my_iG_m(x_i))\\
+			&\dots\\
+			&=Z_1Z_2\dots Z_{M-1}\sum_iw_{Mi}\exp(-\alpha_my_iG_m(x_i))\\
+			&=\prod_{m=1}^{M}Z_m
+		\end{aligned}
+	\end{equation}
+\end{proof}
+这一定理说明，可以在每一轮选取适当的$G_m$使得$Z_m$最小，从而使训练误差下降最快。对二类分类问题，有如下结果：
+\begin{theorem}{二类分类问题AdaBoost的训练误差界}{}
+	\begin{equation}
+		\prod_{m=1}^{M}Z_m=\prod_{m=1}^{M}[2\sqrt{e_m(1-e_m)}]=\prod_{m=1}^{M}\sqrt{(1-4\gamma_m^2)}\leqslant \exp\left(-2\sum_{m=1}^{M}\gamma_m^2 \right)
+	\end{equation}
+	这里，$\gamma_m=\frac{1}{2}-e_m$。
+\end{theorem}
+\begin{proof}
+	由$Z_m$的定义式$\ref{89}$及$\ref{ouran}$得
+	\begin{equation}
+	\begin{aligned}
+		Z_m&=\sum_{i=1}^{N}w_{mi}\exp(-\alpha_my_iG_m(x_i))\\
+		&=\sum_{y_i=G_m(x_i)}w_{mi}e^{-\alpha_m}+\sum_{y\ne G_m(x_i)}w_{mi}e^{\alpha_m}\\
+		&=(1-e_m)e^{-\alpha_m}+e_me^{\alpha_m}\\
+		&=2\sqrt{e_m(1-e_m)}=\sqrt{1-4\gamma_m^2}
+	\end{aligned}
+	\end{equation}
+	至于不等式
+	\begin{equation}
+		\prod_{m=1}^{M}\sqrt{(1-4\gamma_m^2)}\leqslant \exp\left(-2\sum_{m=1}^{M}\gamma_m^2 \right)
+	\end{equation}
+	则可由$e^x$和$\sqrt{1-x}$在点$x=0$的泰勒展开式推出不等式$\sqrt{(1-4\gamma_m^2)}\leqslant \exp(-2\gamma_m^2)$，进而得到。
+\end{proof}
 \subsection*{AdaBoost算法的解释}
 AdaBoost算法还有另一个解释，即可以认为AdaBoost算法是模型为加法模型、损失函数为指数函数、学习算法为前向分步算法时的二类分类学习方法
