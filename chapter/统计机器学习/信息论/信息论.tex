@@ -1,0 +1,119 @@
+信息量可以被看成在学习$x$的值的时候的“惊讶程度”。我们对于信息内容的度量将依赖于概率分布$p(x)$，因此我们想要寻找一个函数$h(x)$，它是概率$p(x)$的单调递增函数，表达了信息的内容。$h(\cdot)$的形式可以这样寻找：如果我们有两个不相关的事件$x$和$y$，那么我们观察到两个事件同时发生时获得的信息应该等于观察到事件各自发生时获得的信息之和，即$h(x,y)=h(x)+h(y)$。两个不相关事件是统计独立的，因此$p(x,y)=p(x)p(y)$。根据这两个关系，很容易看出$h(x)$一定与$p(x)$对数有关。因此，我们有
+\begin{equation}
+\label{192}
+	h(x)=-\log_2p(x)
+\end{equation}
+其中，负号确保了信息一定是正数或者是零。注意，低概率事件$x$对应于高的信息量。对数的底的选择是任意的。
+
+现在假设一个发送者想传输一个随机变量的值给接收者。这个过程中，他们传输的平均信息量可以通过求公式$\ref{192}$关于概率分布$p(x)$的期望得到。这个期望值为
+\begin{equation}
+	H[x]=-\sum_xp(x)\log_2p(x)
+\end{equation}
+这个重要的量被叫做随机变量$x$的熵(entropy)。无噪声编码定理(noiseless coding theorem)表明，熵是传输一个随机变量状态值所需的比特位的下界。
+
+我们已经通过具体化随机变量的状态所需的平均信息量介绍了熵的概念。事实上，熵的概念最早起源于物理学，是在热力学平衡的背景中介绍的。后来，熵成为描述统计力学中的无序程度的度量。我们可以这样理解熵的这种含义：考虑一个集合，包含N个完全相同的物体，这些物体要被分到若干个箱子中，使得第$i$个箱子中有$n_i$。考虑把物体分配到箱子中的不同方案的数量。有N种方式选择第一个物体，有$(N-1)$种方式选择第二个物体，以此类推。因此总共有$N!$种方式把N个物体分配到箱子中。然而，我们不想区分每个箱子内部物体的重新排列。有第$i$个箱子中，有$n_i!$种方式对物体重新排序，因此把N个物体分配到箱子中的总方案数量为
+\begin{equation}
+	W=\frac{N!}{\prod_{i}n_i!}
+\end{equation}
+这被称为乘数(multiplicity)。熵被定义为通过适当的参数放缩后的对数乘数，即
+\begin{equation}
+	H=\frac{1}{N}\ln W=\frac{1}{N}\ln N! = \frac{1}{N}\sum_i \ln n_i!
+\end{equation}
+我们现在考虑极限$N\to \infty$，并且保持比值$\frac{n_i}{N}$固定，使用Stirling的估计
+\begin{equation}
+	\ln N!\simeq N\ln N - N
+\end{equation}
+可以得到
+\begin{equation}
+	H=-\lim_{N\to \infty} \sum_i \left(\frac{n_i}{N}\right)\ln\left(\frac{n_i}{N}\right)=-\sum_ip_i\ln p_i
+\end{equation}
+推导时我们使用了$\sum_i n_i = N$。使用物理学的术语，箱子中物体的具体分配方案被称为微观状态(microstate)，整体的占领数的分布，表示为比值$\frac{n_i}{N}$，被称为宏观状态(macrostate)。乘数W也被称为宏观状态的权重(weight)。
+
+在概率归一化的限制下，使用拉格朗日乘数法可以找到熵的最大值。因此，我们要最大化
+\begin{equation}
+	\tilde{H}=-\sum_ip(x_i)\ln p(x_i)+\lambda \left(\sum_ip(x_i)-1 \right)
+\end{equation}
+可以证明，当所有的$p(x_i)$都相等，且值为$p(x_i)=\frac{1}{M}$时，熵取得最大值。其中，$M$是状态$x_i$的总数。此时对应的熵值为$H=\ln M$。这个结果也可以通过Jensen不等式推导出来。
+
+我们可以把熵的定义扩展到连续变量$x$的概率分布$p(x)$。方法如下，首先把$x$切分成宽度为$\triangle$的箱子。然后假设$p(x)$是连续的。
+\begin{equation}
+	H[x]=\lim_{\triangle\to 0}-\sum_ip(x_i)\ln p(x_i)\left\{ \right\}=-\int p(x)\ln p(x)dx
+\end{equation}
+其中，右侧的量被称为微分熵(differential entropy)。我们看到，熵的离散形式与连续形式的差是$\ln \triangle$，这在极限$\triangle\to 0$的情形下发散。这反映同一个事实：具体化一个连续变量需要大量的比特位。
+
+在离散分布的情况下，我们看到最大熵对应于变量的所有可能状态的均匀分布。现在让我们考虑连续变量的最大熵。为了让最大值有一个合理一定义，有必要限制$p(x)$的一阶矩和二阶矩，同时要保留归一化的限制。因此
+我们要优化下面的关于$p(x)$的函数
+\begin{equation}
+	\begin{aligned}
+		-\int_{-\infty}^{+\infty}p(x)\ln p(x)dx+\lambda_1\left(-\int_{-\infty}^{+\infty}p(x)-1 \right)
+		+\lambda_2\left(-\int_{-\infty}^{+\infty}xp(x)dx-\mu \right)\\+\lambda_3\left(-\int_{-\infty}^{+\infty}(x-\mu)^2p(x)dx -\sigma^2\right)
+	\end{aligned}
+\end{equation}
+使用变分法中，令这个函数的导数等于零，我们有
+\begin{equation}
+	p(x)=\exp\{-1+\lambda_1+\lambda_2x+\lambda_3(x-\mu)^2\}
+\end{equation}
+将这个结果代入三个限制方程中，即可求出拉格朗日乘数，最终的结果为
+\begin{equation}
+	p(x)=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}
+\end{equation}
+因此最大化微分熵的分布是高斯分布。求解高斯分布的微分熵
+\begin{equation}
+	\begin{aligned}
+		H[x]&=-\int \frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}\ln \frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}dx\\
+		&=-\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\int \exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}\left(-\ln(\sqrt{2\pi}\sigma)-\frac{(x-\mu)^2}{2\sigma^2} \right)dx\\
+		&=\frac{\ln(\sqrt{2\pi\sigma}}{(2\pi\sigma^2)^{\frac{1}{2}}}\int \exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}dx+\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\int \exp\left\{-\frac{(x-\mu)^2}{2\sigma^2} \right\}\frac{(x-\mu)^2}{2\sigma^2}dx\\
+		&=\frac{\ln(\sqrt{2\pi\sigma}}{(2\pi\sigma^2)^{\frac{1}{2}}}\sqrt{2}\sigma\int \exp\left\{-\left(\frac{x-\mu}{\sqrt{2\sigma}}\right)^2 \right\}d\left(\frac{x-\mu}{\sqrt{2\sigma}}\right)\\
+		&\ \ + \frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\sqrt{2}\sigma\int \exp\left\{-\left(\frac{x-\mu}{\sqrt{2\sigma}}\right)^2 \right\}\frac{(x-\mu)^2}{2\sigma^2}d\left(\frac{x-\mu}{\sqrt{2\sigma}}\right)\\
+		&=\frac{\ln (\sqrt{2\pi}\sigma)}{\sqrt{\pi}}\int_{-\infty}^{+\infty}\exp (-y^2)dy+\frac{1}{\sqrt{\pi}}\int_{-\infty}^{+\infty}\exp (-y^2)y^2dy\\
+		&=\ln(\sqrt{2\pi}\sigma)+\frac{1}{\sqrt{\pi}}\cdot -\frac{1}{2}\left(0-\int_{-\infty}^{+\infty}\exp(-y^2)dy \right)\\
+		&=\ln(\sqrt{2\pi}\sigma)+\frac{1}{2}\\
+		&=\frac{1}{2}\left(\ln(2\pi \sigma^2)+1\right)
+	\end{aligned}
+\end{equation}
+
+假设我们有一个联合概率分布$p(x,y)$。当我们从这个概率分布中抽取了一对$x$和$y$。如果$x$的值已知，那么需要确定对应的$y$值所需的附加的信息就是$-\ln p(y|x)$。因此，用来确定$y$值的平均附加信息可以写成
+\begin{equation}
+	H[y|x]=-\iint p(y,x)\ln p(y|x)dydx
+\end{equation}
+这被称为给定$x$的情况下，$y$的条件熵。使用乘积规则，很容易看出，条件熵满足下面的关系 
+\begin{equation}
+	H[x,y]=H[y|x]+H[x]
+\end{equation}
+其中，$H[x,y]$是$p(x,y)$的微分熵，$H[x]$是边缘分布$p(x)$的微分熵。因此，描述$x$和$y$所需的信息是描述$x$自己抽需的信息，加上给定$x$的情况下具体化$y$所需的额外信息。
+
+\subsection*{相对熵和互信息}
+目前为止，我们已经介绍了信息论的许多概念，包括熵的关键思想。现在开始把这些思想关联到模式识别的问题中。考虑某个未知的分布$p(x)$，假定我们已经使用一个近似的分布$q(x)$对它进行了建模。如果我们使用$q(x)$来建立一个编码体系，用来把$x$的值传给接收者，那么，由于我们使用了$q(x)$而不是真实分布$p(x)$，因此在具体化$x$的值时，我们需要一些附加的信息。我们需要的平均的附加信息量为
+\begin{equation}
+	\begin{aligned}
+		\mathrm{KL}(p\| q)&=-\int p(x)\ln q(x)dx-\left(-\int p(x)\ln p(x)dx\right)\\
+		&=-\int p(x)\ln \left\{\frac{q(x)}{p(x)} \right\}dx
+	\end{aligned}
+\end{equation}
+这被称为分布$p(x)$和分布$q(x)$之间的相对熵(relative entropy)或者Kullback-Leibler散度(Kullback-Leibler divergence)，或者KL散度。注意这不是一个对称量，即$\mathrm{KL}(p\| q)\neq  \mathrm{KL}(q\| p)$
+
+\begin{equation}
+	\mathrm{KL}(p\| q)=-\int p(x)\ln \left\{\frac{q(x)}{p(x)} \right\}dx \geqslant -\ln \int q(x)dx=0
+\end{equation}
+推导过程中，我们使用了$-\ln x$是凸函数的事实，以及归一化条件$\int q(x)dx=1$和Jensen不等式。
+
+我们看到，在数据压缩和密度估计(即对未知概率分布建模)之间有一种隐含的关系，因为当我们知道真实的概率分布之后，我们可以给出最有效的压缩。如果我们使用了不同于真实分布的概率分布，那么我们一定会损失编码效率，并且在传输时增加的平均额外信息量至少等于两个分布之间的Kullback-Leibler散度。
+
+假设数据通过未知分布$p(x)$生成，我们想要对$p(x)$建模。我们可以试着使用一些参数分布$q(x|\theta)$来近似这个分布。$q(x|\theta)$由可调节的参数$\theta$控制。一种确定$\theta$的方式是最小化$p(x)$和$q(x|\theta)$之间关于$\theta$的Kullback-Leibler散度。我们不能直接这么做，因为我们不知道$p(x)$。但是，假设我们已经观察到了服从分布$p(x)$的有限数量的训练点$x_n$，其中$n=1,\dots,N$。那么，关于$p(x)$的期望就可以通过这些点的有限加和，使用公式来近似
+\begin{equation}
+	\mathrm{KL}(p\| q)\simeq \frac{1}{N}\sum_{n=1}^{N}\{-\ln q(x_n|\theta)+\ln p(x_n) \}
+\end{equation}
+公式右侧的第二项与$\theta$无关，第一项是使用训练集估计的分布$q(x|\theta)$下的$\theta$的负对数似然函数。因此我们看到，最小化Kullback-Leibler散度等价于最大化似然函数。
+
+现在考虑由$p(x,y)$给出的两个变量$x$和$y$组成的数据集。如果变量的集合是独立的，那么他们的联合分布可以分解为边缘分布的乘积$p(x,y)=p(x)p(y)$。如果变量不是独立的，那么我们可以通过考察联合概率分布与边缘概率分布乘积之间的Kullback-Leibler散度来判断它们是否“接近”于相互独立。此时，Kullback-Leibler散度为
+\begin{equation}
+	\begin{aligned}
+		I[x,y]&\equiv \mathrm{KL}(p(x,)\| p(x)p(y))\\
+		&=-\iint p(x,y)\ln \left(\frac{p(x)p(y)}{p(x,y)}\right)dxdy
+	\end{aligned}
+\end{equation}
+这被称为变量$x$和变量$y$之间的互信息(mutual information)。根据Kullback-Leibler散度的性质，我们看到$I[x,y]\geqslant 0$，当且仅当$x$和$y$相互独立时等号成立。互信息和条件熵之间的关系为
+\begin{equation}
+	I[x,y]=H[x]-H[x|y]=H[y]-H[y|x]
+\end{equation}
+因此我们可以把互信息看成由于知道$y$值而造成的$x$的不确定性的减小(反这亦然)。从贝叶斯的观点来年，我们可以把$p(x)$看成$x$的先验概率分布，把$p(x|y)$看成我们观察到新数据$y$之后的后验概率分布。因此互信息表示一个新的观测$y$造成的$x$的不确定性的减小。
