@@ -2,7 +2,7 @@
 指数族分布的成员有许多共同的重要性质，并且以某种程度的一般性下讨论这些性质是很有启发性的。参数为$\eta$的变量$x$的指数族分布定义为具有下面形式的概率分布的集合
 \begin{equation}
 \label{fa}
-	p(x|\eta)=h(x)g(\eta)exp\{\eta^Tu(x)\}
+	p(x|\eta)=h(x)g(\eta)\exp\{\eta^Tu(x)\}
 \end{equation}
 其中$x$可能是标量或者向量，可能是离散的或者是连续的。这里$\eta$被称为概率分布的自然参数(natural parameters)，$u(x)$是$x$的某个函数。函数$g(\eta)$可以被看成系数，它确保了概率分布是归一化的，因此满足
 \begin{equation}
@@ -14,9 +14,9 @@
 	
 	\begin{equation}
 		\begin{aligned}
-			p(x|\mu)&=Bern(x|\mu)=\mu^x(1-\mu)^{1-x}\\
-			&=exp\{x\ln \mu +(1-x)\ln (1-\mu) \}\\
-			&=(1-\mu)exp\left\{\ln\left(\frac{\mu}{1-\mu} \right)x \right\}
+			p(x|\mu)&=\mathrm{Bern}(x|\mu)=\mu^x(1-\mu)^{1-x}\\
+			&=\exp\{x\ln \mu +(1-x)\ln (1-\mu) \}\\
+			&=(1-\mu)\exp\left\{\ln\left(\frac{\mu}{1-\mu} \right)x \right\}
 		\end{aligned}
 	\end{equation}
 	与公式$\ref{fa}$比较，可以看出
@@ -25,17 +25,17 @@
 	\end{equation}
 	从中可以解出$\eta$，得到$\mu=\sigma(\eta)$，其中
 	\begin{equation}
-		\sigma(\eta)=\frac{1}{1+exp(-\eta)}
+		\sigma(\eta)=\frac{1}{1+\exp(-\eta)}
 	\end{equation}
 	被称为logistic sigmoid函数。因此可以使用公式$\ref{fa}$给出的标准形式把伯努利分布写成下面的形式
 	\begin{equation}
-		p(x|\mu)=\sigma(-\eta)exp(\eta x)
+		p(x|\mu)=\sigma(-\eta)\exp(\eta x)
 	\end{equation}
 	\item 单一观测$x$的多项式分布
 	
 	\begin{equation}
 	\begin{aligned}
-		p(x|\mu)&=\prod_{k=1}^{M}\mu_k^{x_k}=exp\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
+		p(x|\mu)&=\prod_{k=1}^{M}\mu_k^{x_k}=\exp\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
 		\mu(x)&=x\\
 		h(x)&=1\\
 		g(\eta)&=1
@@ -48,9 +48,9 @@
 	因此给定任意M-1个参数$\mu_k$，剩下的参数就固定了。使用这个限制，这种表达方式下多项式分布变成了
 	\begin{equation}
 		\begin{aligned}
-			exp&\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
-			&=exp\left\{\sum_{k=1}^{M-1}x_k\ln \mu_k +\left(1-\sum_{k=1}^{M-1}x_k \right)\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right)\right\}\\
-			&=exp\left\{\sum_{k=1}^{M-1}x_k\ln \left(\frac{\mu_k}{1-\sum_{j=1}^{M-1}\mu_k} \right)+\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right) \right\}
+			\exp&\left\{\sum_{k=1}^{M}x_k\ln\mu_k \right\}\\
+			&=\exp\left\{\sum_{k=1}^{M-1}x_k\ln \mu_k +\left(1-\sum_{k=1}^{M-1}x_k \right)\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right)\right\}\\
+			&=\exp\left\{\sum_{k=1}^{M-1}x_k\ln \left(\frac{\mu_k}{1-\sum_{j=1}^{M-1}\mu_k} \right)+\ln \left(1-\sum_{k=1}^{M-1}\mu_k \right) \right\}
 		\end{aligned}
 	\end{equation}
 	令
@@ -59,23 +59,23 @@
 	\end{equation}
 	从中我们可以解出$\mu_k$。首先两侧对k求和，然后整理，回带，可得
 	\begin{equation}
-		\mu_k=\frac{exp(\eta_k)}{1+\sum_{j}exp(\eta_j)}
+		\mu_k=\frac{\exp(\eta_k)}{1+\sum_{j}exp(\eta_j)}
 	\end{equation}
 	这被称为softmax函数，或者归一化指数(normalized exponential)。在这个表达方式的形式下，多项式分布的形式为
 	\begin{equation}
-		p(x|\eta)=\left(1+\sum_{k=1}^{M-1}exp(\mu_k)\right)^{-1}exp(\mu^Tx)
+		p(x|\eta)=\left(1+\sum_{k=1}^{M-1}\exp(\mu_k)\right)^{-1}\exp(\mu^Tx)
 	\end{equation}
 	这是指数族分布的标准形式，其中参数向量$\eta=(\eta_1,\dots,\eta_{M-1},0)^T$。在这个指数族分布中
 	\begin{flalign}
 		\mu(x)&=x\\
 		h(x)&=1\\
-		g(\eta)&=\left(1+\sum_{k=1}^{M-1}exp(\eta_k)\right)^{-1}
+		g(\eta)&=\left(1+\sum_{k=1}^{M-1}\exp(\eta_k)\right)^{-1}
 	\end{flalign}
 	\item 高斯分布
 	\begin{equation}
 		\begin{aligned}
-		p(x|\mu,\sigma^2)&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}\\
-		&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}x^2+\frac{\mu}{\sigma^2}x-\frac{1}{2\sigma^2}\mu^2 \right\}\\
+		p(x|\mu,\sigma^2)&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}\\
+		&=\frac{1}{(2\pi\sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{1}{2\sigma^2}x^2+\frac{\mu}{\sigma^2}x-\frac{1}{2\sigma^2}\mu^2 \right\}\\
 		\end{aligned}
 	\end{equation}
 	经过简单的推导后，它可以转化为公式$\ref{fa}$给出的标准指数族分布的形式，其中
@@ -87,26 +87,26 @@
 		x\\x^2
 		\end{pmatrix}\\
 		h(x)&=(2\pi)^{\frac{1}{2}}\\
-		g(\eta)&=(-2\eta_2)^{\frac{1}{2}}exp\left(\frac{\eta_1^2}{4\eta_2^2}\right)
+		g(\eta)&=(-2\eta_2)^{\frac{1}{2}}\exp\left(\frac{\eta_1^2}{4\eta_2^2}\right)
 	\end{flalign}
 \end{enumerate}
 \subsection*{最大似然与充分统计量}
 用最大似然法估计公式$\ref{fa}$给出的一般形式的指数族分布的参数向量$\mu$的问题。
 \begin{equation}
-	\int h(x)g(\eta)exp\{\eta^Tu(x)\}=1
+	\int h(x)g(\eta)\exp\{\eta^Tu(x)\}=1
 \end{equation}
 对上式的两侧关于$\mu$取梯度，我们有
 \begin{equation}
 	\begin{aligned}
-	\triangledown g(\eta)&\underbrace{\int h(x)exp\{\eta^Tu(x) \}dx}_{1/g(\eta)}+g(\eta)\int h(x)exp\{\eta^Tu(x) \}u(x)dx=0
+	\triangledown g(\eta)&\underbrace{\int h(x)\exp\{\eta^Tu(x) \}dx}_{1/g(\eta)}+g(\eta)\int h(x)\exp\{\eta^Tu(x) \}u(x)dx=0
 	\\
-	&\Rightarrow -\frac{1}{g(\eta)}\triangledown g(\eta)=\int \underbrace{g(\eta) h(x)exp\{\eta^Tu(x) \}}_{p(x|\eta)}u(x)dx=\mathbb{E}[\mu(x)]\\
+	&\Rightarrow -\frac{1}{g(\eta)}\triangledown g(\eta)=\int \underbrace{g(\eta) h(x)\exp\{\eta^Tu(x) \}}_{p(x|\eta)}u(x)dx=\mathbb{E}[\mu(x)]\\
 	&\Rightarrow -\triangledown \ln g(\eta)=\mathbb{E}[u(x)]
 	\end{aligned}
 \end{equation}
 同理，\textbf{$u(x)$的协方差，可以根据$g(\eta)$的二阶导数表达，对于高阶矩的情形也类似}。因此，如果我们能够对一个来自指数族分布的概率分布进行归一化，那么我们总能够通过简单的求微分的方式找到它的矩。现在考虑一组独立同分布的数据$X=\{x_1,\dots,x_N \}$。对于这个数据集，似然函数为
 \begin{equation}
-	p(X|\eta)=\left(\prod_{n=1}^{N}h(x_n) \right)g(\eta )^Nexp\left\{\eta^T\sum_{n=1}^{N}u(x_n) \right\}
+	p(X|\eta)=\left(\prod_{n=1}^{N}h(x_n) \right)g(\eta )^N\exp\left\{\eta^T\sum_{n=1}^{N}u(x_n) \right\}
 \end{equation}
 令$\ln p(X|\eta)$关于$\eta$的导数等于零，我们可以得到最大似然估计$\mu_{ML}$满足的条件
 \begin{equation}
@@ -116,11 +116,28 @@
 \subsection*{共轭先验}
 对于指数族分布的任何成员，都存在一个共轭先验，可以写成下面的形式
 \begin{equation}
-	p(\eta|\varkappa ,v)=f(\varkappa,v)g(\eta)^vexp\{v\eta^T\varkappa \}
+	p(\eta|\varkappa ,v)=f(\varkappa,v)g(\eta)^v\exp\{v\eta^T\varkappa \}
 \end{equation}
+其中$f(\varkappa,v)$是归一化系数。为了证明这个确实是共轭先验，让我们反先验分布与似然函数相乘，得到后验概率，形式为
+\begin{equation}
+	p(\eta|\boldsymbol{X},\varkappa,v)\propto g(\eta)^{v+N}\exp\left\{\eta^T\left(\sum_{n=1}^{N}u(x_n)+v\varkappa \right) \right\}
+\end{equation}
+这与先验分布取得了相同的函数形式，从而证明了共轭性。此外，我们看到参数$v$可以看成先验分布中假想观测的有效观测数。给定$\varkappa$的情况下，每个假想观测都对充分统计量$u(x)$的值有贡献。
 \subsection*{无信息先验}
 在许多情形下，我们可能对分布应该具有的形式几乎完全不知道。这时，我们可以寻找一种形式的先验分布，被称为无信息先验(noninformative prior)。这种先验分布的目的是尽量对后验分布产生尽可能小的影响。有时被称为“让数据自己说话”。
+
+如果我们有一个由参数$\lambda$控制的分布$p(x|\lambda)$，那么我们可以尝试假设先验分布$p(\lambda)=C$常数作为一个合适的先验分布。在连续参数的情况下，这种方法有两个潜在的困难。第一个是，如果$\lambda$的取值范围是无界的，那么先验分布无法被正确地归一化，因为对$\lambda$的积分是发散的。这样的先验分布被称作反常的(improper)。第二个困难产生于概率非线性变量的概率密度的变换。
+
+这里我们考虑无信息先验的两个简单的例子。
 \begin{enumerate}
-	\item 位置参数 
-	\item 缩放参数 
+	\item 如果概率密度的形式为
+	\begin{equation}
+		p(x|\mu)=f(x-\mu)
+	\end{equation} 
+	那么参数被称为位置参数(location parameter)。这一类概率分布具有平移不变性(translation invariance)。
+	\item 考虑概率分布的形式为
+	\begin{equation}
+		p(x|\sigma)=\frac{1}{\sigma}f\left(\frac{x}{\sigma} \right)
+	\end{equation}
+	其中$\sigma>0$。注意，如果$f(x)$被正确归一化，那么这是一个归一化的概率密度。参数$\sigma$被称为缩放参数(scale parameter)，概率密度具有缩放不变性(scale invariance)。
 \end{enumerate}

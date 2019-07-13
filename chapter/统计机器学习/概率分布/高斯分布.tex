@@ -1,7 +1,7 @@
 \section{高斯分布}
 高斯分布，也被称为正态分布，广泛应用于连续型随机变量分布的模型中。对于一元变量$x$的情形，
 \begin{equation}
-	\mathcal{N}(x|\mu,\sigma^2)=\frac{1}{(2\pi \sigma^2)^{\frac{1}{2}}}exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}
+	\mathcal{N}(x|\mu,\sigma^2)=\frac{1}{(2\pi \sigma^2)^{\frac{1}{2}}}\exp\left\{-\frac{1}{2\sigma^2}(x-\mu)^2 \right\}
 \end{equation}
 其中$\mu$是均值，$\sigma^2$是方差。
 \begin{flalign}
@@ -13,7 +13,7 @@
 
 对于D维向量$\boldsymbol{x}$，多元高斯分布的形式为
 \begin{equation}
-	\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu},\Sigma)=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) \right\}
+	\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu},\Sigma)=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) \right\}
 \end{equation}
 其中，$\mu$是一个D维均值向量，$\Sigma$是一个$D\times D$的协方差矩阵，$|\Sigma|$是$\Sigma$的行列式。对$\Sigma$进行正交分解。
 \begin{flalign}
@@ -79,11 +79,43 @@ $\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离�
 \end{tikzpicture}
 \end{center}
 高斯分布的均值和方差为
-\begin{flalign}
-	\mathbb{E}[\boldsymbol{x}]&=\boldsymbol{\mu}\\
-	var[\boldsymbol{x}]&=\Sigma
-\end{flalign}
-
+\begin{equation}
+\begin{aligned}
+	\mathbb{E}[\boldsymbol{x}]&=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\int\exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) \right\}x\mathrm{d}x\\
+	&=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\int\exp\left\{-\frac{1}{2}\boldsymbol{z}^T\Sigma^{-1}\boldsymbol{z} \right\}(\boldsymbol{z}+\mu)\mathrm{d}\boldsymbol{z}
+\end{aligned}
+\end{equation}
+其中我们使用$\boldsymbol{z}=\boldsymbol{x}-\boldsymbol{\mu}$进行了变量替换。我们现在注意到指数位置是$\boldsymbol{z}$的偶函数，并且由于积分区间为$(-\infty,\infty)$，因此在因子$(\boldsymbol{z}+\boldsymbol{\mu})$中的$\boldsymbol{z}$的中的项会由于对称性变为零。因此
+\begin{equation}
+	\mathbb{E}[\boldsymbol{x}]=\boldsymbol{\mu}
+\end{equation}
+我们现在考虑高斯分布的二阶矩。在一元变量的情形下，二阶矩由$\mathbb{E}[x^2]$给出。对于多元高斯分布，有$D^2$个由$\mathbb{E}[x_ix_j]$给出的二阶矩，可以聚焦在一起组成矩阵$\mathbb{E}[\boldsymbol{xx}^T]$。这个矩阵可以写成
+\begin{equation}
+\begin{aligned}
+	\mathbb{E}[\boldsymbol{xx}^T]&=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\int\exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) \right\}\boldsymbol{xx}^T\mathrm{d}\boldsymbol{x}\\
+	&=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\int\exp\left\{-\frac{1}{2}\boldsymbol{z}^T\Sigma^{-1}\boldsymbol{z} \right\}(\boldsymbol{z}+\mu)(\boldsymbol{z}+\boldsymbol{\mu})^T\mathrm{d}\boldsymbol{z}
+\end{aligned}
+\end{equation}
+其中，我们再次应用了$\boldsymbol{z}=\boldsymbol{x}-\boldsymbol{\mu}$来进行变量替换。注意，涉及到$\boldsymbol{\mu z}^T$和$\boldsymbol{z\mu}^T$的交叉项将再次由于对称性而变为零。项$\boldsymbol{\mu \mu}^T$是常数，可以从积分中拿出。它本身等于单位矩阵，因为高斯分布是归一化的。考虑涉及到$\boldsymbol{zz}^T$的项。我们再次使用协方差矩阵的特征向量展开，以及特征向量的完备性，得到
+\begin{equation}
+	\boldsymbol{z}=\sum_{j=1}^{D}y_j\boldsymbol{u}_j
+\end{equation}
+其中$y_j=\boldsymbol{\mu}_j^T\boldsymbol{z}$，因此
+\begin{equation}
+\begin{aligned}
+	\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}&\int\exp\left\{-\frac{1}{2}\boldsymbol{z}^T\Sigma^{-1}\boldsymbol{z} \right\}\boldsymbol{zz}^T\mathrm{d}\boldsymbol{z}\\
+	&=\frac{1}{(2\pi)^{\frac{D}{2}}|\Sigma|^{\frac{1}{2}}}\sum_{i=1}^{D}\sum_{j=1}^{D}\boldsymbol{\mu}_i\boldsymbol{\mu}_j^T\int \exp\left\{-\sum_{k=1}^{D}\frac{y_k^2}{2\lambda_k} \right\}y_iy_jd\boldsymbol{y}\\
+	&=\sum_{i=1}^{D}\boldsymbol{\mu}_i\boldsymbol{\mu}_i^T\lambda_i=\Sigma
+\end{aligned}
+\end{equation}
+推导过程中我们使用了特征向量方程，以及下面的事实：中间一行的等式右侧的积分由于对称性会等于零(除非$i=j$)。因此我们有
+\begin{equation}
+	\mathbb{E}[\boldsymbol{xx}^T]=\boldsymbol{\mu\mu}^T+\Sigma
+\end{equation}
+对于高斯分布一元随机变量的方差这一特例，我们可以得到
+\begin{equation}
+	\mathrm{var}[\boldsymbol{x}]=\Sigma
+\end{equation}
 虽然高斯分布被广泛用作概率密度模型，但是它有着一些巨大的局限性.
 \begin{enumerate}
 	\item 自由参数的数量。可以进一步地把协方差矩阵限制成正比于单位矩阵，$\Sigma=\sigma^2I$，被称为各向同性isotropic的协方差。尽管这样的方法限制了概率分布的自由度的数量，并且使得求协方差矩阵的逆矩阵可以更快地完成，但是这样做也极大地限制了概率密度的形式，限制了它描述模型中有趣的相关性的能力。
@@ -114,7 +146,7 @@ $\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离�
 	已知$x\sim \mathcal{N}(\boldsymbol{\mu},\Sigma),Y=AX+B$有如下结论：
 	\begin{enumerate}
 		\item $\mathbb{E}[Y]=A\mu+B$
-		\item $var[Y]=A\cdot \Sigma \cdot A^T$
+		\item $\mathrm{var}[Y]=A\cdot \Sigma \cdot A^T$
 	\end{enumerate}
 \end{theorem}
 $x_a$可以表示为
@@ -127,7 +159,7 @@ $x_a$可以表示为
 \end{equation}
 \begin{flalign}
 	\mathbb{E}[x_a]&=(I_m\ o)(\mu_a\ \mu_b)^T=\mu_a\\
-	var[x_a]&=(I_m\ o)
+	\mathrm{var}[x_a]&=(I_m\ o)
 	\begin{pmatrix}
 		\Sigma_{aa} & \Sigma_{ab}\\
 		\Sigma_{ba} & \Sigma_{bb}
@@ -140,7 +172,7 @@ $x_a$可以表示为
 同理
 \begin{flalign}
 	\mathbb{E}[x_b]&=\mu_b\\
-	var[x_b]&=\Sigma_{bb}\\
+	\mathrm{var}[x_b]&=\Sigma_{bb}\\
 	x_b&\sim \mathcal{N}(\mu_b,\Sigma_{bb})
 \end{flalign}
 构造
@@ -164,14 +196,14 @@ $x_{b| a}$的分布为
 	\begin{pmatrix}
 		\mu_a\\\mu_b
 	\end{pmatrix}=\mu_{b| a}\\
-	var[x_{b| a}]&=(-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n)
+	\mathrm{var}[x_{b| a}]&=(-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n)
 	\begin{pmatrix}
 		\Sigma_{aa} & \Sigma_{ab}\\
 		\Sigma_{ba} & \Sigma_{bb}
 	\end{pmatrix}
 		\begin{pmatrix}
-	-\Sigma_{ba}\Sigma_{aa}^{-1}\ I_n\\
-	I
+	-\Sigma_{ba}\Sigma_{aa}^{-1}\\
+	I_n
 	\end{pmatrix}=\Sigma_{bb| a}\\
 	p(x_{b| a})&\sim \mathcal{N}(\mu_{b| a},\Sigma_{bb| a})
 \end{flalign}
@@ -182,7 +214,7 @@ $x_{b| a}$的分布为
 所以
 \begin{flalign}
 	\mathbb{E}[x_b|x_a]&=\mu_{b| a}+\Sigma_{ba}\Sigma_{aa}^{-1}x_a\\
-	var[x_b|x_a]&=var[x_{b| a}]=\Sigma_{bb| a}\\
+	\mathrm{var}[x_b|x_a]&=var[x_{b| a}]=\Sigma_{bb| a}\\
 	p(x_b|x_a)&\sim \mathcal{N}(\mu_{b| a},\Sigma_{bb| a})
 \end{flalign}
 \subsection*{高斯变量的贝叶斯定理}
@@ -198,7 +230,7 @@ $x_{b| a}$的分布为
 	\begin{flalign}
 		y&=Ax+b+\epsilon,\quad \epsilon\sim \mathcal{N}(0,L^{-1})\\
 		\mathbb{E}[y]&=\mathbb{E}(Ax+b)+\mathbb{E}(\epsilon)=A\mu+b\\
-		var[y]&=var[Ax+b+\epsilon]=A\Lambda^{-1}A^T+L^{-1}\\
+		\mathrm{var}[y]&=\mathrm{var}[Ax+b+\epsilon]=A\Lambda^{-1}A^T+L^{-1}\\
 		\label{Ga}
 		y&\sim\mathcal{N}(A\mu+b,A\Lambda^{-1}A^T+L^{-1})
 	\end{flalign}
@@ -230,14 +262,14 @@ $x_{b| a}$的分布为
 		&=E[(x-\mu)(Ax-A\mu)^T]+E[(x-\mu)\epsilon^T]\\
 		&=E[(x-\mu)(Ax-A\mu)^T]\\
 		&=E[(x-\mu)(x-\mu)^T]\cdot A^T\\
-		&=var[x]\cdot A^T\\
+		&=\mathrm{var}[x]\cdot A^T\\
 		&=\Lambda^{-1}A^T
 	\end{aligned}
 	\end{equation}
 	所以
 	\begin{flalign}
 		\mathbb{E}[x|y]&=(\Lambda+A^TLA)^{-1}\{A^TL(y-b)+\Lambda\mu \}\\
-		cov[x|y]&=(\Lambda+A^TLA)^{-1}
+		\mathrm{cov}[x|y]&=(\Lambda+A^TLA)^{-1}
 	\end{flalign}
 \end{enumerate}
 
@@ -277,15 +309,150 @@ $z(\theta^{(N)})$是当$\theta$的取值为$\theta^{(N)}$时$z$的观测值。�
 	\sum_{N=1}^{\infty}\alpha_{N}^2&<\infty
 \end{flalign}
 可以证明由公式给出的顺序估计确实以概率1收敛于根。第一个条件确保了后续的修正幅度会逐渐变小，从而这个过程可以收敛于一个极限值。第二个条件用来确保算法不会收敛不到根的值。第三个条件保证了累计的噪声具有一个有限的方差，因此不会导致收敛失败。
+
+现在让我们考虑一个一般的最大似然问题如何使用Robbins-Monro算法顺序地解决。根据定义，最大似然解$\theta_{ML}$是负对数似然函数的一个驻点，因此满足
+\begin{equation}
+	\frac{\partial }{\partial \theta}\left\{\frac{1}{N}\sum_{n=1}^{N}-\ln p(x_n|\theta) \right\}\Bigg|_{\theta_{ML}}=0
+\end{equation}
+交换导数与求和，取极限$N\to \infty$，我们有
+\begin{equation}
+	-\lim_{N\to \infty}\frac{1}{N}\sum_{n=1}^{N}\frac{\partial }{\partial \theta}\ln p(x_n|\theta)=\mathbb{E}_x\left[-\frac{\partial }{\partial \theta}\ln p(x|\theta) \right]
+\end{equation}
+因此我们看到寻找最大似然解对应于寻找回归函数的根。于是我们可以应用Robbins-Monro方法，此时它的形式为
+\begin{equation}
+	\theta^{(N)}=\theta^{(N-1)}-\alpha_{N-1}\frac{\partial }{\partial \theta^{(N-1)}}\left[-\ln p(x_N|\theta^{(N-1)}) \right]
+\end{equation}
+
+作为一个具体的例子，我们再次考虑高斯分布均值的顺序估计问题。在这种情况下，参数$\theta^{(N)}$是高斯分布均值$\mu_{ML}^{(N)}$的估计，随机变量$z$的形式为
+\begin{equation}
+	z=-\frac{\partial }{\partial \mu_{ML}}\ln p(x|\mu_{ML},\sigma^2)=-\frac{1}{\sigma^2}(x-\mu_{ML})
+\end{equation}
+因此$z$的分布是一个高斯分布，均值为$-(\mu-\mu_{ML})/\sigma^2$。
 \subsection*{高斯分布的贝叶斯推断}
-现在我们通过引入高斯分布中的参数的先验分布，介绍一种贝叶斯的方法。
+最大似然框架给出了对于参数$\boldsymbol{\mu}$和$\boldsymbol{\Sigma}$的点估计。现在我们通过引入高斯分布中的参数的先验分布，介绍一种贝叶斯的方法。
 \begin{enumerate}
 	\item $\sigma^2$已知，估计$\mu$。
+	
+	考虑一个一元高斯随机变量$x$，我们的任务是从一组N次观测$\boldsymbol{X}=\{ x_1,\dots,x_N\}$中推断均值$\mu$。似然函数，它可以看成$\mu$的函数，由下式给出
+	\begin{equation}
+		p(\boldsymbol{X}|\mu)=\prod_{n=1}^{N}p(x_n|\mu)=\frac{1}{(2\pi\sigma^2)^{\frac{N}{2}}}\exp\left\{-\frac{1}{2\sigma^2}\sum_{n=1}^{N}(x_n-\mu)^2 \right\}
+	\end{equation}
+	先验概率分布为
+	\begin{equation}
+		p(\mu)=\mathcal{N}(\mu|\mu_0,\sigma_0^2)
+	\end{equation}
+	从而后验概率为
+	\begin{equation}
+		p(\mu|\boldsymbol{X})\propto p(\boldsymbol{X}|\mu)p(\mu)
+	\end{equation}
+	可以证明后验概率的形式为
+	\begin{equation}
+		p(\mu|\boldsymbol{X})=\mathcal{N}(\mu|\mu_N,\sigma_N^2)
+	\end{equation}
+	其中
+	\begin{flalign}
+		\mu_N&=\frac{\sigma^2}{N\sigma_)^2+\sigma^2}\mu_0+\frac{N\sigma_0^2}{N\sigma_0^2+\sigma^2}\mu_{ML}\\
+		\frac{1}{\sigma_N^2}&=\frac{1}{\sigma_0^2}+\frac{N}{\sigma^2}
+	\end{flalign}
+	其中$\mu_{ML}$是$\mu$的最大似然解，由样本均值给出
+	\begin{equation}
+		\mu_{ML}=\frac{1}{N}\sum_{n=1}^{N}x_n
+	\end{equation}
+	
+	首先，我们注意到后验分布的均值是先验均值$\mu_0$和最大似然解$\mu_{ML}$的折中。如果观测数据点的数量$N=0$，那么就变成了先验均值。对于$N\to \infty$，后验均值由最大似然解给出。另外，后验概率的精度等于先验的精度加上每一个观测数据点所贡献的一个精度。当我们增加观测数据点的数量时，精度持续增加，对应于后验分布的方差持续减少。如果数据点的数量$N\to \infty$，方差$\sigma_N^2$趋于零，从而后验分布在最大似然解附近变成了无限大的尖峰。
+	
+	在顺序更新的框架下，观测到N个数据点之后的均值会根据以下两个量进行表达：观测到N-1个数据点之后的均值以及数据点$x_N$的贡献。实际上，对于推断问题来说，如果从一个顺序的观点来年，那么贝叶斯方法就变得非常自然了。为了在高斯分布均值推断的问题中说明这一点，我们把后验分布中最后一个数据点$x_N$的贡献单独写出来，即
+	\begin{equation}
+		p(\mu|\boldsymbol{X})\propto \left[p(\mu)\prod_{n=1}^{N-1}p(x_n|\mu) \right]p(x_N|\mu)
+	\end{equation}
+	方括号中的项是观测到N-1个数据点之后的后验概率分布(忽略归一化系数)。我们看到它可以被看成一个先验分布，然后使用贝叶斯定理与似然函数(与$x_N$相关)结合到了一起，得到了观察到N个数据点之后的后验概率。
 	\item $\mu$已知，估计$\sigma^2$。
+	
+	同之前一样，如果我们选择先验分布的共轭形式，那么计算将会得到极大的简化。可以证明使用精度$\lambda \equiv \frac{1}{\sigma^2}$来进行计算是最方便的，$\lambda$的似然函数的形式为
+	\begin{equation}
+		p(\boldsymbol{X}|\lambda)=\prod_{n=1}^{N}\mathcal{N}(x_n|\mu,\lambda^{-1})\propto \lambda^{\frac{N}{2}}\exp\left\{-\frac{\lambda}{2}\sum_{n=1}^{N}(x_n-\mu)^2 \right\}
+	\end{equation}
+	对应的共轭先验因此应该正比于$\lambda$的幂指数，也正比于$\lambda$的线性函数的指数。这对应于Gamma分布，定义为
+	\begin{equation}
+		\mathrm{Gam}(\lambda|a,b)=\frac{1}{\Gamma (a)}b^a\lambda^{a-1}\exp(-b\lambda)
+	\end{equation}
+	Gamma分布的均值和方差为
+	\begin{flalign}
+		\mathbb{E}[\lambda]&=\frac{a}{b}\\
+		\mathrm{var}[\lambda]&=\frac{a}{b^2}
+	\end{flalign}
+	考虑一个先验分布$\mathrm{Gam}(\lambda|a_0,b_0)$。那么我们得到后验分布
+	\begin{equation}
+		p(\lambda|\boldsymbol{X})=\propto \lambda^{a_0-1}\lambda^{\frac{N}{2}}\exp\left\{-b_0\lambda-\frac{\lambda}{2}-\frac{\lambda}{2}\sum_{n=1}^{N}(x_n-\mu)^2 \right\}
+	\end{equation}
+	我们可以把它看成形式为$\mathrm{Gam}(\lambda|a_N,b_N)$的Gamma分布，其中 
+	\begin{flalign}
+		a_N&=a_0+\frac{N}{2}\\
+		b_N&=b_0+\frac{1}{2}\sum_{n=1}^{N}(x_n-\mu)^2=b_0+\frac{N}{2}\sigma_{ML}^2
+	\end{flalign}
+	其中$\sigma_{ML}^2$是方差的最大似然估计。我们看到观测N个数据点的效果是把系数$a$的值增加$\frac{N}{2}$。因此我们可以把先验分布中的参数$a_0$看成$2a_0$个“有效”先验观测。类似地，我们看到N个数据点对参数$b$贡献了$\frac{\sigma_{ML}^2}{2}$，其中$\sigma_{ML}^2$是方差，因此我们可以把先验分布中的参数$b_0$看成方差为$\frac{2b_0}{2a_0}=\frac{b_0}{a_0}$的$2a_0$个“有效”先验观测。对于指数族分布来说，把共轭先验看成有效假想数据点是一个很通用的思想。
 	\item $\mu$和$\sigma_{2}$都未知。
+	
+	为了找到共轭先验，我们考虑似然函数对于$\mu$和$\lambda$的依赖关系
+	\begin{equation}
+		\begin{aligned}
+			p(\boldsymbol{X}|\mu,\lambda)&=\prod_{n=1}^{N}\left(\frac{\lambda}{2\pi}\right)^{\frac{1}{2}}\exp\left\{-\frac{\lambda}{2}(x_n-\mu)^2 \right\}\\
+			&\propto \left[\lambda^{\frac{1}{2}}\exp\left(-\frac{\lambda\mu^2}{2} \right) \right]^N\exp\left\{\lambda\mu\sum_{n=1}^{N}x_n-\frac{\lambda}{2}\sum_{n=1}^{N}x_n^2 \right\}
+		\end{aligned}
+	\end{equation}
+	我们现在想找到一个先验分布$p(\mu,\lambda)$，它对于$\mu$和$\lambda$的依赖与依然函数有着相同的函数形式。于是我们假设先验分布的形式为
+	\begin{equation}
+	\begin{aligned}
+		p(\mu,\lambda)&\propto \left[\lambda^{\frac{1}{2}}\exp\left(-\frac{\lambda\mu^2}{2} \right) \right]^{\beta}\exp\left\{c\lambda\mu-d\lambda \right\}\\
+		&=\exp\left\{-\frac{\beta\lambda}{2}(\mu-\frac{c}{\beta})^2 \right\}\lambda^{\frac{\beta}{2}}\exp\left\{-\left(d-\frac{c^2}{2\beta} \right)\lambda \right\}
+	\end{aligned}
+	\end{equation}
+	其中$c,d$和$\beta$都是常数。由于我们总有$p(\mu,\lambda)=p(\mu|\lambda)p(\lambda)$，因此我们可以通过观察找到$p(\mu|\lambda)$和$p(\lambda)$。特别地，我们看到$p(\mu|\lambda)$是一个高斯分布，这个高斯分布的精度是$\lambda$的一个线性函数。$p(\lambda)$是一个Gamma分布，因此归一化的先验概率的形式为
+	\begin{equation}
+	\label{zhengtai}
+		p(\mu,\lambda)=\mathcal{N}(\mu|\mu_0,(\beta\lambda)^{-1})\mathrm{Gam}(\lambda|a,b)
+	\end{equation}
+	其中我们已经定义了新的常数如下：$\mu_0=\frac{c}{\beta},a=\frac{1+\beta}{2},b=d-\frac{c^2}{2\beta}$。概率分布$\ref{zhengtai}$被称为正态-Gamma分布或者高斯-Gamma分布。注意这不是一个独立的$\mu$的高斯分布与一个$\lambda$的Gamma分布的简单乘积，因为$\mu$的精度是$\lambda$的线性函数。即使我们选择一个$\mu$和$\lambda$相互独立的先验，后验概率中，$\mu$的精度和$\lambda$的值也会相互耦合。
+	
+	对于D维向量$\boldsymbol{x}$的多元高斯分布，假设精度已知，则均值$\boldsymbol{\mu}$的共轭先验分布仍然是高斯分布。对于已知均值未知精度矩阵$\boldsymbol{\Lambda}$的情形，共轭先验是Wishart分布。如果均值和精度都是未知的，那么类似于一元变量的推理方法，共轭先验为正态-Wishart分布。
 \end{enumerate}
 \subsection*{学生t分布}
+我们已经看到高斯分布的精度的共轭先验是Gamma分布。如果我们有一个一元高斯分布$\mathcal{N}(x|\mu,\tau^{-1})$和一个Gamma先验分布$\mathrm{Gam}(\tau|a,b)$，我们把精度积分出来，我们可以得到$x$的边缘分布，形式为
+\begin{equation}
+\label{diejia}
+	\begin{aligned}
+		p(x|\mu,a,b)&=\int_0^{\infty} \mathcal{N}(\mu,\tau^{-1})\mathrm{Gam}(\tau|a,b)\mathrm{d}\tau\\
+		&=\int_0^{\infty}\frac{b^a\exp(-br)\tau^{a-1}}{\Gamma(a)}\left(\frac{\tau}{2\pi} \right)^{\frac{1}{2}}\exp\left\{-\frac{\tau}{2}(x-\mu)^2 \right\}\mathrm{d}\tau\\
+		&=\frac{b^a}{\Gamma(a)}\left(\frac{1}{2}\right)^{\frac{1}{2}}\left[b+\frac{(x-\mu)^2}{2} \right]^{-a-\frac{1}{2}}\Gamma(a+\frac{1}{2})
+	\end{aligned}
+\end{equation}
+我们定义新的参数$v=2a$和$\lambda=\frac{a}{b}$。使用新的参数，分布$p(x|\mu a,b)$的形式为
+\begin{equation}
+	p(x|\mu \lambda,v)=\frac{\Gamma(\frac{v}{2}+\frac{1}{2})}{\Gamma(\frac{v}{2})}\left(\frac{\lambda}{\pi v} \right)^{\frac{1}{2}}\left[1+\frac{\lambda(x-\mu)^2}{v} \right]^{-\frac{v}{2}-\frac{1}{2}}
+\end{equation}
+这被称为学生$t$分布(Student's t-distribution)。参数$\lambda$有时被称为$t$分布的精度(precision)，即使它通常不等于方差的倒数。参数$v$被称为自由度(degrees of freedom)。对于$v=1$的情况，$t$分布变成了柯西分布(Cauchy distribution)，而在极限$v\to \infty$的情况下，$t$分布变成了高斯分布，均值为$\mu$，精度为$\lambda$。
+
+根据公式$\ref{diejia}$，我们看到学生$t$分布可以这样通过将无限多个同均值不同精度的高斯分布相加的方式得到。这可以表示为无限的高斯混合模型。这个分布通常有着比高斯分布更长的“尾巴”，这给出了$t$分布的一个重要性质：鲁棒性(robustness)。
 \subsection*{周期变量}
+高斯分布在实际应用中非常重要，但是，有些情况下，对于连续变量，使用高斯分布建模并不合适。一个重要的情况是周期变量，这在实际应用中经常出现。
+
+这种变量使用极坐标$0\leqslant \theta \leqslant 2\pi$表示，为了找到均值的一个不变的度量，我们注意到观测可以被看做单位圆上点，因此可以被描述为一个二维单位向量$x_1,\dots,x_N$，其中$\lVert x_n\rVert=1$且$n=1,\dots,N$。我们可以对向量$\{x_n \}$，可得
+\begin{equation}
+	\bar{x}=\frac{1}{N}\sum_{n=1}^{N}x_n
+\end{equation}
+然后找到这个平均值对应的角度$\bar{\theta}$。$\bar{x}$通常位于单位圆的内部。这个观测在笛卡尔坐标系下为$x_n=(\cos \theta_n,\sin \theta_n)$，把样本均值写成笛卡尔坐标系，并令两个分量相等，可得
+\begin{equation}
+	\bar{\theta}=\tan^{-1}\left\{\frac{\sum_n\sin\theta_n}{\sum_n \cos\theta_n} \right\}
+\end{equation}
+对于周期变量，如果恰当定义一个概率分布，最大似然方法可以很自然地得出这个结果。
+
+现在考虑高斯分布对于周期变量的一个推广：von Mises分布。假设考虑二维高斯分布沿着一个固定的半径的圆周的值。之后通过构造，这个分布将会具有周期性。
+\begin{equation}
+	p(\theta|\theta_0,m)=\frac{1}{2\pi I_0(m)}\exp\{m\cos (\theta -\theta_0) \}
+\end{equation}
+这被称为von Mises分布，或者环形正态分布(circular normal)。
+
+为了完整性，简要提一下其他的建立周期概率分布的方法。最简单的方法是使用观测的直方图。另一种方法类似于von Mises分布，都是首先考虑欧几里德空间的高斯分布。但是，这种方法在单位圆上做积分，而不是把单位圆的半径当成概率密度的条件。最后一种方法的思想是，在实数轴上的任何合法的分布都可以转化成周期分布。转化的方法是，持续地把宽度为$2\pi$的区间映射为周期变量$(0,2\pi)$，这相当于把实数轴沿着单位圆进行缠绕。
 \subsection*{混合高斯模型}
 虽然高斯分布有一些重要的分析性质，但是当它遇到实际数据集时，也会有巨大的局限性。通过将更基本的概率分布进行线性组合的这样的叠加方法，可以被形式化为概率模型，被称为混合模型(mixture distributions)。通过使用足够多的高斯分布，并且调节它们的均值和方差以及线性组合的系数，几乎所有的连续概率密度都能够以任意的精度近似。考虑K个高斯概率密度的叠加，形式为
 \begin{equation}
@@ -295,3 +462,4 @@ $z(\theta^{(N)})$是当$\theta$的取值为$\theta^{(N)}$时$z$的观测值。�
 \begin{equation}
 	\sum_{k=1}^{K}\pi_k=1,\ 0\leqslant \pi_k \leqslant 1
 \end{equation}
+其中，我们把$\pi_k=p(k)$看成选择第k个成分的先验概率，把密度$\mathcal{N}(x|\mu_k,\Sigma_k)=p(x|k)$看成以$k$为条件的$x$的概率。后验概率$p(k|x)$起着一个重要作用，·经也被称为责任(responsibilities)。
