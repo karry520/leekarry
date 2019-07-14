@@ -3,7 +3,7 @@
 
 最优的预测(变分法可求出)由条件期望(记作$h(x)$)给出，即
 \begin{equation}
-	h(x)=\mathbb{E}[t|x]=\int tp(t|x)dt
+	h(\boldsymbol{x})=\mathbb{E}[t|\boldsymbol{x}]=\int tp(t|\boldsymbol{x})\mathrm{d}t
 \end{equation}
 平方损失函数的期望可以写成
 \begin{equation}
@@ -13,6 +13,10 @@
 	&=\int \{y(x)-h(x) \}^2p(x)dx + \iint \{h(x)-t\}^2p(x,t)dxdt\\
 \end{aligned}
 \end{equation}
+与$y(\boldsymbol{x})$无关的第二项，是由数据本身的噪声造成的，表明期望损失能够达到的最小值。第一项与我们对函数$y(\boldsymbol{x})$的选择有关，我们要找一个$y(\boldsymbol{x})$的解，使得这一项最小。在实际应用中，我们的数据集D只有有限的N个数据点，从而我们不能够精确地知道回归函数$h(\boldsymbol{x})$。
+
+如果我们使用由参数向量$\boldsymbol{w}$控制的函数$y(\boldsymbol{x},\boldsymbol{w})$对$h(\boldsymbol{x})$建模，那么从贝叶斯的观点来看，我们模型的不确定性是通过$\boldsymbol{w}$的概率分布来表示的。但是，频率学家的方法涉及到根据数据集$D$对$\boldsymbol{w}$进行点估计，然后度着通过下面的思想实验来表示估计的不确定性。
+
 考虑第一项的被积函数，对于一个特定的数据集$D$，它的形式为
 \begin{equation}
 	\{y(x;D)-h(x)\}^2
@@ -34,6 +38,8 @@
 	&=\underbrace{\mathbb{E}_D[y(x;D)]-h(x)\}^2}_{(\text{偏置})^2}+\underbrace{\mathbb{E}_D[\{y(x;D)-\mathbb{E}_D[y(x;D)] \}^2]}_{\text{方差}}
 \end{aligned}
 \end{equation}
+我们看到，$y(\boldsymbol{x};D)$与回归函数$h(\boldsymbol{x})$的差的平方的期望可以表示为两项的和。第一项，被称为平方偏置(bias)，表示所有数据集的平均预测与预期的回归函数之间的差异。第二项，被称为方差(variance)，度量了对于单独的数据集，模型所给出的解在平均值附近波动的情况，因此也就度量了函数$y(\boldsymbol{x};D)$对于特定的数据集的选择的敏感程度。
+
 将式$\ref{kk}$代入式$\ref{llk}$中，就得到了对于期望平方损失的分解
 \begin{equation}
 	\text{期望损失}=\text{偏置}^2+\text{方差}+\text{噪声}

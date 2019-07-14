@@ -10,12 +10,14 @@
 均值为$\boldsymbol{m}_0$协方差为$\boldsymbol{S}_0$
 后验分布
 \begin{equation}
+\label{349}
 	p(w|\boldsymbol{t})=\mathcal{N}(w|\boldsymbol{m}_N,\boldsymbol{S}_N)
 \end{equation}
 其中，
 \begin{flalign}
-\label{fafa}
+	\label{fafa}
 	\boldsymbol{m}_N&=\boldsymbol{S}_N(\boldsymbol{S}_0^{-1}+\beta\Phi^T\boldsymbol{t})\\
+	\label{354}
 	\boldsymbol{S}_N^{-1}&=\boldsymbol{S}_0^{-1}+\beta\Phi^T\Phi
 \end{flalign}
 为了简化起见，考虑高斯先验的一个特定的形式——零均值各向同性高斯分布。这个分布由一个精度参数$\alpha$控制，即
@@ -24,9 +26,12 @@
 \end{equation}
 后验概率分布的对数由对数似然函数与先验的对数求和的方式得到。它是$w$的函数，形式为
 \begin{equation}
+\label{355}
 	\ln p(\boldsymbol{w}|\boldsymbol{t})-\frac{\beta}{2}\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T\phi(x_n) \}^2-\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w}+\text{常数}
 \end{equation}
 于是，后验分布关于$\boldsymbol{w}$的最大化等价于对平方和误差函数加上一个二次正则项进行最小化。
+
+\textbf{补充一个直线拟合的例子图示}
 \subsection*{预测分布}
 在实际应用中，我们通常感兴趣的不是$\boldsymbol{w}$本身的值，而是对于新的$\boldsymbol{x}$值预测出$t$的值。这需要计算出预测分布(predictive distribution)，定义为
 \begin{equation}
@@ -42,12 +47,16 @@
 	\sigma_N^2(\boldsymbol{x})=\frac{1}{\beta}+\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x})
 \end{equation}
 公式$\ref{aaa}$的第一项表示数据中的噪声，而第二项反映了与参数$\boldsymbol{w}$关联的不确定性。由于噪声和$\boldsymbol{w}$的分布是相互独立的高斯分布，因此它们的值是可以相加的。注意，当额外的数据点被观测到的时候，后验概率分布会变窄。从而可以证明出$\sigma^2_{N+1}(\boldsymbol{x})\leqslant \sigma_N^2(\boldsymbol{x})$在极限$N\to \infty$的情况下，公式$\ref{aaa}$的第二项趋于零，从而预测分布的方差只与参数$\beta$控制的具有可加性的噪声有关。
+
+如果我们使用局部的基函数(例如高斯基函数)，那么在距离基函数中心比较远的区域，公式$\ref{aaa}$给出的预测方差的第二项的贡献将会趋于零，只剩下噪声的贡献$\beta^{-1}$。因此，当对基函数所在的区域之外的区域进行外插的时候，模型对于它做出的预测会变得相当确定，这通常不是我们想要的结果，通过使用被称为高斯过程的另一种贝叶斯回归方法，这个问题可以被避免。
+
+注意，如果$\boldsymbol{w}$和$\beta$都被当成未知的，我们可以引入一个由高斯-Gamma分布定义的共轭先验分布$p(\boldsymbol{w},\beta)$。在这种情况下，预测分布是一个学生$t$分布。
 \subsection*{等价核}
-把公式$\ref{fafa}$代入线性基函数模型中，可以写成下面的形式
+公式$\ref{fafa}$给出的线性基函数模型的后验均值解有一个有趣的解释，这个解释为核方法(包括高斯过程)提供了舞台。如果把公式$\ref{fafa}$代入线性基函数模型中，可以写成下面的形式
 \begin{equation}
 \begin{aligned}
 	y(\boldsymbol{x},\boldsymbol{m}_N)&=\boldsymbol{m}_N^T\phi(\boldsymbol{x})\\
-	&=\beta\phi(\boldsymbol{x}^T\boldsymbol{S}_N\Phi^T\boldsymbol{t})\\
+	&=\beta\phi(\boldsymbol{x})^T\boldsymbol{S}_N\Phi^T\boldsymbol{t}\\
 	&=\sum_{n=1}^{N}\underline{\beta\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x}_n)}t_n\\
 	&=\sum_{n=1}^{N}k(\boldsymbol{x},\boldsymbol{x}_n)t_n
 \end{aligned}
@@ -65,3 +74,12 @@
 根据等价核的形式，我们可以看到在附近的点处的预测均值相关性较高，而对于距离较远的点处，相关性就较低。
 
 用核函数表示线性回归给出了解决回归问题的另一种方法。我们不引入一组基函数(它隐式地定义了一个等价的核)，而是直接定义一个局部的核函数，然后在给定观测数据集的条件下，使用这个核函数对新的输入变量$\boldsymbol{x}$做预测。这就引入了用于回归问题(以及分类问题)的一个很实用的框架，被称为高斯过程(Gaussian process)。
+
+我们已经看到，一个等价核定义了模型的权值。通过这个权值，训练数据集里的目标值被组合，然后对新的$\boldsymbol{x}$值做预测。可以证明这些权值的和等于1,即
+\begin{equation}
+	\sum_{n=1}^{N}k(\boldsymbol{x},\boldsymbol{x}^{'})=1
+\end{equation}
+对于所有的$\boldsymbol{x}$值都成立。同时等价核满足一般的核函数共有的一个重要性质，即它可以表示为非线性函数的向量$\psi(\boldsymbol{x})$和内积的形式，即
+\begin{equation}
+	k(\boldsymbol{x},\boldsymbol{z})=\phi(\boldsymbol{x})^T\psi(\boldsymbol{z})
+\end{equation}

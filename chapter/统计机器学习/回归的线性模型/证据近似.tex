@@ -5,12 +5,124 @@
 \begin{equation}
 	p(t|\boldsymbol{t})=\iiint p(t|\boldsymbol{w},\beta)p(\boldsymbol{w}|\boldsymbol{t},\alpha,\beta)p(\alpha,\beta|\boldsymbol{t})d\boldsymbol{w}d\alpha d\beta
 \end{equation}
-如果后验分布$p(\alpha,\beta|\boldsymbol{t})$在$\hat{\alpha}$和$\hat{\beta}$附近有尖峰，那么预测分布可以通过对$w$积分的方式简单地得到，其中$\alpha$和$\beta$被固定为$\hat{\alpha}$和$\hat{\beta}$
+其中$p(t|\boldsymbol{w},\beta)$由公式$\ref{38}$给出，$p(\boldsymbol{w}|\boldsymbol{t},\alpha,\beta)$由公式$\ref{349}$。这里，为了让记号简洁，我们省略了对于输入变量$\boldsymbol{x}$的依赖关系。如果后验分布$p(\alpha,\beta|\boldsymbol{t})$在$\hat{\alpha}$和$\hat{\beta}$附近有尖峰，那么预测分布可以通过对$w$积分的方式简单地得到，其中$\alpha$和$\beta$被固定为$\hat{\alpha}$和$\hat{\beta}$
 \begin{equation}
 	p(t|\boldsymbol{t})\simeq p(t|\boldsymbol{t},\hat{\alpha},\hat{\beta})=\int p(t|\boldsymbol{w},\hat{\beta})p(\boldsymbol{w}|\boldsymbol{t},\hat{\alpha},\hat{\beta})d\boldsymbol{w}
 \end{equation}
 根据贝叶斯定理，$\alpha$和$\beta$的后验分布为
 \begin{equation}
-	p(\alpha,\beta|\boldsymbol{t})\propto p(\boldsymbol{t}|\alpha,\beta)p(\alpha,\beta)
+	p(\alpha,\beta|\boldsymbol{t})\propto {\color{red}{p(\boldsymbol{t}|\alpha,\beta)}}p(\alpha,\beta)
 \end{equation}
-如果先验分布相对比较平，那么在证据框架中，$\hat{\alpha}$和$\hat{\beta}$可以通过最大化边缘似然函数$p(\boldsymbol{t}|\alpha,\beta)$来获得。
+如果先验分布相对比较平，那么在证据框架中，$\hat{\alpha}$和$\hat{\beta}$可以通过最大化边缘似然函数$p(\boldsymbol{t}|\alpha,\beta)$来获得。我们接下来会计算线性基函数模型的边缘似然函数，然后找到它的最大值。这将使我们能够从训练数据本身确定这些超参数的值，而不需要交叉验证。
+
+我们注意到有两种方法可以用来最大化对数证据。我们可以解析地计算证据函数，然后令它的导数等于零，得到了对于$\alpha$和$\beta$的重新估计方程。另一种方法是，我们使用一种被称为期望最大化(EM)算法的方法。将会在后面章节中讨论，那里我们还会证明这两种方法会收敛到同一个解。
+
+\subsection*{计算证据函数}
+边缘似然函数$p(\boldsymbol{t}|\alpha,\beta)$是通过对权值参数$\boldsymbol{w}$进行积分得到的，即
+\begin{equation}
+	p(\boldsymbol{t}|\alpha,\beta)=\int p(\boldsymbol{t}|\boldsymbol{w},\beta)p(\boldsymbol{w}|\alpha)d\boldsymbol{w}
+\end{equation}
+一种计算这个积分的方法是使用线性-高斯模型的条件概率分布的结果。这里，我们使用另一种方法计算这个积分，即通过对指数项配平方，然后使用高斯分布的归一化系数的基本形式。
+
+根据公式$\ref{311}$和公式$\ref{355}$，我们可以把证据函数写成下面的形式
+\begin{equation}
+\label{378}
+	p(\boldsymbol{t}|\alpha,\beta)=\left(\frac{\beta}{2\pi} \right)^{\frac{N}{2}}\left(\frac{\alpha}{2\pi} \right)^{\frac{N}{2}}\int \exp\{-E(\boldsymbol{w})\}\mathrm{d}\boldsymbol{w}
+\end{equation}
+其中M是$\boldsymbol{w}$的维数，并且，我们定义了
+\begin{equation}
+\label{379}
+	\begin{aligned}
+		E(\boldsymbol{w})&=\beta E_D(\boldsymbol{w})+\alpha E_W(\boldsymbol{w})\\
+		&=\frac{\beta}{2}\lVert \boldsymbol{t}-\Phi\boldsymbol{w}\rVert^2 +\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w}
+	\end{aligned}
+\end{equation}
+我们看到，如果忽略一些比例常数，公式$\ref{379}$等于正则化的平方和误差函数。我们现在对$\boldsymbol{w}$配平方，可得
+\begin{equation}
+	E(\boldsymbol{w})=E(\boldsymbol{m}_N)+\frac{1}{2}(\boldsymbol{w}-\boldsymbol{m}_N)^T\boldsymbol{A}(\boldsymbol{w}-\boldsymbol{m}_N)
+\end{equation}
+其中我们令
+\begin{equation}
+	\boldsymbol{A}=\alpha \boldsymbol{I}+\beta \Phi^T\Phi
+\end{equation}
+注意$\boldsymbol{A}$对应于误差函数的二阶导数
+\begin{equation}
+	\boldsymbol{A}=\triangledown\triangledown E(\boldsymbol{w})
+\end{equation}
+被称为Hessian矩阵。这里我们也定义了$\boldsymbol{m}_N$为
+\begin{equation}
+\label{384}
+	\boldsymbol{m}_N=\beta\boldsymbol{A}^{-1}\Phi^T\boldsymbol{t}
+\end{equation}
+使用公式$\ref{354}$，我们看到$\boldsymbol{A}=\boldsymbol{S}_N^{-1}$，因此公式$\ref{384}$等价于之前的定义$\ref{fafa}$，从而它表示后验概率分布的均值。
+
+通过比较多元高斯分布的归一化系数，关于$\boldsymbol{w}$的积分现在可以很容易地计算出来了，即
+\begin{equation}
+	\begin{aligned}
+		\int &\exp\{-E(\boldsymbol{w})\}\mathrm{d}\boldsymbol{w}\\
+		&=\exp\{-E(\boldsymbol{m}_N)\}\int \exp\left\{-\frac{1}{2}(\boldsymbol{w}-\boldsymbol{m}_N)^T\boldsymbol{A}(\boldsymbol{w}-\boldsymbol{m}_N) \right\}\mathrm{d}\boldsymbol{w}\\
+		&=\exp\{-E(\boldsymbol{m}_N)\}(2\pi)^{\frac{M}{2}}|A|^{-\frac{1}{2}}
+	\end{aligned}
+\end{equation}
+使用公式$\ref{378}$，我们可以把边缘似然函数的对数写成下面的形式
+\begin{equation}
+\label{386}
+	\ln p(\boldsymbol{t}|\alpha,\beta)=\frac{M}{2}\ln \alpha +\frac{N}{2}\ln \beta - E(\boldsymbol{m}_N)-\frac{1}{2}\ln |\boldsymbol{A}|-\frac{N}{2}\ln (2\pi)
+\end{equation}
+这就是证据函数的表达式。
+\subsection*{最大化证据函数}
+让我们首先考虑$p(\boldsymbol{t}|\alpha,\beta)$关于$\alpha$的最大化。首先定义下面的特征向量方程
+\begin{equation}
+\label{387}
+	(\beta \Phi^T\Phi)\boldsymbol{u}_i=\lambda_i\boldsymbol{u}_i
+\end{equation}
+可知$\boldsymbol{A}$的特征值为$\alpha + \lambda_i$。现在考虑公式$\ref{386}$中涉及到$\ln|\boldsymbol{A}|$的项关于$\alpha$
+的导数
+\begin{equation}
+	\frac{\mathrm{d}}{\mathrm{d} \alpha}\ln |\boldsymbol{A}|=\frac{\mathrm{d}}{\mathrm{d} \alpha}\ln\prod_{i}(\lambda_i+\alpha)=\frac{\mathrm{d}}{\mathrm{d} \alpha}\sum_i\ln (\lambda_i+\alpha)=\sum_i \frac{1}{\lambda_i+\alpha}
+\end{equation}
+因此函数$\ref{386}$关于$\alpha$的驻点满足 
+\begin{equation}
+	0=\frac{M}{2\alpha}-\frac{1}{2}\boldsymbol{m}_N^T\boldsymbol{m}_N-\frac{1}{2}\sum_i\frac{1}{\lambda_i+\alpha}
+\end{equation}
+两侧乘以$2\alpha$，整理，可得
+\begin{equation}
+	\alpha \boldsymbol{m}_N^T\boldsymbol{m}_N=M-\alpha \sum_i\frac{1}{\lambda_i+\alpha}=\gamma
+\end{equation}
+由于$i$的求和式中一共有M项，因此$\gamma$可以写成 
+\begin{equation}
+	\gamma=\sum_i\frac{\lambda_i}{\lambda_i+\alpha}
+\end{equation}
+我们看到最大化边缘似然函数的$\alpha$满足
+\begin{equation}
+\label{392}
+	\alpha = \frac{\gamma}{\boldsymbol{m}_N^T\boldsymbol{m}_N}
+\end{equation}
+注意，这是$\alpha$的一个隐式解，不仅因为$\gamma$与$\alpha$有关，还因为后验概率本身的众数$\boldsymbol{m}_N$也与$\alpha$的选择有关。因此我们使用迭代的方法求解。首先我们选择一个$\alpha$的初始值，使用这个初始值找到$\boldsymbol{m}_N$，计算$\gamma$。之后这些值被公式$\ref{392}$用来重新估计$\alpha$。这个过程不断进行，直到收敛。
+
+我们可以类似地关于$\beta$最大化对数边缘似然函数。我们注意到公式$\ref{387}$定义的特征值$\lambda_i$正比于$\beta$，因此$\frac{\mathrm{d}}{\mathrm{d}\beta}=\frac{\lambda_i}{\beta}$。于是
+\begin{equation}
+	\frac{\mathrm{d}}{\mathrm{d} \beta}\ln |\boldsymbol{A}|=\frac{\mathrm{d}}{\mathrm{d} \beta}\ln \sum_{i}\ln (\lambda_i+\alpha)=\frac{1}{\beta}\sum_i\frac{\lambda_i}{\lambda_i+\alpha}=\frac{\gamma}{\beta}
+\end{equation}
+边缘似然函数的驻点因此满足
+\begin{equation}
+	0=\frac{N}{2\beta}-\frac{1}{2}\sum_{n=1}^{N}\{t_n-\boldsymbol{m}_N^T\phi(\boldsymbol{x}_n) \}^2-\frac{\gamma}{\beta}
+\end{equation}
+整理，我们可以得到 
+\begin{equation}
+\label{395}
+	\frac{1}{\beta}=\frac{1}{N-\gamma}\sum_{n=1}^{N}\{t_n-\boldsymbol{m}_N^T\phi(\boldsymbol{x}_n) \}^2
+\end{equation}
+与之前一样，这是$\beta$的一个隐式解，可以通过迭代的方法解出。
+\subsection*{参数的有效数量}
+公式$\ref{392}$给出的结果有一个十分优雅的意义，它提供给我们关于$\alpha$贝叶斯解的更深刻的认识。考虑似然函数的轮廓线以及先验概率分布，我们隐式地把参数空间的坐标轴进行了旋转变换，使其与公式$\ref{387}$定义的特征向量对齐。这样，似然函数的轮廓线就变成了轴对齐的椭圆。特征值$\lambda_i$度量了似然函数的曲率(较小的曲率对应着似然函数轮廓较大的延伸)。由于$\beta\Phi^T\Phi$是一个正定矩阵，因此它的特征值为正数，从而比值$\frac{\lambda_i}{\alpha +\lambda_i}$位于0和1之间。结果，由公式$\ref{391}$定义的$\gamma$的聚会范围为$0\leqslant \gamma \leqslant M$。对于$\lambda_i \gg \alpha$的方向，对应的参数$w_i$将会与最大似然值接近，且比值$\frac{\lambda_i}{\alpha +\lambda_i}$接近于1.这样的参数被称为良好确定的(well determined)，因为它们的值被数据紧紧地限制着。相反，对于$\lambda_i\ll \alpha$的方向，对应的参数$w_i$将会接近0,比值$\frac{\lambda_i}{\alpha +\lambda_i}$也会接近0。这些方向上，似然函数对于参数的值相对不敏感，因此参数被先验概率设置为较小的值。公式$\ref{391}$定义的$\gamma$因此度量了良好确定的参数的有效总数。
+
+我们可以更深刻地研究一下用于重新估计$\beta$的公式$\ref{395}$。让我们把$\beta$和对应的最大似然结果进行比较。这两个公式都把方差表示为目标值和模型预测值的差的平方的平均值。区别在于，最大似然结果的分母是数据点数量N，而贝叶斯结果的分母是$N-\gamma$。我们看到单一变量$x$的高斯分布的方差的最大似然估计为
+\begin{equation}
+	\sigma_{ML}^2=\frac{1}{N}\sum_{n=1}^{N}(x_n-\mu_{ML})^2
+\end{equation}
+这个估计是有偏的，因为均值的最大似然解$\mu_{ML}$拟合了数据中的一些噪声。从效果上来看，这占用了模型的一个自由度。对应的无偏估计形式为
+\begin{equation}
+\sigma_{ML}^2=\frac{1}{N-1}\sum_{n=1}^{N}(x_n-\mu_{ML})^2
+\end{equation}
+分母中的因子$N-1$反映了模型中的一个自由度被用于拟合均值的事实，它抵消了最大似然解的偏差。现在考虑线性回归模型的对应的结果。目标分布的均值现在由函数$\boldsymbol{w}^T\phi(\boldsymbol{x})$给出，它包含了M个参数。但是，并不是所有的这些参数都按照数据进行了调解。由数据确定的有效参数的数量为$\gamma$，剩余的$M-\gamma$个参数被先验概率分布设置为较小的值。这可以通过方差的贝叶斯结果中的因子$N-\gamma$反映出来，因此修正了最大似然结果的偏差。

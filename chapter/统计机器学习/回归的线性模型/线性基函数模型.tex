@@ -5,7 +5,7 @@ y(\boldsymbol{x,w})=w_0+w_1x_1 + \dots w_Dx_D
 $$
 其中$x=(x_1,\dots,x_D)^T$。这通常被简单地称为\textbf{线性回归(linear regression)}。这个模型的关键性质是它是参数$w_0,\dots,w_D$的一个线性函数。但是，它也是输入变量$x_i$的一个线性函数，这给模型带来了极大的局限性。因此，我们扩展模型的类别：将输入变量的固定的非线性函数进行线性组合，形式为
 $$
-y(\boldsymbol{x,w})=w_0+\sum_{y=1}^{M-1}w_j\phi_j(\boldsymbol{x})=\sum_{j=0}^{M-1}w_j\phi_j(\boldsymbol{x})=\boldsymbol{w}^T\phi(\boldsymbol{x})
+y(\boldsymbol{x,w})=w_0+\sum_{y=1}^{M-1}w_j\phi_j(\boldsymbol{x})=\sum_{j=0}^{M-1}w_j\phi_j(\boldsymbol{x})=\boldsymbol{w}^T\boldsymbol{\Phi}(\boldsymbol{x})
 $$
 其中$\phi_j(\boldsymbol{x})$被称为基函数(basis function)。
 \begin{enumerate}
@@ -13,11 +13,12 @@ $$
 	$$
 	\phi_j(x)=exp\left\{-\frac{(x-\mu_j)^2}{2s^2}\right\}
 	$$
+	其中$\mu_j$控制了基函数在输入空间中的位置，参数$s$控制了基函数的空间大小。
 	\item sigmoid基函数 
 	$$
-	\phi_j(x)=\frac{1}{1+exp\left(\frac{x-\mu_j}{s}\right)}
+	\phi_j(x)=\frac{1}{1+\exp\left(\frac{x-\mu_j}{s}\right)}
 	$$
-	\item 傅里叶基函数
+	\item 傅里叶基函数。它可以用正弦函数展开，每个基函数表示一个具体的频率，它在空间中有无限的延伸。相反，限制在输入空间中的有限区域的基函数要由不同空间频率的一系列频谱组成。在许多信息处理的应用中，一个吸引了研究者兴趣的问题是考虑同时在空间和频率受限的基函数。这种研究产生了一类被称为小波(wavelet)的函数。
 \end{enumerate}
 \subsection*{最大似然与最小平方}
 最小化平方和误差函数可以看成高斯噪声模型的假设下的最大似然解。
@@ -27,6 +28,7 @@ $$
 \end{equation}
 其中$\epsilon$是一个零均值的高斯随机变量，精度为$\beta$。因此我们有 
 \begin{equation}
+\label{38}
 	p(t|\boldsymbol{x},\boldsymbol{w},\beta)=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}),\beta^{-1})
 \end{equation}
 最优的预测由目标变量的条件给出
@@ -39,6 +41,7 @@ $$
 \end{equation}
 注意，在有监督学习问题中(例如回归问题和分类问题)，我们不是在寻找模型来对输入变量的概率分布建模。因此$x$总会出现在条件变量的位置上。为了保持记号的简洁性，不显示地写出$x$。取似然函数的对数，我们有
 \begin{equation}
+\label{311}
 	\begin{aligned}
 	\ln p(\boldsymbol{t}|\boldsymbol{w},\beta)&=\sum_{n=1}^{N}\ln \mathcal{N}(t_n|\boldsymbol{w}^T\phi(x_n),\beta^{-1})\\
 	&=\frac{N}{2}\ln \beta -\frac{N}{2}\ln (2\pi) -\beta E_D(\boldsymbol{w})
@@ -88,16 +91,33 @@ $$
 	\Phi_0(x_N)&\Phi_0(x_N)&\dots&\Phi_{M-1}(x_N)\\
 	\end{pmatrix}
 \end{equation}
+量
+\begin{equation}
+	\Phi^{\dagger}\equiv (\Phi^T\Phi)^{-1}\Phi^T
+\end{equation}
+被称为矩阵$\Phi$的Moore-Penrose伪逆矩阵(pseudo-inverse matrix)。它可以被看成逆矩阵的概率对于非方阵的矩阵的推广。实际上，如果$\Phi$是方阵且可逆，那么使用性质$(AB)^{-1}=B^{-1}A^{-1}$，我们可以看到$\Phi^{\dagger}\equiv \Phi^{-1}$
+
 关于噪声精度参数$\beta$最大化似然函数，结果为
 \begin{equation}
 	\frac{1}{\beta_{ML}}=\frac{1}{N}\sum_{n=1}^{N}\{t_n-\boldsymbol{w}^T_{ML}\phi(x_n) \}^2
 \end{equation}
 因此我们看到噪声精度的倒数由目标值在回归函数周围的残留方差(residual variance)给出。
 \subsection*{最小平方的几何描述}
+平方和误差函数就等于$\boldsymbol{y}$和$\boldsymbol{t}$之间的平方欧氏距离(只相差一个因子$\frac{1}{2}$)。因此，$\boldsymbol{w}$的最小平方解对应于位于子空间S的与$\boldsymbol{t}$最近的$\boldsymbol{y}$的选择。这个解对应于$\boldsymbol{t}$在子空间$S$上的正交投影。
+
+\textbf{补充一个图}
 \subsection*{顺序学习}
 最大似然解的求解过程涉及到一次处理整个数据集。这种批处理技术对于大规模数据集来说计算量相当大。如果数据集充分大，那么使用顺序算法(也被称为在线算法)可能更有价值。顺序算法中，每次只考虑一个数据点，模型的参数在每观测到一个数据点之后进行更新。顺序学习也适用于实时的应用。在实时应用中，数据观测以一个连续的流的方式持续到达，我们必须在观测到所有数据之前就做出预测。
 
-我们可以获得一个顺序学习的算法通过考虑随机梯度下降(stochastic gradient descent)也被称为顺序梯度下降(sequential gradient descent)的方法。
+我们可以获得一个顺序学习的算法通过考虑随机梯度下降(stochastic gradient descent)也被称为顺序梯度下降(sequential gradient descent)的方法。如果误差函数由数据点的和组成$E=\sum_n E_n$，那么在观测到模式n之后，随机梯度下降算法使用下式更新参数向量$\boldsymbol{w}$
+\begin{equation}
+	\boldsymbol{w}^{(\tau+1)}=\boldsymbol{w}^{(\tau)}-\eta \triangledown E_n
+\end{equation}
+其中$\tau$表示迭代次数，$\eta$是学习率参数。对于平方和误差函数的情形，我们有
+\begin{equation}
+	\boldsymbol{w}^{(\tau+1)}=\boldsymbol{w}^{(\tau)}+\eta (t_n-\boldsymbol{w}^{(\tau)T}\phi_n)\phi_n
+\end{equation}
+其中$\phi_n=\phi(\boldsymbol{x}_n)$。这被称为最小均方(least-mean-squares)或者LMS算法。
 \subsection*{正则化最小平方}
 为误差函数添加正则化项的思想来控制过拟合，因此需要最小化的总的误差函数的形式为
 \begin{equation}
@@ -105,18 +125,13 @@ $$
 \end{equation}
 L1正则化引起稀疏解的多种解释。
 \begin{enumerate}
-	\item 用图解释：
+	\item 用图解释：L2正则相当于用圆去逼近目标，而L1正则相当于用菱形去逼近目标，所以更容易引起交点在坐标轴上即得到稀疏解。
 	
-	L2正则相当于用圆去逼近目标，而L1正则相当于用菱形去逼近目标，所以更容易引起交战在坐标轴上即得到稀疏解。
+	\item 从导数角度解释：L2正则无法将目标函数的极值点拉拢到稀疏解上，而L1正则因为L1导函数的特殊性从而可以在一定范围内将极值点直接拉拢到稀疏解上。
 	
-	\item 从导数角度解释：
-	
-	L2正则无法将目标函数的极值点拉拢到稀疏解上，而L1正则因为L1导函数的特殊性从而可以在一定范围内将极值点直接拉拢到稀疏解上。
-	
-	\item 从先验概率分布角度解释：
-	
-	L2正则相当于假设参数是服从高斯分布的，而L1正则相当于假设了参数是服从拉普拉斯分布的，自然拉普拉斯分布比高斯分布更集中在0这个点上。
+	\item 从先验概率分布角度解释：L2正则相当于假设参数是服从高斯分布的，而L1正则相当于假设了参数是服从拉普拉斯分布的，自然拉普拉斯分布比高斯分布更集中在0这个点上。
 \end{enumerate}
+
 \subsection*{多个输出}
 在某些应用中，我们可能想预测$K>1$个目标变量。我们把这些目标变量聚焦起来，记作目标向量$\boldsymbol{t}$。这个问题可以这样解决：对于$\boldsymbol{t}$的每个分量，引入一个不同的基函数集合，从而变成了多个独立的回归问题。但是，一个更有趣的并且更常用的方法是对目标向量的所有分量使用一组相同的基函数来建模，即
 \begin{equation}
