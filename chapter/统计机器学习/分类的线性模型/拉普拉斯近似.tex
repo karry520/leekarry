@@ -19,24 +19,60 @@
 \end{equation}
 注意，泰勒展开式中的一阶项没有出现，因为$z_0$是概率分布的局部最大值。两侧同时取指数，我们有
 \begin{equation}
-	f(z)\simeq f(z_0)exp\left\{-\frac{A}{2}(z-z_0)^2 \right\}
+	f(z)\simeq f(z_0)\exp\left\{-\frac{A}{2}(z-z_0)^2 \right\}
 \end{equation}
 这样，使用归一化的高斯分布的标准形式，我们就可以得到归一化的概率分布$q(z)$，即
 \begin{equation}
-	q(z)=\left(\frac{A}{2\pi} \right)^{\frac{1}{2}}exp\left\{-\frac{A}{2}(z-z_0)^2 \right\}
+	q(z)=\left(\frac{A}{2\pi} \right)^{\frac{1}{2}}\exp\left\{-\frac{A}{2}(z-z_0)^2 \right\}
 \end{equation}
 注意，高斯近似只在精度A>0时有良好的定义，换句话说，驻点$z_0$一定是一个局部最大值，使得$f(z)$在驻点$z_0$处的二阶导数为负。
 
-我们可以将拉普拉斯方法推广，使其近似多元高斯分布。在应用拉普拉斯方法时，真实概率分布的归一化常数$Z$不必事先知道。根据中心极限定理，我们可以预见模型的后验概率会随着观测数据点的增多而越来越近似于高斯分布，因此我们可以预见在数据点相对较多的情况下，拉普拉斯近似会更有用。拉普拉斯近似的一个主要缺点是，由于它是以高斯分布为基础的，因此它只能直接应用于实值变量。在其他情况下，可以将拉普拉斯近似应用于变换之后的变量上。但是，拉普拉斯框架的最严重的局限性是，它完全依赖于真实概率分布在变量的某个具体位置上的性质，因此会无法描述一些重要的全局属性。
+我们可以将拉普拉斯方法推广，使其近似定义在M维空间$\boldsymbol{z}$上的概率分布$p(\boldsymbol{z})=\frac{f(\boldsymbol{z})}{Z}$。在驻点$\boldsymbol{z}_0$处，梯度$\triangledown f(\boldsymbol{z})$将会消失。在驻点处展开，我们有
+\begin{equation}
+	\ln f(\boldsymbol{z})\simeq \ln f(\boldsymbol{z}_0)-\frac{1}{2}(\boldsymbol{z}-\boldsymbol{z}_0)^T\boldsymbol{A}(\boldsymbol{z}-\boldsymbol{z}_0)
+\end{equation}
+其中$M\times M$的Hessian矩阵$\boldsymbol{A}$的定义为
+\begin{equation}
+	\boldsymbol{A}=-\triangledown\triangledown \ln f(\boldsymbol{z})|_{\boldsymbol{z}=\boldsymbol{z}_0}
+\end{equation}
+两边同时取指数，我们有
+\begin{equation}
+	f(\boldsymbol{z})\simeq f(\boldsymbol{z}_0)\exp\left\{-\frac{1}{2}(\boldsymbol{z}-\boldsymbol{z}_0)^T\boldsymbol{A}(\boldsymbol{z}-\boldsymbol{z}_0) \right\}
+\end{equation}
+分布$q(\boldsymbol{z})$正比于$f(\boldsymbol{z})$，归一化系数可以通过观察归一化的多元高斯分布的标准形式得到。因此
+\begin{equation}
+	q(\boldsymbol{z})=\frac{|\boldsymbol{A}|^{\frac{1}{2}}}{(2\pi)^{\frac{M}{2}}}\exp\left\{-\frac{1}{2}(\boldsymbol{z}-\boldsymbol{z}_0)^T\boldsymbol{A}(\boldsymbol{z}-\boldsymbol{z}_0) \right\}=\mathcal{N}(\boldsymbol{z}|\boldsymbol{z}_0,\boldsymbol{A}^{-1})
+\end{equation}
+
+在应用拉普拉斯方法时，真实概率分布的归一化常数$Z$不必事先知道。根据中心极限定理，我们可以预见模型的后验概率会随着观测数据点的增多而越来越近似于高斯分布，因此我们可以预见在数据点相对较多的情况下，拉普拉斯近似会更有用。拉普拉斯近似的一个主要缺点是，由于它是以高斯分布为基础的，因此它只能直接应用于实值变量。在其他情况下，可以将拉普拉斯近似应用于变换之后的变量上。但是，拉普拉斯框架的最严重的局限性是，它完全依赖于真实概率分布在变量的某个具体位置上的性质，因此会无法描述一些重要的全局属性。
 \subsection*{模型比较和BIC}
 除了近似概率分布$p(z)$，我们也可以获得对归一化常数Z的一个近似。
 \begin{equation}
 \label{dada}
 	\begin{aligned}
 	   Z&=\int f(z)dz\\
-		&\simeq f(z_0)\int exp\left\{-\frac{1}{2}(z-z_0)^TA(z-z_0) \right\}dz\\
+		&\simeq f(z_0)\int \exp\left\{-\frac{1}{2}(z-z_0)^TA(z-z_0) \right\}dz\\
 		&=f(z_0)\frac{(2\pi)^{\frac{M}{2}}}{|A|^{\frac{1}{2}}}
 	\end{aligned}
 \end{equation}
 
-我们可以使用公式$\ref{dada}$的结果来获得对于模型证据的一个近似。
+我们可以使用公式$\ref{dada}$的结果来获得对于模型证据的一个近似。考虑一个数据集D以及一组模型$\{M_i\}$，模型参数为$\{\boldsymbol{\theta}_i\}$。对于每个模型，我们定义一个似然函数$p(D|\boldsymbol{\theta}_i,M_i)$。如果我们引入一个参数的先验概率$p(\boldsymbol{\theta}_i|M_i)$，那么我们感兴趣的是计算不同模型的模型证据$p(D|M_i)$。从现在开始，为了简化记号，我们省略对于$M_i$的条件依赖。根据贝叶斯定理，模型证据为
+\begin{equation}
+	p(D)=\int p(D|\boldsymbol{\theta})p(\boldsymbol{\theta})\mathrm{d}\boldsymbol{\theta}
+\end{equation}
+令$f(\boldsymbol{\theta})=p(D|\boldsymbol{\theta})p(\boldsymbol{\theta})$以及$Z=p(D)$，然后使用公式$\ref{dada}$，我们有
+\begin{equation}
+\label{4137}
+	\ln p(D)\simeq \ln p(D|\boldsymbol{\theta}_{MAP})+\underbrace{\ln p(\boldsymbol{\theta}_{MAP})+\frac{M}{2}\ln (2\pi) -\frac{1}{2}\ln |\boldsymbol{A}|}_{Occam\text{因子}}	
+\end{equation}
+其中$\boldsymbol{\theta}_{MAP}$是在后验概率分布众数位置的$\boldsymbol{\theta}$的值，$\boldsymbol{A}$是负对数后验概率的二阶导数组成的Hessian矩阵。
+\begin{equation}
+	\boldsymbol{A}=-\triangledown\triangledown \ln p(\boldsymbol{\theta}_{MAP}|D)
+\end{equation}
+公式$\ref{4137}$表明使用最优参数计算的对数似然值，而余下的三项由“Occam因子”组成，它对模型的复杂度进行惩罚。
+
+如果我们假设参数的高斯先验分布比较宽，且Hessian矩阵是満秩的，那么我们可以使用下式来非常粗略地近似公式$\ref{4137}$。
+\begin{equation}
+	\ln p(D)\simeq \ln p(D|\boldsymbol{\theta}_{MAP})-\frac{1}{2}M\ln N
+\end{equation}
+其中N是数据点的总数，M是$\boldsymbol{\theta}$中参数的数量，并且我们省略了一些额外的常数。这被称为贝叶斯信息准则(Bayesian Information Criterion)(BIC)，或者称为Schwarz准则。注意，这与AIC相比，这个信息准则对模型复杂度的惩罚更严重。

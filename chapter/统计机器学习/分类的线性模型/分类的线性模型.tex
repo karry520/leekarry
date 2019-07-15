@@ -1,1 +1,14 @@
-分类的目标是将输入变量$x$分到K个离散的类别$C_k$中的某一类。所谓分类线性模型，是指决策面是输入向量$x$的线性函数，因此被定义为D维输入空间中的$(D-1)$维超平面。
+分类的目标是将输入变量$x$分到K个离散的类别$C_k$中的某一类。最常见的情况是，类别互相不相交，因此每个输入被分到唯一的一个类别中。因此输入空间被划分为不同的决策区域(decision region)，它的边界被称为决策边界(decision boundary)或者决策面(decision region)。所谓分类线性模型，是指决策面是输入向量$x$的线性函数，因此被定义为D维输入空间中的$(D-1)$维超平面。
+
+对于分类问题，最简单的方法涉及到构造判别函数(discriminant function)，它直接把向量$\boldsymbol{x}$分到具体的类别中。但是，一个更强大的方法是在推断阶段对条件概率分布$p(C_k|\boldsymbol{x})$直接建模，然后使用这个概率分布进行最优决策。通过区分推断阶段和决策阶段，我们获得了很多有益的东西。有两种不同的方法确定条件概率分布$p(C_k|\boldsymbol{x})$。一种方法是直接对条件概率分布建模，例如把条件概率分布表示为参数模型，然后使用训练集来最优化参数。另一种方法是生成式的方法。这种方法中，我们对类条件概率密度$p(\boldsymbol{x}|C_k)$以及类的先验概率分布$p(C_k)$建模，然后我们使用贝叶斯定理计算后验概率分布
+\begin{equation}
+	p(C_k|\boldsymbol{x})=\frac{p(\boldsymbol{x}|C_k)p(C_k)}{p(\boldsymbol{x})}
+\end{equation}
+我们将在本章中讨论这三种方法。
+
+在上一章讨论的线性回归模型中，模型的预测$y(\boldsymbol{x},\boldsymbol{w})$由参数$\boldsymbol{w}$的线性函数给出。在最简单的情况下，模型对输入变量也是线性的，因此形式为$y(\boldsymbol{x})=\boldsymbol{w}^T\boldsymbol{x}+w_0$，即$y$是一个实数。然而对于分类问题，我们想预测的是离散的类别标签，或者更一般地，预测位于区间$(0,1)$的后验概率分布。为了完成这一点，我们考虑这个模型的一个推广，这个模型中我们使用非线性函数$f(\cdot)$对$\boldsymbol{w}$的线性函数进行变换，即
+\begin{equation}
+	\label{43}
+	y(\boldsymbol{x})=f(\boldsymbol{w}^T\boldsymbol{x}+w_0)
+\end{equation}
+在机器学习的文献中，$f(\cdot)$被称为激活函数(activation function)，而它的反函数在统计学的文献中被称为链接函数(link function)。决策面对应于$y(\boldsymbol{x})=$常数，即$\boldsymbol{w}^T\boldsymbol{x}+w_0=$常数，因此决策面是$\boldsymbol{x}$的线性函数，即使函数$f(\cdot)$是非线性函数也是如此。因此，由公式$\ref{43}$描述的一类模型被称为推广的线性模型(generalized linear model)。但是需要注意的是，与回归中使用的模型相反，它们不再是参数的线性模型，因为我们引入了非线性函数$f(\cdot)$。这会导致计算比线性回归模型更加复杂。

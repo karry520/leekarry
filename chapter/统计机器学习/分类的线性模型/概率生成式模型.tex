@@ -1,11 +1,11 @@
 \section{概率生成式模型}
-接下来用概率的观点考察分类问题，并且说明具有线性决策边界的模型如何通过对数据分布的简单假设得到。
+接下来用概率的观点考察分类问题，并且说明具有线性决策边界的模型如何通过对数据分布的简单假设得到。这里我们使用生成式的方法。
 
 首先考虑二分类的情形。类别$C_1$的后验概率可以写成
 \begin{equation}
 	\begin{aligned}
 	p(C_1|\boldsymbol{x})&=\frac{p(\boldsymbol{x}|C_1)p(C_1)}{p(\boldsymbol{x}|C_1)+p(\boldsymbol{x}|C_2)p(C_2)}\\
-	&=\frac{1}{1+exp(-a)}=\sigma(a)
+	&=\frac{1}{1+\exp(-a)}=\sigma(a)
 	\end{aligned}
 \end{equation}
 其中我们定义了
@@ -37,18 +37,18 @@ logistic sigmoid的反函数为
 \label{keke}
 \begin{aligned}
 	p(C_k|\boldsymbol{x})&=\frac{p(\boldsymbol{x}|C_k)p(C_k)}{\sum_jp(\boldsymbol{x}|C_j)p(C_j)}\\
-	&=\frac{exp(a_k)}{\sum_jexp(a_j)}
+	&=\frac{\exp(a_k)}{\sum_j\exp(a_j)}
 \end{aligned}
 \end{equation}
 它被称为归一化指数(normalized exponential)，可以被当做logistic sigmoid函数对于多类情况的推广。这里$a_k$被定义为
 \begin{equation}
 	a_k=\ln p((\boldsymbol{x}|C_k)p(C_k))
 \end{equation}
-归一化指数也被称为softmax函数，因为它表示“max”函数的一个平滑版本。
+归一化指数也被称为softmax函数，因为它表示“max”函数的一个平滑版本。这是因为，如果对于所有的$j\ne k$都有$a_k\gg a_j$，那么$p(C_k|\boldsymbol{x})\simeq 1$且$p(C_j|\boldsymbol{x})\simeq 0$。
 \subsection*{连续输入}
 假设类条件概率密度是高斯分布，然后求解后验概率的形式。首先，假设所有的类别的协方差矩阵相同。这样类别$C_k$的类条件概率为
 \begin{equation}
-	p(\boldsymbol{x}|C_k)=\frac{1}{(2\pi)^{\frac{D}{2}}}\frac{1}{|\Sigma|^{\frac{1}{2}}}exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_k)^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_k) \right\}
+	p(\boldsymbol{x}|C_k)=\frac{1}{(2\pi)^{\frac{D}{2}}}\frac{1}{|\Sigma|^{\frac{1}{2}}}\exp\left\{-\frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_k)^T\Sigma^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_k) \right\}
 \end{equation}
 首先考虑两类的情形。
 \begin{equation}
@@ -59,7 +59,7 @@ logistic sigmoid的反函数为
 	&=-\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{x}+\frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{x}+\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{\mu}_1-\frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1\\
 	&\quad +\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{x}-\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{x}-\frac{1}{2}\boldsymbol{x}^T\Sigma^{-1}\boldsymbol{\mu}_2+\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{\mu}_2\\
 	&\quad +\ln\frac{p(C_1)}{p(C_2)}\\
-	&=\Sigma^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_2)\boldsymbol{x} - \frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1+\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{\mu}_2+\ln\frac{p(C_1)}{p(C_2)}\\
+	&=\underbrace{\Sigma^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_2)}_{\boldsymbol{w}^T}\boldsymbol{x} \underbrace{- \frac{1}{2}\boldsymbol{\mu}_1^T\Sigma^{-1}\boldsymbol{\mu}_1+\frac{1}{2}\boldsymbol{\mu}_2^T\Sigma^{-1}\boldsymbol{\mu}_2+\ln\frac{p(C_1)}{p(C_2)}}_{w_0}\\
 	&=\boldsymbol{w}^T\boldsymbol{x}+w_0\\
 	\Rightarrow \ \sigma(a)&=\sigma(\boldsymbol{w}^T\boldsymbol{x}+w_0)
 \end{aligned}	
@@ -75,6 +75,8 @@ logistic sigmoid的反函数为
 \begin{equation}
 	\boldsymbol{w}_k=\Sigma^{-1}\boldsymbol{\mu}_k
 \end{equation}
+我们看到$a_k(\boldsymbol{x})$与之前一样是$\boldsymbol{x}$的线性函数，这是因为各个类别的协方差矩阵相同，使得二次项被消去。最终的决策边界，对应于最小错误分类率，会出现在后验概率最大的两个概率相等的位置，因此由$\boldsymbol{x}$的线性函数定义，从而我们再次得到了一个一般的线性模型。
+
 如果我们不假设各个类别的协方差矩阵相同，允许每个类条件概率密度$p(\boldsymbol{x}|C_k)$有自己的协方差矩阵$\Sigma_k$，那么之前二次项消去的现象不会出现，从而我们会得到$\boldsymbol{x}$的二次函数，这就引出了二次判别函数(quadratic discriminant)。
 \subsection*{最大似然解}
 一旦具体化了类条件概率密度$p(\boldsymbol{x}|C_k)$的参数化的函数形式，我们就能够使用最大似然法确定参数的值，以及先验类概率$p(C_k)$。
@@ -125,14 +127,14 @@ logistic sigmoid的反函数为
 		\boldsymbol{\mu}_2=\frac{1}{N_2}\sum_{n=1}^{N}(1-t_n)\boldsymbol{x}_n
 	\end{equation}
 	\item 求$\Sigma$
-	\begin{theorem}{}{}
-		\begin{flalign}
-			Tr(AB)&=Tr(BA)\\
-			\frac{\partial Tr(AB)}{\partial A}&=B^T\\
-			\frac{\partial |A|}{\partial A}&=|A|A^{-1}\\
-			\frac{\partial \ln |A|}{\partial A}&=A^{-1}
-		\end{flalign}
-	\end{theorem}
+	
+	已知
+	\begin{flalign}
+		Tr(AB)&=\mathrm{Tr}(BA)\\
+		\frac{\partial \mathrm{Tr}(AB)}{\partial A}&=B^T\\
+		\frac{\partial |A|}{\partial A}&=|A|A^{-1}\\
+		\frac{\partial \ln |A|}{\partial A}&=A^{-1}
+	\end{flalign}
 	考察部分分式
 	\begin{equation}
 		\begin{aligned}

@@ -10,6 +10,7 @@
 \label{lala}
 	q(\boldsymbol{w})=\mathcal{N}(\boldsymbol{w}|\boldsymbol{w}_{MAP},\boldsymbol{S}_N)
 \end{equation}
+获得了后验概率分布的高斯近似之后，剩下的任务就是关于这个概率分布求积分来进行预测。
 \subsection*{预测分布}
 给定一个新的特征向量$\phi(\boldsymbol{x})$，类别$C_1$的预测分布可以通过对后验概率$p(\boldsymbol{w}|\boldsymbol{t})$积分，后验概率本身由高斯分布$q(\boldsymbol{w})$近似，即
 \begin{equation}
@@ -31,7 +32,13 @@
 \end{equation}
 我们可以这样计算$p(a)$：注意到Delta函数给$\boldsymbol{w}$施加了一个线性限制，因此在所有与$\phi$正交的方向上积分，就得到了联合概率分布$q(\boldsymbol{w})$的边缘分布。由于$q(\boldsymbol{w})$是高斯分布，因此我们知道边缘概率分布也是高斯分布。我们可以通过计算各阶矩然后交换$a$和$\boldsymbol{w}$的积分顺序的方式计算均值和协方差，即
 \begin{equation}
-	\mu_a=\mathbb{E}[a]=\int p(a)ada=\int q(\boldsymbol{w})\boldsymbol{w}^T\phi d\boldsymbol{w}=\boldsymbol{w}^T_{MAP}\phi
+\begin{aligned}
+	\mu_a&=\mathbb{E}[a]=\int p(a)a\mathrm{d}a\\
+	&=\int \left[\int \delta(a-\boldsymbol{w}^T\phi)q(\boldsymbol{w})\mathrm{d}\boldsymbol{w}\right]a\mathrm{d}a\\
+	&=\int \left[\int \delta(a-\boldsymbol{w}^T\phi)a\mathrm{d}a\right]q(\boldsymbol{w})d\boldsymbol{w}\\
+	&=\int q(\boldsymbol{w})\boldsymbol{w}^T\phi \mathrm{d}\boldsymbol{w}\\
+	&=\boldsymbol{w}^T_{MAP}\phi
+\end{aligned}
 \end{equation}
 推导时使用了$\ref{lala}$给出的后验概率分布$q(\boldsymbol{w})$的结果。类似地
 \begin{equation}
@@ -64,3 +71,4 @@
 \label{jiasup}
 	p(C_1|\phi,\boldsymbol{t})=\sigma(k(\sigma_a^2)\mu_a)
 \end{equation}
+对应于$p(C_1|\phi,\boldsymbol{t})=0.5$的决策边界由$\mu_a=0$给出，这与使用$\boldsymbol{w}$的MAP值得到的结果相同。因此，如果决策准则是基于最小分类错误率的，且先验概率相同，那么对$\boldsymbol{w}$的积分没有效果。然而，对于更复杂的决策准则，这个积分就起着重要的作用了。

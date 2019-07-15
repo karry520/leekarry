@@ -5,7 +5,11 @@
 
 寻找一般的线性模型参数的间接方法是，分别寻找类条件概率密度和类别先验，然后使用贝叶斯定理。这是生成式建模的一个例子。在直接方法中，我们最大化由条件概率分布$p(C_k|\boldsymbol{x})$定义的似然函数。这种方法代表了判别式训练的一种形式。判别式方法的一个优点是通常有更少的可调节的参数需要确定，并且预测表现会提升，尤其是当类条件概率密度的假设没有很好地近似真实的分布的时候更是如此。
 \subsection*{固定基函数}
-如果首先使用一个基函数向量$\phi(\boldsymbol{x})$对输入变量进行一个固定的非线性变换，所有的这些算法仍然同样适用。
+如果首先使用一个基函数向量$\phi(\boldsymbol{x})$对输入变量进行一个固定的非线性变换，所有的这些算法仍然同样适用。最终的决策边界在特征空间$\phi$中是线性的，因此对应于原始$\boldsymbol{x}$空间中的非线性决策边界。
+
+对于许多实际问题来说，类条件概率密度$p(\boldsymbol{x}|C_k)$之间有着相当大的重叠。这表明至少对于某些$\boldsymbol{x}$的值，后验概率$p(C_k|\boldsymbol{x})$不等于0或1。在这种情况下，最优解可以通过下面的方式获得：对后验概率精确建模，然后使用前面章节讨论的标准的决策论。需要注意的是，非线性变换$\phi(\boldsymbol{x})$不会消除这些重叠。实际上，这些变换会增加重叠的程度，或者在原始观测空间中不存在重叠的地方产生出新的重叠。然而，恰当的选择非线性变换能够让后验概率的建模过程更简单。
+
+这样的固定基函数模型有着重要的局限性，这些局限性在后续的章节中会被解决，解决方法为允许基函数自身根据数据进行调节。
 \subsection*{logistic回归}
 首先通过二分类问题开始对于一般线性模型的讨论。类别$C_1$的后验概率可以写成作用在特征向量$\phi$的线性函数上的logistic sigmoid函数的形式，即
 \begin{flalign}
@@ -37,7 +41,7 @@
 \end{equation}
 推导时用到了
 \begin{equation}
-	\frac{d\sigma}{da}=\sigma(1-\sigma)
+	\frac{\mathrm{d}\sigma}{\mathrm{d}a}=\sigma(1-\sigma)
 \end{equation}
 我们看到，涉及到logistic sigmoid的导数的因子已经被消去，使得对数似然函数的梯度的形式十分简单。特别地，数据点$n$对梯度的贡献为目标值和模型预测值之间的“误差”与基函数向量$\phi_n$相乘。此外它的函数形式与线性回归模型中的平方和误差函数的梯度的函数形式完全相同。
 
@@ -61,6 +65,8 @@
 	&=(\Phi^T\Phi)^{-1}\Phi^T\boldsymbol{t}
 	\end{aligned}
 \end{equation}
+我们看到这是标准的最小平方解。注意，这种情况下误差函数是二次的，因此Newton-Raphson公式用1步就给出了精确解。
+
 现在把Newton-Raphson更新应用到logistic回归模型的交叉熵误差函数上。
 \begin{flalign}
 	\triangledown E(\boldsymbol{w})&=\sum_{n=1}^{N}(y_n-t_n)\phi_n = \Phi^T(\boldsymbol{y}-\boldsymbol{t})\\
@@ -85,10 +91,18 @@
 	\boldsymbol{z}=\Phi\boldsymbol{w}^{\text{旧}}-\mathcal{R}^{-1}(\boldsymbol{y}-\boldsymbol{t})
 \end{equation}
 更新公式的形式为一组加权最小平方问题的规范方程。由于权矩阵$\mathcal{R}$不是常量，而是依赖于参数向量$\boldsymbol{w}$，因此我们必须迭代地应用规范方程，每次使用新的权向量$\boldsymbol{w}$计算一个修正的权矩阵$\mathcal{R}$，由于这个原因，这个算法被称为迭代重加权最小平方(iterative reweighted least squares)，或者简称为IRLS。对角$\mathcal{R}$可以看成方差。
+
+事实上，我们可以把IRLS看成变量空间$a=\boldsymbol{w}^T\phi$的线性问题的解。这样，$\boldsymbol{z}$的第$n$个元素$z_n$就可以简单地看成这个空间中的有效的目标值。$z_n$可以通过对当前操作点$w^{\text{旧}}$附近的logistic sigmoid函数的局部线性近似的方式得到。
+\begin{equation}
+\begin{aligned}
+	a_n(\boldsymbol{w})&\simeq a_n(\boldsymbol{w}^{\text{旧}})+\frac{\mathrm{d}a_n}{\mathrm{d}y_n}\Bigg|_{\boldsymbol{w}^{\text{旧}}}(t_n-y_n)\\
+		&=\phi_n^T\boldsymbol{w}^{\text{旧}}-\frac{y_n-t_n}{y_n(1-y_n)}=z_n
+\end{aligned}
+\end{equation}
 \subsection*{多类logistic回归}
 对于多分类的生成式模型，后验概率由特征变量的线性函数的softmax变换给出，即
 \begin{equation}
-	p(C_k|\phi)=y_k(\phi)=\frac{exp(\boldsymbol{w}_k^T\phi)}{\sum_jexp(\boldsymbol{w}_k^T\phi)}
+	p(C_k|\phi)=y_k(\phi)=\frac{\exp(\boldsymbol{w}_k^T\phi)}{\sum_j\exp(\boldsymbol{w}_k^T\phi)}
 \end{equation}
 \subsection*{probit回归}
 对于由指数族分布描述的一大类的类条件概率分布，最终求出的后验类概率为作用在特征变量的线性函数上的logistic(或者softmax)变换。然而，不是所有的类条件概率密度都有这样简单的后验概率函数形式(例如，如果类条件概率密度由高斯混合模型建模)。这表明研究其他类型的判别式概率模型可能会很有价值。回到二分类的情形，再次使用一般的线性模型的框架，即
@@ -107,15 +121,59 @@
 \begin{equation}
 	f(a)=\int_{-\infty}^ap(\theta)d\theta
 \end{equation}
+在随机阈值模型中，如果$a=\boldsymbol{w}^T\phi$的值超过某个阈值，则类别标签的取值为$t=1$，否则它的取值为$t=0$。这等价于由累积密度函数$f(a)$给出的激活函数。
+
+作为一个具体的例子，假设概率密度$p(\theta)$是零均值、单位方差的高斯概率密度。对应的累积分布函数为
+\begin{equation}
+	\Phi(a)=\int_{-\infty}^{a}\mathcal{N}(\theta |0,1)\mathrm{d}\theta 
+\end{equation}
 这被称为逆probit(inverse probit)函数。它的形状为sigmoid形。许多用于计算这个函数的数值计算包都与下面的这个函数紧密相关
 \begin{equation}
-	erf(a)=\frac{2}{\sqrt{\pi}}\int_0^aexp(-\theta^2)d\theta
+	\mathrm{erf}(a)=\frac{2}{\sqrt{\pi}}\int_0^a\exp(-\theta^2)d\theta
 \end{equation}
 它被称为erf函数或者被称为error函数。它与逆probit函数的关系为
 \begin{equation}
-	\Phi(a)=\frac{1}{2}\left\{1+erf\left(\frac{a}{\sqrt{2}} \right) \right\}
+	\Phi(a)=\frac{1}{2}\left\{1+\mathrm{erf}\left(\frac{a}{\sqrt{2}} \right) \right\}
 \end{equation}
 基于probit激活函数的一般的线性模型被称为probit回归。
-\subsection*{标准链接函数}
-如果假设目标变量的条件分布来自于指数族分布，对应的激活函数选为标准链接函数(canonical link function)，那么这个结果是一个一般的结果。
 
+在实际应用中经常出现的一个问题是离群点，它可能由输入向量$\boldsymbol{x}$的测量误差产生，或者由目标值$t$的错误标记产生。他们会严重地干扰分类器，在这一点上probit模型对于离群点会更加敏感。对于错误标记的影响可以合并到概率模型中。我们引入一个概率$\epsilon$，它是目标值$t$被翻转到错误值的概率。$\epsilon$可以事先设定，也可以被当成超参数，然后从数据中推断它的值。
+\subsection*{标准链接函数}
+对于高斯噪声分布的线性回归模型，如果我们对数据点$n$对误差函数的贡献关于参数向量$\boldsymbol{w}$求导，那么导数的形式为“误差”$y_n-t_n$与特征向量$\phi_n$的乘积，其中$y_n=\boldsymbol{w}^T\phi_n$。类似地，对于logistic sigmoid激活函数与交叉熵误差函数的组合，以及多类交叉熵误差函数的softmax激活函数，我们再次得到了同样的简单形式。现在我们证明，如果假设目标变量的条件分布来自于指数族分布，对应的激活函数选为标准链接函数(canonical link function)，那么这个结果是一个一般的结果。
+
+我们使用指数族分布的限制形式。注意，我们把指数族分布的假设应用于目标变量$t$，而不是应用于输入向量$\boldsymbol{x}$。于是，我们考虑目标变量的条件分布
+\begin{equation}
+	p(t|\eta,s)=\frac{1}{s}h\left(\frac{t}{s} \right)g(\eta)\exp\left\{\frac{\eta t}{s} \right\}
+\end{equation}
+使用与推导结果$\ref{2226}$时相同的过程，我们看到$t$的条件均值(记作y)为
+\begin{equation}
+	y\equiv [t|\eta]=-s\frac{\mathrm{d}}{\mathrm{d} \eta}\ln g(\eta)
+\end{equation}
+因此$y$和$\eta$一定相关，我们把这个关系记作$\eta =\psi (y)$。
+
+按照Nelder and Wedderburn的方法，我们将一般线性模型定义为这样的模型：$y$是输入变量(或者特征变量)的线性组合的非线性函数，即
+\begin{equation}
+	y=f(\boldsymbol{w}^T\phi)
+\end{equation}
+其中$f^{-1}(\cdot)$在统计学中被称为链接函数(link function)。
+
+现在考虑这个模型的对数似然函数。它是$\eta$的一个函数，形式为
+\begin{equation}
+	\ln p(\boldsymbol{t}|\eta,s)=\sum_{n=1}^{N}\ln p(t_n|\eta,s)=\sum_{n=1}^{N}\left\{\ln g(\eta_n)+\frac{\eta_nt_n}{s} \right\}+\text{常数}
+\end{equation}
+其中我们假定所有的观测有一个相同的缩放参数(它对应着例如服从高斯分布的噪声的方差)，因此$s$与$n$无关。对数似然函数关于模型参数$\boldsymbol{w}$的导数为
+\begin{equation}
+	\begin{aligned}
+		\triangledown_{\boldsymbol{w}}\ln p(\boldsymbol{t}|\eta,s)&=\sum_{n=1}^{N}\left\{\frac{\mathrm{d}}{\mathrm{d}\eta_n}\ln g(\eta_n)+\frac{t_n}{s} \right\}\frac{\mathrm{d}\eta_n}{\mathrm{d}y_n}\frac{\mathrm{d}y_n}{\mathrm{d}a_n}\triangledown a_n\\
+		&=\sum_{n=1}^{N}\frac{1}{s}\{t_n-y_n \}\psi^{'}(y_n)f^{'}(a_n)\phi_n
+	\end{aligned}
+\end{equation}
+其中$a_n=\boldsymbol{w}^T\phi_n$，并且我们使用了$y_n=f(a_n)$以及$\mathbb{E}[t|\eta]$的结果。我们现在看到，如果我们为链接函数$f^{-1}(y)$选成下面的形式，那么表达式会得到极大的简化。
+\begin{equation}
+	f^{-1}(y)=\psi(y)
+\end{equation}
+上式表明$f(\psi(y))=y$，因此$f^{'}(\psi)\psi^{'}(y)=1$。并且，由于$a=f^{-1}(y)$，我们有$a=\psi$，因此$f^{'}(a)\psi^{'}(y)=1$。在这种情况下，误差函数的梯度可以化简为
+\begin{equation}
+	\triangledown E(\boldsymbol{w})=\frac{1}{s}\sum_{n=1}^{N}\{y_n-t_n \}\phi_n
+\end{equation}
+对于高斯分布，$s=\beta^{-1}$，而对于logistic模型，$s=1$。
