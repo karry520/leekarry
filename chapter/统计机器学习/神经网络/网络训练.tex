@@ -11,7 +11,9 @@
 \begin{equation}
 	\triangledown E(\boldsymbol{w})=0
 \end{equation}
-然而，误差函数通常与权值和偏置参数的关系是高度非线性的，因此权值空间中会有很多梯度为零(或者梯度非常小)的点。由于显然无法找到方程$\triangledown E(\boldsymbol{w})=0$的解析解，因此我们使用迭代的数值方法。大多数方法涉及到为权向量选择某个初始值$\boldsymbol{w}_0$，然后在权空间中进行一系列移动，形式为
+我们的目标是寻找一个向量$\boldsymbol{w}$使得$E(\boldsymbol{w})$取得最小值。然而，误差函数通常与权值和偏置参数的关系是高度非线性的，因此权值空间中会有很多梯度为零(或者梯度非常小)的点。对于一个可以成功使用神经网络的应用来说，可能没有必要寻找全局最小值(并且通常无法知道是否找到了全局最小值)，而是通过比较几个局部极小值就能够得到足够好的解。
+
+由于显然无法找到方程$\triangledown E(\boldsymbol{w})=0$的解析解，因此我们使用迭代的数值方法。大多数方法涉及到为权向量选择某个初始值$\boldsymbol{w}_0$，然后在权空间中进行一系列移动，形式为
 \begin{equation}
 	\boldsymbol{w}^{(\tau +1)}=\boldsymbol{w}^{(\tau)}+\triangle w^{(\tau)}
 \end{equation}
@@ -25,8 +27,7 @@ $\boldsymbol{b}$被定义为E的梯度在$\hat{\boldsymbol{w}}$处的值。
 \begin{equation}
 	\boldsymbol{b}\equiv \triangledown E|_{\boldsymbol{w}=\hat{\boldsymbol{w}}}
 \end{equation}
-Hessian矩阵$\boldsymbol{H}=\triangledown\triangledown E$
-梯度的局部近似为
+Hessian矩阵$\boldsymbol{H}=\triangledown\triangledown E$。所以，梯度的局部近似为
 \begin{equation}
 	\triangledown E\simeq \boldsymbol{b}+\boldsymbol{H}(\boldsymbol{w}-\hat{\boldsymbol{w}})
 \end{equation}

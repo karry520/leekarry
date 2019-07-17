@@ -43,9 +43,19 @@
 
 正则化项$\ref{zz}$对应于下面形式的先验概率分布
 \begin{equation}
-	p(\boldsymbol{w}|\alpha_1,\alpha_2)\propto exp\left(-\frac{\alpha_1}{2}\sum_{w\in \mathcal{W}_1}w^2-\frac{\alpha_2}{2}\sum_{w\in \mathcal{W}_2}w^2 \right)
+	p(\boldsymbol{w}|\alpha_1,\alpha_2)\propto \exp\left(-\frac{\alpha_1}{2}\sum_{w\in \mathcal{W}_1}w^2-\frac{\alpha_2}{2}\sum_{w\in \mathcal{W}_2}w^2 \right)
 \end{equation}
 注意，这种形式的先验是反常的(improper)(不能被归一化)，因为偏置参数没有限制。使用反常先验会给正则化系数的选择造成很大的困难，也会给贝叶斯框架下的模型选择造成很大的困难，因为对应的模型证据等于零。因此，通常的做法是单独包含一个有着自己单独的一套超参数的偏置的先验(这就破坏了平移不变性)。
+
+更一般地，我们可以考虑权值被分为任意数量的组$W_k$的情况下的先验，即
+\begin{equation}
+	p(\boldsymbol{w})\propto \exp \left(-\frac{1}{2}\sum_k \alpha_k\lVert \boldsymbol{w}\rVert_k^2 \right)
+\end{equation}
+其中
+\begin{equation}
+	\lVert \boldsymbol{w}\rVert_k^2=\sum_{j\in W_k}w_j^2
+\end{equation}
+作为这种形式的先验的一个特殊情况，如果我们将每个输入单元关联的权值设为一个分组，并且关于对应的参数$\alpha_k$最优化边缘似然函数，那么我们就得到了自动相关性确定(automatic relevance determination)的方法。
 \subsection*{早停止}
 另一种控制网络的复杂度的正则化方法是早停止(early stopping)。非线性网络模型的训练对应于误差函数的迭代减小，其中误差函数是关于训练数据集定义的。对于许多用于网络训练的最优化算法，误差函数是一个关于迭代次数的不增函数。然而，在独立数据(通常被称为验证集)上测量的误差，通常首先减小，接下来由于模型开始过拟合而逐渐增大。于是训练过程可以在关于验证集误差最小的点停止，这样可以得到一个有着较好泛化性能的网络。
 \subsection*{不变性}
@@ -58,7 +68,6 @@
 \end{enumerate}
 \subsection*{切线传播}
 通过切线传播(tangent propagation)的方法，我们可以使用正则化来让模型对于输入的变换具有不变性。
-
 \textbf{涉及到微分几何，待整理！}
 \subsection*{用变换后的数据训练}
 \textbf{涉及到微分几何，待整理！}

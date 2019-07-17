@@ -58,7 +58,34 @@
 \end{equation}
 上面的推导中，我们隐式地假设网络中的每个隐含单元或输入单元相同的激活函数$h(\cdot)$。
 \subsection*{一个简单的例子}
-上面对于反向传播算法的推导适用于一般形式的误差函数、激活函数、以及网络拓扑结构。为了说明这个算法的应用，我们考虑一个具体的例子。具体地，我们考虑两层神经网络，误差函数为平方和误差函数，输出单元的激活函数为线性激活函数，即$y_k=a_k$，而隐含单元的激活函数为S型函数，形式为
+上面对于反向传播算法的推导适用于一般形式的误差函数、激活函数、以及网络拓扑结构。为了说明这个算法的应用，我们考虑一个具体的例子。具体地，我们考虑两层神经网络
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm]
+		\tikzstyle{every node} = [color=blue]
+		
+		\node[state] (X1){$x_D$};
+		\node[state,below of=X1,yshift=-1cm] (X2){$x_1$};
+		\node[state,below of=X2] (X3){$x_0$};
+		
+		\node[state,right of=X1,xshift=1cm] (H1){$z_M$};
+		\node[state,right of=X2,xshift=1cm] (H2){$z_1$};
+		\node[state,below of=H2] (H3){$z_0$};
+		
+		\node[state,right of=H1,xshift=1cm,yshift=-1cm] (Y1){$y_K$};
+		\node[state,below of=Y1] (Y2){$y_1$};
+		
+		\path (X1) edge node[above] {$w_{MD}^{(1)}$} (H1) edge (H2)
+			  (X2) edge (H1) edge (H2)	
+			  (X3) edge (H1) edge (H2)
+			  (H1) edge node[above] {$w_{KM}^{(2)}$} (Y1) edge (Y2)
+			  (H2) edge (Y1) edge (Y2)
+			  (H3) edge (Y1) edge (Y2)
+			  (X1) edge[dashed] node[left] {$inputs$} (X2)
+			  (H1) edge[dashed] (H2)
+			  (Y1) edge[dashed] node[right] {$outputs$} (Y2);	
+	\end{tikzpicture}
+\end{center}
+误差函数为平方和误差函数，输出单元的激活函数为线性激活函数，即$y_k=a_k$，而隐含单元的激活函数为S型函数，形式为
 \begin{equation}
 	h(a)\equiv \tanh(a)=\frac{e^a-e^{-a}}{e^a+e^{-a}}
 \end{equation}
@@ -97,6 +124,32 @@
 \begin{equation}
 	J_{ki}\equiv \frac{\partial y_k}{\partial x_i}
 \end{equation}
-其中，计算每个这样的导数时，其他的输入都固定。Jacobian矩阵在由许多不同模块构建的系统中很有用。Jacobian矩阵度量了输出对于每个输入变量的改变的敏感性，因此它也允许与输入关联的任意已知的误差$\triangle x_i$在训练过的网络中传播，从而估计他们对于输出误差$\triangle y_k$的贡献。
+其中，计算每个这样的导数时，其他的输入都固定。Jacobian矩阵在由许多不同模块构建的系统中很有用。Jacobian矩阵度量了输出对于每个输入变量的改变的敏感性，因此它也允许与输入关联的任意已知的误差$\triangle x_i$在训练过的网络中传播，从而估计他们对于输出误差$\triangle y_k$的贡献。二者的关系为
+\begin{equation}
+	\triangle y_k\simeq \sum_i \frac{\partial y_k}{\partial x_i}\triangle x_i
+\end{equation}
+只要$|\triangle x_i|$较小，这个关系就成立。Jacobian矩阵可以使用反向传播的方法计算，计算方法类似于之前推导函数关于权值的导数的方法。首先，我们把元素$J_{ki}$写成下面的形式
+\begin{equation}
+\label{573}
+	\begin{aligned}
+		J_{ki}=\frac{\partial y_k}{\partial x_i}&=\sum_j \frac{\partial y_k}{\partial a_j}\frac{\partial a_j}{\partial x_i}\\
+		&=\sum_j w_{ji}\frac{\partial y_k}{\partial a_j}
+	\end{aligned}
+\end{equation}
+公式$\ref{573}$中的求和式作用于所有单元$i$发送链接的单元$j$上(例如，之前讨论的层次拓扑结构中的第一个隐含层的所有单元)。我们现在递归的反向传播公式来确定导数$\frac{\partial y_k}{\partial a_j}$
+\begin{equation}
+\label{574}
+	\begin{aligned}
+		\frac{\partial y_k}{\partial a_j}&=\sum_l \frac{\partial y_k}{\partial a_l}\frac{\partial a_l}{\partial a_j}\\
+		&=h^{'}(a_j)\sum_lw_{lj}\frac{\partial y_k}{\partial a_l}
+	\end{aligned}
+\end{equation}
+其中求和的对象为所有单元$j$发送链接的单元$l$(对应于$w_{lj}$的第一个下标)。如果对于每个输出单元，我们都有各自的求导公式。
+\begin{flalign}
+	\label{575}
+	\frac{\partial y_k}{\partial a_l}&=\delta_{kl}\sigma^{'}(a_l)\qquad \text{sigmoid函数}\\
+	\label{576}
+	\frac{\partial y_k}{\partial a_l}&=\delta_{kl}y_k-y_ky_l\qquad \text{softmax函数}
+\end{flalign}
 
-%可以将计算Jacobian矩阵的方法总结如下。将输入空间中要寻找Jacobian矩阵的点映射成一个输入向量，将这个输入向量作为网络的输入，使用通常的正向传播方法，得到网络的所有隐含单元和输出单元的激活。接下来，对于Jacobian矩阵的每一行k(对应于输出单元k)，使用递归关系
+我们可以将计算Jacobian矩阵的方法总结如下。将输入空间中要寻找Jacobian矩阵的点映射成一个输入向量，将这个输入向量作为网络的输入，使用通常的正向传播方法，得到网络的所有隐含单元和输出单元的激活。接下来，对于Jacobian矩阵的每一行k(对应于输出单元k)，使用递归关系$\ref{574}$进行反向传播。对于网络中所有的隐含结点，反向传播开始于公式$\ref{575}$和公式$\ref{576}$。最后，使用公式$\ref{573}$进行对输入单元的反向传播。Jacobian矩阵的另一种计算方法是正向传播算法，它可以使用与这里给出的反向传播算法相类似的方式推导出来。

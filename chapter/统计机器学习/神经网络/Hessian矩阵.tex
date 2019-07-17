@@ -32,7 +32,7 @@ Hessian矩阵的一些应用需要求出Hessian矩阵的逆矩阵，而不是Hes
 \begin{equation}
 	\frac{\partial^2 E_n}{\partial a_j^2}=h^{'}(a_j)^2\sum_{k}w_{kj}^2\frac{\partial^2 E_n}{\partial a_k^2}+h^{''}(a_j)\sum_{k}w_{kj}\frac{\partial E_n}{\partial a_k}
 \end{equation}
-对角近似的主要问题是，在实际应用中Hessian矩阵通常是强烈非对角化的，因此为了计算方便而采取的这些近似手段必须谨慎使用。
+注意，需要计算这个近似，所需的计算步骤为$O(W)$，其中$W$是网络中权值和偏置的总数。对于原始的Hessian矩阵，计算的步骤为$O(W^2)$。对角近似的主要问题是，在实际应用中Hessian矩阵通常是强烈非对角化的，因此为了计算方便而采取的这些近似手段必须谨慎使用。
 \subsection*{外积近似}
 当神经网络应用于回归问题时，通常使用平方和误差函数。
 我们可以把Hessian矩阵写成下面的形式
@@ -123,9 +123,24 @@ Woodbury恒等式的主要用途是当$n>k$时把一个相对较大的n阶矩阵
 \begin{equation}
 	\boldsymbol{H}_{L+1}^{-1}=\boldsymbol{H}_{L}^{-1}-\frac{\boldsymbol{H}_{L}^{-1}\boldsymbol{b}_{L+1}\boldsymbol{b}_{L+1}^T\boldsymbol{H}_L^{-1} }{1+\boldsymbol{b}_{L+1}^T\boldsymbol{H}_L^{-1}\boldsymbol{b}_{L+1} }
 \end{equation}
-使用这种方式，数据点可以依次使用，直到$L+1=N$，整个数据集被处理完毕。于是，这个结果表示一个计算Hessian矩阵的逆矩阵的算法，这个算法只需对数据集扫描一次。最开始的矩阵$\boldsymbol{H}_0$被选为$\alpha \boldsymbol{I}$，其中$\alpha$是一个较小的量，从而算法实际找的是$\boldsymbol{H}+\aleph \boldsymbol{I}$的逆矩阵。结果对于$\alpha$的精确值不是特别敏感。
+使用这种方式，数据点可以依次使用，直到$L+1=N$，整个数据集被处理完毕。于是，这个结果表示一个计算Hessian矩阵的逆矩阵的算法，这个算法只需对数据集扫描一次。最开始的矩阵$\boldsymbol{H}_0$被选为$\alpha \boldsymbol{I}$，其中$\alpha$是一个较小的量，从而算法实际找的是$\boldsymbol{H}+\aleph \boldsymbol{I}$的逆矩阵。如果对于$\alpha$的精确值不是特别敏感。
 \subsection*{有限差}
-与误差函数的一阶导数的形式相同，我们可以使用有限差的方法求二阶导数，精度受数值计算的精度限制。
+与误差函数的一阶导数的形式相同，我们可以使用有限差的方法求二阶导数，精度受数值计算的精度限制。如果我们对每对可能的权值施加一个扰动，那么我们有
+\begin{equation}
+	\begin{aligned}
+		\frac{\partial^2 E}{\partial w_{ji}\partial w_{lk}}&=\frac{1}{4\epsilon^2}\{E(w_{ji}+\epsilon,w_{lk}+\epsilon)-E(w_{ji}+\epsilon,w_{lk}-\epsilon)\\
+		&-E(w_{ji}-\epsilon,w_{lk}+\epsilon)+E(w_{ji}-\epsilon,w_{lk}-\epsilon) \}+O(\epsilon^2)
+	\end{aligned}
+\end{equation}
+与之前一样，通过使用对称的中心差，我们确保了残留的误差项是$O(\epsilon^2)$而不是$O(\epsilon)$。由于在Hessian矩阵中有$W^2$个元素，且每个元素的计算需要四次正向传播过程，每个传播过程需要$O(W)$次操作(每个模式)，因此我们看到这种方法计算完整的Hessian矩阵需要$O(W^3)$次操作。所以，这个方法的计算性质很差，虽然在实际应用中它对于检查反向传播算法的执行的正确性很有用。
+
+一个更加高效的数值层数的方法将中心差应用于一阶导数，而一阶导数可以通过反向传播方法计算。即
+\begin{equation}
+\begin{aligned}
+	\frac{\partial^2 E}{\partial w_{ji}\partial w_{lk}}=\frac{1}{2\epsilon}\{\frac{\partial E}{\partial w_{ji}}(w_{lk}+\epsilon)-\frac{\partial E}{\partial w_{ji}}(w_{lk}-\epsilon) \}+O(\epsilon^2)
+\end{aligned}
+\end{equation}
+由于只需要对W个权值施加扰动，且梯度可以通过$O(W)$次计算得到，因此我们看到这种方法可以在$O(W^2)$次操作内得到Hessian矩阵。
 \subsection*{Hessian矩阵的精确计算}
 对于一个任意的前馈拓扑结构的网络，Hessian矩阵也可以精确地计算。计算的方法是使用反向传播算法计算一阶导数的推广，同时也保留了计算一阶导数的方法的许多良好的性质，包括计算效率。这种方法可以应用于任何可微的可以表示成网络输出的函数形式的误差函数，以及任何具有可微的激活函数的神经网络。
 
@@ -196,3 +211,5 @@ Woodbury恒等式的主要用途是当$n>k$时把一个相对较大的n阶矩阵
 	\mathcal{R}\left\{\frac{\partial E}{\partial w_{ji}} \right\}&=x_i\mathcal{R}\{\delta_j \}
 \end{flalign}
 算法的执行涉及到将新的变量$\mathcal{R}\{a_j \},\mathcal{R}\{z_j \},\mathcal{R}\{\delta_j \}$引入到隐含单元，将$\mathcal{R}\{\delta_k \},\mathcal{R}\{y_k \}$引入到输出单元。对于每个输入模式，这些量的值可以使用上面的结果求出，$\boldsymbol{v}^T\boldsymbol{H}$的值由公式$\ref{rq}$和公式$\ref{ew}$给出。这种方法的一个好处是，计算$\boldsymbol{v}^T\boldsymbol{H}$的方程与标准的正向传播和反向传播的方程相同，因此将现有的神经网络计算程序扩展到能够计算这个乘积通常很容易。
+
+如果必要的话，这个方法可以用来计算完整的Hessian矩阵。
