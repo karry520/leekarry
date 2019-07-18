@@ -67,10 +67,88 @@
 	\item 把不变性的性质整合到神经网络的构建过程中，或者对于相关向量机的方法，整合到核函数中。一种方法是通过使用局部接收场和共享权值。如卷积神经网络。
 \end{enumerate}
 \subsection*{切线传播}
-通过切线传播(tangent propagation)的方法，我们可以使用正则化来让模型对于输入的变换具有不变性。
-\textbf{涉及到微分几何，待整理！}
+通过切线传播(tangent propagation)的方法，我们可以使用正则化来让模型对于输入的变换具有不变性。对于一个特定的输入向量$\boldsymbol{x}_n$，考虑变换产生的效果。假设变换是连续的(例如平移或者旋转，而不是镜像翻转)，那么变换的模式会扫过D维输入空间的一个流形$M$。考虑$D=2$的情形，假设变换由单一参数$\xi$控制(例如，$\xi$可能是旋转的一个角度)。那么被$\boldsymbol{x}_n$扫过的子空间$M$是一维的，并且以$\xi$为参数。令这个变换作用于$\boldsymbol{x}_n$上产生的向量为$\boldsymbol{s}(\boldsymbol{x}_n,\xi)$，且$\boldsymbol{s}(\boldsymbol{x},0)=\boldsymbol{x}$。这样曲线$M$的切线就由方向导数$\boldsymbol{\tau}=\frac{\partial \boldsymbol{x}}{\partial \xi}$给出，且点$\boldsymbol{x}_n$处的切线向量为
+\begin{equation}
+	\boldsymbol{\tau}_n=\frac{\partial \boldsymbol{s}(\boldsymbol{x}_n,\xi)}{\partial \xi}\Bigg|_{\xi=0}
+\end{equation}
+对于输入向量进行变换之后，网络的输出通常会发生变化。输出$k$关于$\xi$的导数为
+\begin{equation}
+\label{5126}
+	\frac{\partial y_k}{\partial \xi}\Bigg|_{\xi=0}=\sum_{i=1}^{D}\frac{\partial y_k}{\partial x_i}\frac{\partial x_i}{\partial \xi}\Bigg|_{\xi=0}=\sum_{i=1}^{D}J_{ki}\tau_i
+\end{equation}
+其中$J_{ki}$为Jacobian矩阵$J$的第$(k,i)$个元素，公式$\ref{5126}$给出的结果可以用于修改标准的误差函数，使得在数据点的邻域之内具有不变性。修改的方法为：给原始的误差函数$E$增加一个正则化函数$\Omega$，得到下面形式的误差函数
+\begin{equation}
+	\tilde{E}=E+\lambda\Omega
+\end{equation}
+其中$\lambda$是正则化系数，且
+\begin{equation}
+\label{5128}
+	\Omega=\frac{1}{2}\sum_n\sum_k\left(\frac{\partial y_{nk}}{\partial \xi}\Bigg|_{\xi=0} \right)^2=\frac{1}{2}\sum_n\sum_k\left(\sum_{i=1}^{D}J_{nk}\tau_{ni}\right)^2
+\end{equation}
+当网络映射函数在每个模式向量的邻域内具有变换不变性时，正则化函数等于零。$\lambda$的值确定了训练数据和学习不变性之间的平衡。
+
+如果变换由L个参数控制(例如，对于二维图像的平移变换与面内旋转变换项结合)，那么流形$M$的维度为L，对应的正则化项由形如$\ref{5128}$的项求和得到，每个变换都对应求和式中的一项。如果同时考虑若干个变换，并且让网络映射对于每个变换分别具有不变性，那么对于变换的组合来说就会具有(局部)不变性。
+
+一个相关的技术，被称为切线距离(tangent distance)，可以用来构造基于距离的方法(例如最近邻分类器)的不变性。
 \subsection*{用变换后的数据训练}
-\textbf{涉及到微分几何，待整理！}
+我们已经看到，让模型对于一组变换具有不变性的一种方法是使用原始输入模式的变换后的模式来扩展训练集。这里，我们会说明，这种方法与切线传播的方法密切相关。
+
+与上一节一样，我们要考虑由单一参数$\xi$控制的变换，且这个变换由函数$\boldsymbol{s}(\boldsymbol{x}_n,\xi)$描述，基中$\boldsymbol{s}(\boldsymbol{x}_n,0)=\boldsymbol{x}$。我们也会考虑平方和误差函数。对于未经过变换的输入，误差函数可以写成(在无限数据集的极限情况下)
+\begin{equation}
+	E=\frac{1}{2}\iint \{y(\boldsymbol{x})-t \}^2p(t|\boldsymbol{x})p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}\mathrm{d}t
+\end{equation}
+这里，为了保持记号的简洁，我们考虑一个输出单元的网络。如果我们现在考虑每个数据点的无穷多个副本，每个副本都由一个变换施加了扰动，这个变换的参数为$\xi$，且$\xi$服从概率分布$p(\xi)$，那么在这个扩展的误差函数上定义的误差函数可以写成
+\begin{equation}
+\label{5130}
+	\tilde{E}=\frac{1}{2}\iiint \{y(\boldsymbol{s}(\boldsymbol{x},\xi))-t \}^2p(t|\boldsymbol{x})p(\boldsymbol{x})p(\xi)\mathrm{d}\boldsymbol{x}\mathrm{d}t\mathrm{d}\xi
+\end{equation}
+我们现在假设分布$p(\xi)$的均值为零，方差很小，即我们只考虑对原始输入向量的小的变换。我们可以对变换函数进行关于$\xi$的展开，可得
+\begin{equation}
+	\begin{aligned}
+		\boldsymbol{s}(\boldsymbol{x},\xi)&=\boldsymbol{s}(\boldsymbol{x},0)+\xi \frac{\partial }{\partial \xi}\boldsymbol{s}(\boldsymbol{x},\xi)\Bigg|_{\xi=0}+\frac{\xi^2}{2}\frac{\partial^2}{\partial \xi^2}\Bigg|_{\xi=0}+O(\xi^3)\\
+		&=\boldsymbol{x}+\xi\boldsymbol{\tau}+\frac{1}{2}\xi^2\boldsymbol{\tau}^{'}+O(\xi^3)
+	\end{aligned}
+\end{equation}
+其中$\boldsymbol{\tau}^{'}$表示$\boldsymbol{s}(\boldsymbol{x},\xi)$关于$\xi$的二阶导数在$\xi=0$处的值。这使得我们可以展开模型函数，可得 
+\begin{equation}
+	y(\boldsymbol{s}(\boldsymbol{x},\xi))=y(\boldsymbol{x})+\xi\boldsymbol{\tau}^T\triangledown y(\boldsymbol{x})+\frac{\xi^2}{2}\left[(\boldsymbol{\tau}^{'})^T\triangledown y(\boldsymbol{x})+\boldsymbol{\tau}^T\triangledown\triangledown y(\boldsymbol{x})\boldsymbol{\tau} \right]+O(\xi^3)
+\end{equation}
+代入平均误差函数$\ref{5130}$，我们有
+\begin{equation}
+	\begin{aligned}
+		\tilde{E}&=\frac{1}{2}\iint \{y(\boldsymbol{x})-t \}^2p(t|\boldsymbol{x})p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}\mathrm{d}t\\
+		&+\mathbb{E}[\xi]\iint \{y(\boldsymbol{x})-t \}\boldsymbol{\tau}^T\triangledown y(\boldsymbol{x})p(t|\boldsymbol{x})p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}\mathrm{d}t\\
+		&+\mathbb{E}[\xi^2]\frac{1}{2}\iint \left[\{y(\boldsymbol{x})-t \}\{(\boldsymbol{\tau}^{'})^T\triangledown y(\boldsymbol{x})+\boldsymbol{\tau}^T\triangledown\triangledown y(\boldsymbol{x})\boldsymbol{\tau} \} \right.\\
+		&\left.+(\boldsymbol{\tau}^T\triangledown y(\boldsymbol{x}))^2\right]p(t|\boldsymbol{x})p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}\mathrm{d}t +O(\xi^3)
+	\end{aligned}
+\end{equation}
+由于变换的分布的均值为零，因此我们有$\mathbb{E}[\xi]=0$。并且，我们把$\mathbb{E}[\xi^2]$记作$\lambda$。省略$O(\xi^3)$项，这样平均误差函数就变成了
+\begin{equation}
+\label{5131}
+	\tilde{E}=E+\lambda\Omega
+\end{equation}
+其中$E$是原始的平方和误差，正则化项$\Omega$的形式为
+\begin{equation}
+	\begin{aligned}
+		\Omega&=\frac{1}{2}\int \left[\{y(\boldsymbol{x})-\mathbb{E}[t|\boldsymbol{x}] \}\{(\boldsymbol{\tau}^{'})^T\triangledown y(\boldsymbol{x})+\boldsymbol{\tau}^T\triangledown\triangledown y(\boldsymbol{x})\boldsymbol{\tau} \}+(\boldsymbol{\tau}^T\triangledown y(\boldsymbol{x}))^2 \right]p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}
+	\end{aligned}
+\end{equation}
+
+我们可以进一步简化这个正则化项，如下所述，我们已经看到，使平方和误差函数达到最小值的函数为目标值$t$的条件均值$\mathbb{E}[t|\boldsymbol{x}]$。根据公式$\ref{5131}$，我们看到正则化的误差函数等于非正则化的误差函数加上一个$O(\xi^2)$的项，因此最小化总误差函数的网络函数的形式为
+\begin{equation}
+	y(\boldsymbol{x})=\mathbb{E}[t|\boldsymbol{x}]+O(\xi^2)
+\end{equation}
+从而，正则化项中的第一项消失，剩下的项为
+\begin{equation}
+	\Omega=\frac{1}{2}\int (\boldsymbol{\tau}^T\triangledown y(\boldsymbol{x}))^2p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}
+\end{equation}
+这等价于切线传播的正则化项。
+
+如果我们考虑一个特殊情况，即输入变量的变换只是简单地添加随机噪声，从而$\boldsymbol{x}\to \boldsymbol{x}+\boldsymbol{\xi}$，那么正则化项的形式为
+\begin{equation}
+	\Omega=\frac{1}{2}\int \lVert \triangledown y(\boldsymbol{x})\rVert^2 p(\boldsymbol{x})\mathrm{d} \boldsymbol{x}
+\end{equation}
+这被称为Tikhonov正则化。这个正则化项关于网络的权值的导数可以使用反向传播算法求出。我们看到，对于小的噪声，Tikhonov正则化与输入添加随机噪声有关系。可以证明，在恰当的情况下，这种做法会提升模型的泛化能力。
 \subsection*{卷积神经网络}
 另一种构造对输入变量的变换具有不变性的模型的方法是将不变性的性质融入到神经网络结构的构建中。这就是卷积神经网络(convolutional neural network)的基础，它被广泛地应用于图像处理领域。
 
@@ -80,6 +158,10 @@
 	\item 权值共享
 	\item 下采样
 \end{enumerate}
+
+实际构造中，可能有若干对卷积层和下采样层。在每个阶段，与前一层相比，都会有一个更高层次的关于输入变换的不变性。
+
+整个网络可以使用误差函数最小化的方法计算。误差函数梯度的计算可以使用反向传播算法。这需要对通常的反向传播算法进行微小的修改，确保共享权值的限制能够满足。由于使用局部接收场，网络中权值的数量要小于完全连接的网络的权值数量。此外，由于权值的本质数量的限制，需要从训练数据中学习到的独立参数的数量仍然相当小。
 \subsection*{软权值共享}
 降低具有大量权值参数的网络复杂度的一种方法是将权值分组，然后令分组内的权值相等。这里，我们考虑软权值共享(soft weight sharing)。这种方法中，权值相等的硬限制被替换为一种形式的正则化，其中权值的分组倾向于取近似的值。此外，权值的分组、每组权值的均值，以及分组内的取值范围全都作为学习过程的一部分被确定。
 

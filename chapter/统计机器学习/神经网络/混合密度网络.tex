@@ -1,1 +1,39 @@
 \section{混合密度网络}
+有监督学习的目标是对条件概率分布$p(\boldsymbol{t}|\boldsymbol{x})$建模。对于许多简单的回归问题来说，这个分布都被选为高斯分布。然而，实际的机器学习问题中，经常会遇到与高斯分布差别相当大的概率分布。例如，在逆问题(inverse problem)中，概率分布可以是多峰的，这种情况下，高斯分布的假设就会产生相当差的预测结果。
+
+正向问题通常对应于物理系统的因果关系，通常有唯一解。然而在模式识别中，我们通常不得不求解逆问题，例如在给定症状的情况下，推断疾病的种类。如果正向问题涉及到多对一映射，那么逆问题就会有多个解。例如，多种不同的疾病可能会导致相同的症状。
+
+考虑一个相当简单的问题，这个问题中我们可以很容易地看出多峰性质。这个问题的数据的生成方式为：对服从区间$(0,1)$的均匀分布的变量$x$进行取样，得到一组值$\{x_n\}$，对应的目标值$t_n$通过下面的方式得到：计算函数$x_n+0.3\sim(2\pi x_n)$，然后添加一个服从$(-0.1,0.1)$上的均匀分布的噪声。这样，逆问题就可以这样得到：使用相同的数据点，但是交换$x$和$t$的角色。在高斯分布的假设下，最小平方方法对应于最大似然方法。我们看到，对于不服从高斯分布的逆问题，这种解法产生的模型非常差。
+
+于是，我们寻找一个对条件概率密度建模的一般的框架。可以这样做：为$p(\boldsymbol{t}|\boldsymbol{x})$使用一个混合模型，模型的混合系数和每个分量的概率分布都是输入向量$\boldsymbol{x}$的一个比较灵活的函数，这就构成了混合密度网络(mixture density network)。对于任意给定的$\boldsymbol{x}$值。混合模型提供了一个通用的形式，用来对任意条件概率密度函数$p(\boldsymbol{t}|\boldsymbol{x})$进行建模。假设我们考虑一个足够灵活的网络，那么我们就有了一个近似任意条件概率分布的框架。
+
+这里，我们显式地令模型的分量为高斯分布，即
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{x})=\sum_{k=1}^{K}\pi_k(\boldsymbol{x})\mathcal{N}(\boldsymbol{t}|\boldsymbol{\mu}_k(\boldsymbol{x}),\sigma_k^2(\boldsymbol{x})\boldsymbol{I})
+\end{equation}
+
+我们现在为混合模型取各种不同的参数，这些参数包括混合系数$\pi_k(\boldsymbol{x})$、均值$\boldsymbol{\mu}_k(\boldsymbol{x})$以及方差$\sigma_k^2(\boldsymbol{x})$，这些参数控制了以$\boldsymbol{x}$作为输入的神经网络的输出。混合密度网络使用相同的函数来预测所有分量概率分布的参数以及混合参数，因此非线性隐含单元被依赖于输入的函数所共享。
+
+如果混合模型中有K个分量，且$\boldsymbol{t}$有L个分量 ，那么网络就会有K个输出单元激活(记作$a_k^{\pi}$)确定混合系数$\pi_k(\boldsymbol{x})$，有$K$个输出(记作$a_k^{\sigma}$)确定核宽度$\sigma_k(\boldsymbol{x})$，有$K\times L$个输出(记作$a_{kj}^{\mu}$)确定核中心$\boldsymbol{\mu}_k(\boldsymbol{x})$的分量$\mu_{kj}(\boldsymbol{x})$。网络输出的总数为$(L+2)K$，这与通常的网络的L个输出不同。通常的网络只是简单地预测目标变量的条件均值。
+
+混合系数必须满足下面的限制。
+\begin{equation}
+	\sum_{k=1}^{K}\pi_k(\boldsymbol{x})=1,\quad 0\leqslant \pi_k(\boldsymbol{x}) \leqslant 1
+\end{equation}
+可以通过使用一组softmax输出来实现。
+\begin{equation}
+	\pi_k(\boldsymbol{x})=\frac{\exp (a_k^{\pi})}{\sum_{l=1}^{K}\exp (a_l^{\pi})}
+\end{equation}
+类似地，方差必须满足$\sigma_k^2(\boldsymbol{x})\geqslant 0$，因此可以使用对应的网络激活的指数形式来表示，即
+\begin{equation}
+	\sigma_k(\boldsymbol{x})=\exp (a_k^{\sigma})
+\end{equation}
+最后，由于均值$\boldsymbol{\mu}_k(\boldsymbol{x})$有实数分量，因此它们可以直接用网络的输出激活表示
+\begin{equation}
+	\mu_{kj}(\boldsymbol{x})=a_{kj}^{\mu}
+\end{equation}
+
+混合密度网络的可调节参数由权向量$\boldsymbol{w}$和偏置组成。这些参数可以通过最大似然法确定，或者等价地，使用最小化误差函数(负对数似然函数)的方法确定。对于独立的数据，误差函数的形式为
+\begin{equation}
+	E(\boldsymbol{w})=-\sum_{n=1}^{N}\ln \left\{\sum_{k=1}^{K}\pi_k(\boldsymbol{x}_n,\boldsymbol{w})\mathcal{N}(\boldsymbol{t}_n|\boldsymbol{\mu}_k(\boldsymbol{x}_n,\boldsymbol{w}),\sigma_k^2(\boldsymbol{x}_n,\boldsymbol{w})\boldsymbol{I} \right\}
+\end{equation}
