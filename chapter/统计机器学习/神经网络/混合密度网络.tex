@@ -35,5 +35,27 @@
 
 混合密度网络的可调节参数由权向量$\boldsymbol{w}$和偏置组成。这些参数可以通过最大似然法确定，或者等价地，使用最小化误差函数(负对数似然函数)的方法确定。对于独立的数据，误差函数的形式为
 \begin{equation}
-	E(\boldsymbol{w})=-\sum_{n=1}^{N}\ln \left\{\sum_{k=1}^{K}\pi_k(\boldsymbol{x}_n,\boldsymbol{w})\mathcal{N}(\boldsymbol{t}_n|\boldsymbol{\mu}_k(\boldsymbol{x}_n,\boldsymbol{w}),\sigma_k^2(\boldsymbol{x}_n,\boldsymbol{w})\boldsymbol{I} \right\}
+\label{5153}
+	E(\boldsymbol{w})=-\sum_{n=1}^{N}\ln \left\{\sum_{k=1}^{K}\pi_k(\boldsymbol{x}_n,\boldsymbol{w})\mathcal{N}(\boldsymbol{t}_n|\boldsymbol{\mu}_k(\boldsymbol{x}_n,\boldsymbol{w}),\sigma_k^2(\boldsymbol{x}_n,\boldsymbol{w})\boldsymbol{I}) \right\}
+\end{equation}
+
+为了最小化误差函数，我们需要计算误差函数$E(\boldsymbol{w})$关于$\boldsymbol{w}$的分量的导数。如果我们得到了误差函数关于输出单元激活的层数的表达式，那么我们就可以通过标准的反向传播方法来计算误差函数关于$\boldsymbol{w}$的分量的导数。误差函数关于输出单元激活的导数代表了每个模式和每个输出单元的误差信号$\sigma$，并且可以反向传播到隐含单元，从而误差函数的导数可以按照通常的方式进行计算。由于误差函数$\ref{5153}$由一组项的求和式构成，每一项都对应一个训练数据点，因此我们可以考虑对于特定的模式$n$的导数，然后通过求和的方式找到$E$的导数。
+
+由于我们处理的是混合概率分布，因此比较方便的做法是把混合系数$\pi_k(\boldsymbol{x})$看成与$\boldsymbol{x}$相关的先验概率分布，从而就引入了对应的后验概率，形式为
+\begin{equation}
+	\gamma_{nk}=\gamma_{k}(\boldsymbol{t}_n|\boldsymbol{x}_n)=\frac{\pi_k\mathcal{N}_{nk}}{\sum_{l=1}^{K}\pi_l\mathcal{N}_{nl}}
+\end{equation}
+其中$\mathcal{N}_{nk}$表示$\mathcal{N}(\boldsymbol{t}_n|\boldsymbol{\mu}_k(\boldsymbol{x}_n),\sigma_k^2(\boldsymbol{x}_n)$
+
+关于控制混合系数的网络输出激活的导数为
+\begin{equation}
+	\frac{\partial E_n}{\partial a_k^{\pi}}=\pi_k-\gamma_{nk}
+\end{equation}
+类似地，关于控制分量均值的网络输出激活的导数为
+\begin{equation}
+	\frac{\partial E_n}{\partial a_k^{\pi}}=\gamma_{k}\left\{\frac{\mu_{kl}-t_{nl}}{\sigma_k^2} \right\}
+\end{equation}
+最后，关于控制分量方差的网络激活函数为
+\begin{equation}
+	\frac{\partial E_n}{\partial a_k^{\sigma}}=\gamma_{nk}\left\{L-\frac{\lVert \boldsymbol{t}_n - \boldsymbol{\mu}_k\rVert^2}{\sigma_k^2} \right\}
 \end{equation}
