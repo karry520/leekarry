@@ -1,1 +1,131 @@
-\section{软间隔与正则化}
+\section{线性支持向量机与软间隔最大化}
+线性可分问题的支持向量机学习方法，对线性不可分训练数据是不适用的。因为这时上述方法中的不等式约束并不能都成立。怎么才能将它扩展到线性不可分问题呢？这就需要修改硬间隔最大化，使其成为软间隔最大化。
+
+假设给定一个特征空间上的训练数据集
+\begin{equation}
+	T=\{(x_1,y_1),\dots,(x_N,y_N) \}
+\end{equation}
+其中$x_i\in \mathcal{X}=R^n,y_i\in \mathcal{Y}=\{+1,-1\},i=1,\dots,N$，$x_i$为第$i$个特征向量，$y_i$为$x_i$的类标记。再假设训练数据集不是线性可分的。通常情况是，训练数据中有一些特异点(outlier)，将这些特异点除去后，剩下大部分的样本点组成的集合是线性可分的。
+
+为了解决这个问题，引入松弛变量$\xi_i\geqslant 0$，使函数间隔加上松弛变量大于等于1。这样，约束条件为
+\begin{equation}
+	y_i(w\cdot x_i+b)\geqslant 1-\xi_i
+\end{equation}
+同时，对每个松弛变量$\xi_i$，支付一个代价$\xi_i$。目标函数由原来的$\frac{1}{2}\lVert w\rVert^2$变成
+\begin{equation}
+\label{731}
+	\frac{1}{2}\lVert w\rVert^2+C\sum_{i=1}^{N}\xi_i
+\end{equation}
+这里，$C>0$称为惩罚参数，一般由应用问题决定，$C$值大时对误分类的惩罚增大，$C$值小时对误分类的惩罚减小。最小化目标函数$\ref{731}$包含两层含义：使$\frac{1}{2}\lVert w\rVert^2$尽量小即间隔尽量大，同时使误分类点的个数尽量小，$C$是调和二者的系数。
+
+有了上面的思路，可以和训练数据集线性可分时一样来考虑训练数据集线性不可分时的线性支持向量机学习问题。相应于硬间隔最大化，它被称为软间隔最大化。
+
+线性不可分的线性支持向量机的学习问题变成如下凸二次规划(convex quadratic programming)问题(原始问题)：
+\begin{flalign}
+	\mathop{\mathrm{min}}\limits_{w,b,\xi}\quad & \frac{1}{2}\lVert w\rVert^2+C\sum_{i=1}^{N}\xi_i\\
+	\mathrm{s.t.}\quad &y_i(w\cdot x_i+b)\geqslant 1-\xi,\quad i=1,2,\dots,N\\
+	&\xi_i\geqslant 0,\quad i=1,2,\dots,N
+\end{flalign}
+可以证明$w$的解是唯一的，但$b$的解可能不唯一，而是存在于一个区间。
+
+\subsection*{学习的对偶算法}
+原始问题的对偶问题是
+\begin{flalign}
+\label{737}
+	\mathop{\mathrm{min}}\limits_{a}\quad & \frac{1}{2}\sum_{i=1}^{N}\sum_{j=1}^{N}a_ia_jy_iy_j(x_i\cdot x_j)-\sum_{i=1}^{N}a_i\\
+	\mathrm{s.t.}\quad &\sum_{i=1}^{N}a_iy_i=0\\
+	\label{739}
+	&0\leqslant a_i\leqslant C,\quad i=1,2,\dots,N
+\end{flalign}
+原始最优化问题的拉格朗日函数是
+\begin{equation}
+\label{740}
+	L(w,b,\xi,a,\mu)\equiv \frac{1}{2}\lVert w\rVert^2+C\sum_{i=1}^{N}\xi_i-\sum_{i=1}^{N}a_i(y_i(w\cdot  x_i+b)-1+\xi_i)-\sum_{i=1}^{N}\mu_i\xi_i
+\end{equation}
+其中，$a_i\geqslant 0,\mu_i\geqslant 0$。
+
+对偶问题是拉格朗日函数的极大极小问题。首先求$L(w,b,\xi,a,\mu)$对$w,b,\xi$的极小，由
+\begin{flalign}
+	\triangledown_wL(w,b,\xi,a,\mu)&=w-\sum_{i=1}^{N}a_iy_ix_i=0\\
+	\triangledown_bL(w,b,\xi,a,\mu)&=-\sum_{i=1}^{N}a_iy_i=0\\
+	\triangledown_{\mu}L(w,b,\xi,a,\mu)&=C-a_i-\mu_i=0\\
+\end{flalign}
+得
+\begin{flalign}
+	w&=\sum_{i=1}^{N}a_iy_ix_i\\
+	\sum_{i=1}^{N}a_iy_i&=0\\
+	C-a_i-\mu_i&=0
+\end{flalign}
+代入$\ref{740}$中，得
+\begin{equation}
+	\mathop{\mathrm{min}}\limits_{w,b,\xi}L(w,b,\xi,a,\mu)=- \frac{1}{2}\sum_{i=1}^{N}\sum_{j=1}^{N}a_ia_jy_iy_j(x_i\cdot x_j)-\sum_{i=1}^{N}a_i
+\end{equation}
+再对$\mathop{\mathrm{min}}\limits_{w,b,\xi}L(w,b,\xi,a,\mu)$求$a$的极大，即得对偶问题：
+\begin{flalign}
+	\mathop{\mathrm{max}}\limits_{a}\quad & -\frac{1}{2}\sum_{i=1}^{N}\sum_{j=1}^{N}a_ia_jy_iy_j(x_i\cdot x_j)-\sum_{i=1}^{N}a_i\\
+	\mathrm{s.t.}\quad &\sum_{i=1}^{N}a_iy_i=0\\
+	\label{746}
+	&C-a_i-\mu_i=0\\
+	&a_i\geqslant 0\\
+	\label{748}
+	&\mu_i \geqslant 0,\quad i=1,2,\dots,N
+\end{flalign}
+将对偶最优化问题进行变换：利用等式约束$\ref{746}$消去$\mu_i$，从而只留下变量$a_i$，并将约束$\ref{746}\sim \ref{748}$写成
+\begin{equation}
+	0\leqslant a_i\leqslant C
+\end{equation}
+再将目标函数求极大转换为求极小，于是得到对偶问题$\ref{737}\sim \ref{739}$。
+
+可以通过求解对偶问题而得到原始问题的解，进而确定分离超平面和决策函数。为此，就可以定理的形式叙述原始问题的最优解和对偶问题的最优解的关系。
+\subsection*{支持向量}
+在线性不可分的情况下，将对偶问题的解$a^*=(a_1^*,a_2^*,\dots,a_N^*)^T$中对应于$a_i^*>0$的样本点$(x_i,y_i)$称为支持向量。软间隔的支持向量$x_i$或者在间隔边界上，或者在间隔边界与分离超平面之间，或者在分离超平面误分类一侧。
+\subsection*{合页损失函数}
+对于线性支持向量机学习来说，其模型为分离超平面$w^*\cdot x+b^*=0$及决策函数$f(x)=\mathrm{sign}(w^*\cdot x+b^*)$，其学习策略为软间隔最大化，学习算法为凸二次规划。
+
+线性支持向量机学习还有另外一种解释，就是最小化以下目标函数：
+\begin{equation}
+	\sum_{i=1}^{N}[1-y_i(w\cdot x+b)]_+ +\lambda\lVert w\rVert ^2
+\end{equation}
+目标函数的第1项是经验损失或经验风险，函数
+\begin{equation}
+	L(y(w\cdot x+b))=[1-y_i(w\cdot x+b)]_+
+\end{equation}
+称为合页损失函数(hinge loss function)。下标“+”表示以下取正值的函数。
+\begin{equation}
+	[z]_+=\begin{cases}
+		z,\quad z>0\\
+		0,\quad z\leqslant 0
+	\end{cases}
+\end{equation}
+这就是说，当样本点$(x_i,y_i)$被正确分类且函数间隔(确信度)$y_i(w\cdot x_i+b)$大于1时，损失是0,否则损失是$1-y_i(w\cdot x_i+b)$。目标函数的第2项是系数为$\lambda$的$w$的$L_2$范数，是正则化项。
+\begin{theorem}{}{}
+	线性支持向量机原始最优化问题
+	\begin{flalign}
+	\label{760}
+		\mathop{\mathrm{min}}\limits_{w,b,\xi}\quad & \frac{1}{2}\lVert w\rVert^2+C\sum_{i=1}^{N}\xi_i\\
+		\label{761}
+		\mathrm{s.t.}\quad &y_i(w\cdot x_i+b)\geqslant 1-\xi,\quad i=1,2,\dots,N\\
+		\label{762}
+		&\xi_i\geqslant 0,\quad i=1,2,\dots,N
+	\end{flalign}
+	等价于最优化问题
+	\begin{equation}
+	\label{763}
+		\mathop{\mathrm{min}}\limits_{w,b}\quad 	\sum_{i=1}^{N}[1-y_i(w\cdot x+b)]_+ +\lambda\lVert w\rVert ^2
+	\end{equation}
+\end{theorem}
+\begin{proof}{}{}
+	可将最优化问题$\ref{763}$写成问题$\ref{760}\sim \ref{762}$。令
+	\begin{equation}
+	\label{764}
+		[1-y_i(w\cdot x+b)]_+=\xi_i
+	\end{equation}
+	则$\xi_i\geqslant 0$式$\ref{762}$成立。由式$\ref{764}$，当$1-y_i(w\cdot x_i+b)>0$时，有$1-y_i(w\cdot x_i+b)=1-\xi_i$；当$1-y_i(w\cdot x_i+b)\leqslant 0$时，有$1-y_i(w\cdot x_i+b)\geqslant 1-\xi_i$。故式$\ref{761}$成立。于是$w,b,\xi_i$满足约束条件$\ref{761}\sim \ref{762}$。所以最优化问题$\ref{763}$可写成
+	\begin{equation}
+		\mathop{\mathrm{min}}\limits_{w,b}\quad 	\sum_{i=1}^{N}\xi_i +\lambda\lVert w\rVert ^2
+	\end{equation}
+	若取$\lambda=\frac{1}{2C}$，则
+	\begin{equation}
+		\mathop{\mathrm{min}}\limits_{w,b}\quad 	\frac{1}{C}\left(\frac{1}{2}\lVert w\rVert ^2+C\sum_{i=1}^{N}\xi_i \right)
+	\end{equation}
+\end{proof}
