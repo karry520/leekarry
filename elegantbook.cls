@@ -274,8 +274,8 @@
 \RequirePackage{geometry}
 \geometry{
 	a4paper,
-%	left=27mm,  %% or inner=23mm
-%	right=27mm, %% or outer=18mm
+	%left=35mm,  %% or inner=23mm
+	%right=20mm, %% or outer=18mm
 	top=25.4mm, bottom=25.4mm,
 	headheight=2.17cm,
 	headsep=4mm,

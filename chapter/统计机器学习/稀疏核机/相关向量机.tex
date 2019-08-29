@@ -1,4 +1,82 @@
 \section{相关向量机}
+相关向量机(relevance vector machine)或者RVM是一个用于回归问题和分类问题的贝叶斯稀疏核方法，它具有许多SVM的特征，同时避免了SVM的主要的局限性。此外，它通常会产生更加稀疏的模型，从而使得在测试集上的速度更快，同时保留了可比的泛化误差。
 \subsection*{用于回归的RVM}
-\subsection*{稀疏性分析}
-\subsection*{RVM用于分类}
+用于回归的相关向量机的形式是第6章研究过的线性模型的形式，但是先验概率有所不同，从而产生了稀疏解。模型定义了给定一个输入向量$\boldsymbol{x}$的情况下，实值目标变量$t$的条件概率分布，形式为
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{w},\beta)=\mathcal{N}(t|y(\boldsymbol{x}),\beta^{-1})
+\end{equation}
+其中$\beta=\sigma^{-2}$是噪声精度(噪声方差的倒数)，均值是由一个线性模型给出，形式为
+\begin{equation}
+\label{777}
+	y(\boldsymbol{x})=\sum_{i=1}^{M}w_i\phi_i(\boldsymbol{x})=\boldsymbol{w}^T\phi(\boldsymbol{x})
+\end{equation}
+模型带有固定非线性基函数$\phi_i(\boldsymbol{x})$，通常包含一个常数项，使得对应的权参数表示一个“偏置”。
+
+相关向量机是这个模型的一个具体实例，它试图重现支持向量机的结构。特别地，基函数由核给出，训练集的每个数据点关联着一个核。一般的表达式$(\ref{777})$于是就可以写成与SVM相类似的形式
+\begin{equation}
+\label{778}
+	y(\boldsymbol{x})=\sum_{i=1}^{N}w_nk(\boldsymbol{x},\boldsymbol{x}_n)+b
+\end{equation}
+其中$b$是一个偏置参数。$y(\boldsymbol{x})$与SVM的预测模型具有相同的形式，唯一的差别是系数$a_n$在这里被记作$w_n$。与SVM的情形相反，没有正定核的限制，基函数也没有被训练数据点的数量或位置所限制。
+
+假设我们有输入向量$\boldsymbol{x}$的N次观测，我们将这些观测聚焦在一起，记作数据矩阵$\boldsymbol{X}$，它的第$n$行是$\boldsymbol{x}_n^T$，其中$n=1,\dots,N$。对应的目标值为$\boldsymbol{t}=(t_1,\dots,t_N)^T$。因此，似然函数为
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)=\prod_{n=1}^{N}p(t_n|\boldsymbol{x}_n,\boldsymbol{w},\beta)
+\end{equation}
+接下来，我们引入参数向量$\boldsymbol{w}$上的先验分布。我们考虑零均值的高斯先验。然而，RVM中的关键区别在于我们为每个权参数$w_i$都引入了一个单独的超参数$a_i$，而不是一个共享的超参数。因此权值先验的形式为
+\begin{equation}
+	p(\boldsymbol{w}|\boldsymbol{\alpha})=\prod_{i=1}^{N}\mathcal{N}(w_i|0,\alpha_i^{-1})
+\end{equation}
+其中$a_i$表示对应参数$w_i$的精度，$\boldsymbol{\alpha}$表示$(\alpha_1,\dots,\alpha_M)^T$。我们将会看到，当我们关于这些超参数最大化模型证据时，大部分都趋于无穷，对应的权参数的后验概率分布集中在零附近。与这些参数关联的基函数于是对于模型的预测没有作用，因此被高效地剪枝掉，从而生成了一个稀疏的模型。
+
+后验概率分布还是高斯分布，形式为
+\begin{equation}
+	p(\boldsymbol{w}|\boldsymbol{t},\boldsymbol{X},\boldsymbol{\alpha},\beta)=\mathcal{N}(\boldsymbol{w}|\boldsymbol{m},\boldsymbol{\Sigma})
+\end{equation}
+其中，均值和方差为
+\begin{flalign}
+	\boldsymbol{m}&=\beta\boldsymbol{\Sigma}\boldsymbol{\Phi}^T\boldsymbol{t}\\
+	\boldsymbol{\Sigma}&=(\boldsymbol{A}+\beta\boldsymbol{\Phi}^T\boldsymbol{\Phi})^{-1}
+\end{flalign}
+其中，$\boldsymbol{\Phi}$是$N\times M$的设计矩阵，元素为$\Phi_{ni}=\phi_i(\boldsymbol{x}_n)$，且$\Phi_{nM}=1(n=1,\dots,M),A=\mathrm{diag}(\alpha_i)$。
+
+$\boldsymbol{\alpha}$和$\beta$的值可以使用第二类最大似然法(也被称为证据近似)来确定。这种方法中，我们最大化边缘似然函数。边缘似然函数通过对权向量积分的方式得到，即
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{\alpha},\beta)=\int p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)p(\boldsymbol{w}|\boldsymbol{\alpha})\mathrm{d}\boldsymbol{w}
+\end{equation}
+由于这表示两个高斯分布的卷积，因此可以计算求得对数边缘似然函数，形式为
+\begin{equation}
+	\begin{aligned}
+		\ln p(\boldsymbol{t}|\\boldsymbol{X},\boldsymbol{\alpha},\beta)&=\ln \mathcal{N}(\boldsymbol{t|0,\boldsymbol{C}})\\
+		&=-\frac{1}{2}\{N\ln(2\pi)+\ln |\boldsymbol{C}|+\boldsymbol{t}^T\boldsymbol{C}^{-1}\boldsymbol{t} \}
+	\end{aligned}
+\end{equation}
+其中$\boldsymbol{t}=(t_1,\dots,t_N)^T$，并且我们定义了$N\times N$的矩阵$\boldsymbol{C}$，形式为
+\begin{equation}
+	\boldsymbol{C}=\beta^{-1}\boldsymbol{I}+\boldsymbol{\Phi}\boldsymbol{A}^{-1}\boldsymbol{\Phi}^T
+\end{equation}
+
+我们现在的目标是关于超参数$\boldsymbol{\alpha}$和$\beta$最大化参数。第一种方法是简单地令要求解的边缘似然函数的导数等于零，然后得到了下面的重估计方程
+\begin{flalign}
+	\alpha_i^{\text{新}}&=\frac{\gamma_i}{m_i^2}\\
+	(\beta^{\text{新}})^{-1}&=\frac{\lVert \boldsymbol{t}-\boldsymbol{\Phi m}\rVert ^2}{N-\sum_i \gamma_i}
+\end{flalign}
+其中$m_i$是后验均值$\boldsymbol{m}$的第$i$个分量。$\gamma_i$度量了对应的参数$w_i$由数据确定的效果，定义为
+\begin{equation}
+	\gamma_i=1-\alpha_i\Sigma_{ii}
+\end{equation}
+因此，学习过程按照下面的步骤进行：选择$\boldsymbol{\alpha}$和$\beta$的初始值，计算后验概率的均值和协方差，然后交替地重新估计超参数、重新估计后验均值和协方差，直到满足一个合适的收敛准则。
+
+第二种方法是使用EM算法。作为优化的结果，我们发现超参数$\{\alpha_i\}$的一部分趋于特别大的值(原则上是无穷大)，因此对应于这些超参数的权参数$w_i$的后验概率的均值和方差都是零。因此这些参数以及对应的基函数$\phi_i(\boldsymbol{x})$被从模型中去掉，对应新输入的预测没有作用。使得强调的一点是，通过自动相关性检测得到概率模型的稀疏性的方法是一种相当通用的方法，可以应用于任何表示成基函数的可调节线性组合形式的模型。
+
+找到了最大化边缘似然函数的超参数$\boldsymbol{\alpha}^*$和$\beta^*$的值之后，对于一个新的输入$\boldsymbol{x}$，我们可以计算$t$上的预测分布。预测分布为
+\begin{equation}
+	\begin{aligned}
+		p(t|\boldsymbol{x},\boldsymbol{X},\boldsymbol{t},\boldsymbol{\alpha}^*,\beta^*)&=\int p(t|\boldsymbol{x},\boldsymbol{w},\beta^*)p(\boldsymbol{w}|\boldsymbol{X},\boldsymbol{t},\boldsymbol{\alpha}^*,\beta^*)\mathrm{d}\boldsymbol{w}\\
+		&=\mathcal{N}(t|\boldsymbol{m}^T\phi(\boldsymbol{x}),\sigma^2(\boldsymbol{x})
+	\end{aligned}
+\end{equation}
+
+对于一大类回归任务和分类任务，RVM生成的模型通常比对应的支持向量机生成的模型简洁了一个数量级，从而使得处理测试数据的速度有了极大的提升，值得注意的是，与SVM相比，这种稀疏性的增大并没有减小泛化误差。
+
+与RVM相比，SVM的一个主要缺点是训练过程涉及到优化一个非凸的函数，并且与一个效果相似的SVM相比，训练时间要更长。

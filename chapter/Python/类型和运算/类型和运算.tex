@@ -1,0 +1,65 @@
+由于对象是Python中最基本的概念，从更具体的视角来看，Python程序可以分解为模块、语句、表达式以及对象，如下所示。
+\begin{enumerate}
+	\item 程序由模块构成。
+	\item 模块包含语句。
+	\item 语句包含表达式。
+	\item 表达式建立并处理对象。
+\end{enumerate}
+本部分的章节将会从底层开始，探索编程过程中使用的内置对象以及表达式。
+\section{数字}
+\subsection{Python的数字类型}在Python中，数字并不是一个真正的对象类型，而是一组类似类型的分类。Python数字类型的完整工具包括：
+\begin{itemize}
+	\item 整数、浮点数和复数
+	\item 固定精度的十进制数、无穷的整数精确度
+	\item 有理分数
+	\item 集合
+	\item 布尔类型
+	\item 各种数字内置和模块
+\end{itemize}
+表达式是大多数数字类型最基本的工具。
+\begin{table}[htbp]
+\centering
+\caption{Python表达式操作符}
+	\begin{tabular}{ll|ll}
+		\toprule
+		操作符 	& 描述	&操作符 	& 描述\\
+		\midrule
+		yield x   & 生成器函数发送协议 &lambda args:expression & 生成匿名函数\\
+		x if y else z&三元选择表达式&x or y&逻辑或\\
+		x and y&逻辑与&not x&逻辑非\\
+		x in y,x not in y&成员关系&x is y,x is not y&对象实体测试\\
+		x < y,x<=y,x>y,x>=y&大小比较&x==y,x!=y&\\
+		x|y		&位或		&x\ $\hat{}$ y		&位异或\\
+		x\& y	&位与		&x<<y,x>>y	&左移或右移\\
+		x+y,x-y&加法/合并，减法，集合差集&x*y&乘法/重复\\
+		x\%y,x/y,x//y&余数/格式化，除法&-x,+x&一元减法，识别\\
+		~x&按位求补(取反)&x**y&幂运算\\
+		x[i]&索引点号取属性运算，函数调用&x[i:j:k]&分片\\
+		x(...)&调用&x.attr&属性引用\\
+		(...)&元组，表达式，生成器表达式&[...]&列表，列表解析\\
+		\{...\}&字典、集合、字典解析&&\\
+		\bottomrule
+	\end{tabular}
+\end{table}
+\subsection{在实际应用中的数字}
+\subsection{其他数字类型}
+\section{字符串}
+\subsection{字符串常量}
+\subsection{实际应用中的字符串}
+\subsection{字符串方法}
+\subsection{字符串格式化表达式}
+\subsection{字符串格式化调用方法}
+\subsection{通常意义下的类型分类}
+\section{列表与字典}
+\subsection{列表}
+\subsection{实际应用中的列表}
+\subsection{字典}
+\subsection{实际应用中的字典}
+\section{元组、文件及其他}
+\subsection{元组}
+\subsection{文件}
+\subsection{重访类型分类}
+\subsection{对象灵活性}
+\subsection{引用VS拷贝}
+\subsection{比较、相等性和真值}
+\subsection{Python中的其他类型}

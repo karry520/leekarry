@@ -80,15 +80,15 @@ L(w,b,a) = \frac{1}{2}\lVert w \rVert^2 - \sum_{i=1}^na_i (y_i(w^T x_i + b) - 1)
 \end{equation}
 然后令
 \begin{equation}
-\theta (\boldsymbol{w}) = \mathop{max} \limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a)
+\theta (\boldsymbol{w}) = \mathop{\mathrm{max}} \limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a)
 \end{equation}
 具体写出来，目标函数变成了
 \begin{equation}
-\mathop{min}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{min}\limits_{\boldsymbol{w},b}\mathop{ max}\limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a) = p^*
+\mathop{\mathrm{min}}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{\mathrm{min}}\limits_{\boldsymbol{w},b}\mathop{ max}\limits_{a_i \geq 0}\ L(\boldsymbol{w},b,a) = p^*
 \end{equation}
 这里用$p^*$表示这个问题的最优值，且和最初的问题是等价的。如果直接求解，那么一上来便得面对$w$和$b$两个参数，而$a_i$以是不等式约束，这个求解过程不好做。考虑对偶问题
 \begin{equation}
-\mathop{min}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{ max}\limits_{a_i \geq 0}\ \mathop{min}\limits_{\boldsymbol{w},b}\ L(\boldsymbol{w},b,a) = d^*
+\mathop{\mathrm{min}}\limits_{\boldsymbol{w},b}\ \theta(\boldsymbol{w}) = \mathop{ \mathrm{max}}\limits_{a_i \geq 0}\ \mathop{\mathrm{min}}\limits_{\boldsymbol{w},b}\ L(\boldsymbol{w},b,a) = d^*
 \end{equation}
 原始问题通过满足KKT条件，已经转化成了对偶问题。而求解这个对偶问题，分为3个步骤
 \begin{enumerate}
@@ -113,7 +113,7 @@ L(w,b,a) = \frac{1}{2}\lVert w \rVert^2 - \sum_{i=1}^na_i (y_i(w^T x_i + b) - 1)
 	求对$a$的极大，即是关于对偶问题的最优化问题。经过上一个步骤的求解，得到的拉格朗日函数式子已经没有了变量$w$和$b$，只有$a$。从上面的式子得到
 	\begin{equation}
 	\begin{aligned}
-	\mathop{max}\limits_a \quad &\sum _{i = 1}^n a_i - \frac{1}{2}\sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j \\
+	\mathop{\mathrm{max}}\limits_a \quad &\sum _{i = 1}^n a_i - \frac{1}{2}\sum_{i,j=1}^na_ia_jy_iy_jx_i^Tx_j \\
 	s.t. \quad &a_i \geq 0,i = 1,\dots, n \\
 	&\sum_{i = 1}^n a_iy_i  = 0
 	\end{aligned}
@@ -122,7 +122,7 @@ L(w,b,a) = \frac{1}{2}\lVert w \rVert^2 - \sum_{i=1}^na_i (y_i(w^T x_i + b) - 1)
 	\begin{equation}
 	\begin{aligned}
 	\boldsymbol{w}^* &= \sum_{i = 1}^n a_iy_ix_i \\
-	b^* &= -\frac{\mathop{max}\ {\boldsymbol{w}^*}^T x_i + \mathop{min}\ {\boldsymbol{w}^*}^T x_i}{2} 
+	b^* &= -\frac{\mathop{\mathrm{max}}\ {\boldsymbol{w}^*}^T x_i + \mathop{\mathrm{min}}\ {\boldsymbol{w}^*}^T x_i}{2} 
 	\end{aligned}
 	\end{equation}
 	即可求出$w,b$，最终得出分离超平面和分类决策函数。
