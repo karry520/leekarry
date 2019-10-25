@@ -1,0 +1,102 @@
+\section{学科简述}
+最优化理论与算法是一个重要的数学分支，它所研究的问题是讨论在众多的方案中什么样的方案最优以及怎样找出最优方案。
+\begin{enumerate}
+	\item 对于一个优化问题，通常有一个优化目标函数$f(x),x$为参数变量，$c(x)$为约束。
+	\item 最优化问题的标注形式为
+	\begin{equation}
+	\begin{aligned}
+		min f(x) &\quad x \in R^n \\
+		s.t. C_i(x) = 0 &\quad i \in \epsilon \\
+		C_i(x) \geq 0 &\quad i \in I
+	\end{aligned}
+	\end{equation}
+	\item 其中$\epsilon$表示等式集合$I$表示不等式集合
+	\item 其中满足约束的解称之为**可行解**
+\end{enumerate}
+\section{线性与非线性规划问题}
+目标函数和约束函数都是线性的，称之为**线性规划问题**。
+数学模型中含有非线性函数，因此称为**非线性规划问题**。
+在线性规划与非线性规划中，满足约束条件的点称为**可行点**，全体可行点组成的集合称为**可行集**或**可行域**。如果一个问题的可行集是整个空间。那么此问题就称为**无约束问题**。
+
+设$f(x)$为目标函数，$S$为可行域，若存在$\bar{x}\in S$，若对每个$x\in S$，有$f(x) \geq f(\bar{x})$，则称$\bar{x}$为$f(x)$在$S$上的**全局极小点**。
+
+设$f(x)$为目标函数，$S$为可行域，若存在$\bar{x}\in S$，若存在$x\in S,\epsilon > 0$邻域$N(\bar{x},\epsilon) = \{x | \Vert x - \bar{x} \Vert < \epsilon \}$ ，使得对每个$x \in S \cap N(\bar{x},\epsilon)$，有$f(x) \geq f(\bar{x})$，则称$\bar{x}$为$f(x)$在$S$上的**局部极小点**。
+
+\section{几个数学概念}
+\subsection*{向量范数和矩阵范数}
+\begin{enumerate}
+	\item 向量范数
+	\begin{equation}
+		\Vert x \Vert _p = \left(\sum_{j=1}^n |x_j|^p \right)^{\frac{1}{p}}
+	\end{equation}
+	\item 矩阵范数 
+	设A为$m \times n$矩阵，$\Vert \cdot\Vert_\alpha$是$R^m$上向量范数，$\Vert \cdot \Vert_\beta$是$R^n$上向量范数，定义矩阵范数
+	\begin{equation}
+		\Vert A \Vert = \max_{\Vert x \Vert _\beta -1}\Vert Ax\Vert _\alpha
+	\end{equation}
+\end{enumerate}
+\subsection*{序列的极限}
+
+设$\{x^{(k)}\}$是$R^n$中一个向量序列，$\bar{x} \in R^n$，如果对每个任给的$\epsilon > 0$存在正整数K，使得当$k > K_\epsilon$时就有$\Vert x^{(k)} - \bar{x} \Vert < \epsilon $，则称序列收敛到$\bar{x}$，或称序列以$\bar{x}$为\textbf{极限}，记作
+\begin{equation}
+	\lim_{k \rightarrow \infty}x^{(k)} = \bar{x}
+\end{equation}
+$\bar{x}$称为序列的一个\textbf{聚点}。
+\subsection*{梯度、Hesse矩阵、Taylor展开式}
+函数$f$在$x$处的梯度为$n$维列向量：
+\begin{equation}
+	\bigtriangledown f(x) = \left[ \frac{\partial f(x)}{\partial x_1},\frac{\partial f(x)}{\partial x_2}, \dots ,\frac{\partial f(x)}{\partial x_n}\right]^T 
+\end{equation}
+$f$在$x$处的Hesse矩阵为$n \times n$矩阵$\bigtriangledown ^2  f(x)$，第i行第j列元素为
+\begin{equation}
+	[\bigtriangledown^2 f(x)]_{ij} = \frac{\partial ^2 f(x)}{\partial x_i \partial x_j},\quad 1 \leq i,j\leq n
+\end{equation}
+\subsection*{Jacobi矩阵、链式法则和隐函数存在定理 }
+\section{凸集和凸函数}
+\subsection*{凸集}
+凸集和凸函数是线性规划和非线性规划都要涉及的基本概念。关于凸集和凸函数的一些定理在最优化问题的理论证明及算法研究中具有重要作用。
+设$S$为n维欧氏空间$R^n$中一个集合。若对$S$中任意两点，联结它们的线段仍属于$S$；换言之，对$S$中任意两点$x^{(1)},x^{(2)}$及每个实数$\lambda\in [0,1]$，都有
+\begin{equation}
+	\lambda x^{(1)} + (1 - \lambda) x^{(2)}\in S
+\end{equation}
+则称$S$为\textbf{凸集}。
+
+设有集合$C\subset R^n$，若对$C$中每一点$x$，当$\lambda$取任何非负数时，都有$\lambda x \in C$，则称$C$为\textbf{锥}，又若$C$为凸集，则称$C$为\textbf{凸锥}。
+
+有限个半空间的交
+$$\{x| Ax \leq b\}$$
+称为\textbf{多面集}，其中$A$为$m\times n$矩阵，$b$为m维向量。
+
+设$S$为非空凸集，$x \in S$，若x不能表示成$S$中两个不同点的凸组合；换言之，若假设$x = \lambda x^{(1)} + (1 - \lambda)x^{(2)} (\lambda \in (0,1)),x^{(1)} ,x^{(2)}\in S$，必推得$x = x^{(1)} = x^{(2)}$，则称$x$是凸集$S$的\textbf{极点}。
+
+设$S$为$R^n$中的闭凸集，$d$为非零向量，如果对$S$中的每一个$x$，都有射线
+\begin{equation}
+	\{ x+\lambda d | \lambda \leq 0 \} \subset S
+\end{equation}
+则称向量$d$为$S$的方向，又设$d^{(1)}\text{和}d^{(2)}$是$S$的两个方向，若对任何正数$\lambda$有$d^{(1) \ne \lambda d^{(2)}}$，则称$d^{(1)}$和$d^{(2)}$是两个不同的方向。若$S$的方向$d$不能表示成该集合的两个不同方向的正的线性组合，则称$d$为$S$的\textbf{极方向}。
+
+凸集的另一个重要性质是\textbf{分离定理}.
+
+设$S_1$和$S_2$是$R^n$中两个非空集合，$H=\{x|P^Tx = \alpha\}$为超平面。如果对每个$x \in S_1$，都有$P^T x \geq \alpha$，对于每个$x\in S_2$，都有$P^Tx \leq \alpha$，则称超平面$H$分离集合$S_1$和$S_2$。
+
+\subsection*{凸函数}
+设$S$为$R^n$中的非空凸集，$f$是定义在$S$上的实函数。如果对任意的$x^{(1)},x^{(2)}\in S$及每个数$\lambda\in (0,1)$，都有
+\begin{equation}
+	f(\lambda x^{(1)} + (1+\lambda )x^{(2)} )\leq \lambda f(x^{(1)}) + (1+\lambda)f(x^{(2)})
+\end{equation}
+则称$f$为$S$上的**凸函数**。
+\subsection*{凸函数的判别}
+利用凸函数的定义及有关性质可以判别一个函数是否为凸函数，但有时计算比较复杂，使用很不方便，因此需要进一步研究凸函数的判别问题。
+\begin{enumerate}
+	\item 设$S$是$R^n$中非空开凸集，$f(x)$是定义在$S$上的可微函数，则$f(x)$为凸函数的充要条件是对任意两点$x^{(1)},x^{(2)} \in S$，都有
+	\begin{equation}
+		f(x^{(2)}) \geq f(x^{(1)}) + \bigtriangledown f(x^{(1)})^T (x^{(2)} - x^{(1)})
+	\end{equation}
+	\item 设$S$是$R^n$中非空开凸集，$f(x)$是定义在$S$上的二次可微函数，如果在每一点$x \in S,Hesse$矩阵正定，则$f(x)$为严格凸函数。
+\end{enumerate}
+\subsection*{凸规划}
+对于标准形式目标函数为凸函数，等式约束为线性约束；不等式约束为凹函数。
+
+
+
+
