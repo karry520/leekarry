@@ -1,4 +1,22 @@
 \documentclass[cn,fancy,blue,11pt]{elegantbook}
+%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+	backgroundcolor=\color{white},%背景色
+	numbers=left, %设置行号位置
+	numberstyle=\tiny, %设置行号大小
+	keywordstyle=\color{blue}, %设置关键字颜色
+	commentstyle=\color[cmyk]{1,0,1,0}, %设置注释颜色
+	frame=single, %设置边框格式
+	escapeinside=``, %逃逸字符(1左面的键)，用于显示中文
+	%breaklines, %自动折行
+	extendedchars=false, %解决代码跨页时，章节标题，页眉等汉字不显示的问题
+	xleftmargin=2em,xrightmargin=2em, aboveskip=1em, %设置边距
+	tabsize=4, %设置tab空格数
+	showspaces=false %不显示空格
+}
+%%%%%%%%%%%%%%%%%%%%%%
 
 \usepackage{tikz}
 \usetikzlibrary{shapes,graphs,arrows,automata,positioning,fit,patterns}
@@ -53,10 +71,11 @@
 %\include{./chapter/随机演算-机会的数学/Probability}
 %\part{计算数学与科学计算}
 %\include{./chapter/计算数学与科学计算/Scientific-calculation}
+\include{./chapter/算法设计与分析/Design-Analyze-of-Algorithm}
 %\part{机器学习}
 %\include{./chapter/统计机器学习/Machine-learning}
 %\part{深度学习}
-\include{./chapter/深度学习/Deep-learning}
+%\include{./chapter/深度学习/Deep-learning}
 %\part{Python学习手册}
 %\include{./chapter/Python/Python}
 %\include{./chapter/tensorflow/tensorflow}

@@ -1,0 +1,24 @@
+本章研究非线性规划的最优解所满足的必要条件和充分条件。这些条件很重要，它们将为各种算法的推导和分析提供必不可少的理论基础。
+\section{无约束问题的极值条件}
+考虑非线性规划问题
+\begin{equation}
+	\mathrm{min}\ f(\boldsymbol{x}),\quad  \boldsymbol{x}\in \mathbb{R}^n
+\end{equation}
+其中$f(\boldsymbol{x})$是定义在$\mathbb{R}^n$上的实函数。称为无约束极值问题。
+
+\begin{theorem}{}{}
+	\begin{enumerate}
+		\item (必要条件)
+		\begin{enumerate}
+			\item 设函数$f(\boldsymbol{x})$在点$\bar{\boldsymbol{x}}$可微，若$\bar{\boldsymbol{x}}$是局部极小点，则梯度$\bigtriangledown f(\boldsymbol{x})=0$
+			\item 设函数$f(\boldsymbol{x})$在点$\bar{\boldsymbol{x}}$二次可微，若$\bar{\boldsymbol{x}}$是局部极小点，则梯度$\bigtriangledown f(\boldsymbol{x})=0$，并且Hesse矩阵$\bigtriangledown^2f(\bar{\boldsymbol{x}})$半正定。
+		\end{enumerate}
+		 
+		\item (充分条件) 
+		设函数$f(\boldsymbol{x})$在点$\bar{\boldsymbol{x}}$二次可微，若梯度$\bigtriangledown f(\boldsymbol{x})=0$，且Hesse矩阵$\bigtriangledown^2f(\bar{\boldsymbol{x}})$正定，则$\bar{\boldsymbol{x}}$是局部极小点
+		\item (充要条件)
+		设$f(\boldsymbol{x})$是定义在$\mathbb{R}^n$上的可微凸函数，$\bar{\boldsymbol{x}}\in \mathbb{R}^n$，则$\bar{\boldsymbol{x}}$为全局极小点的充分必要条件是梯度$\bigtriangledown f(\boldsymbol{x})=0$
+	\end{enumerate}
+	
+\end{theorem}
+\section{约束极值问题的最优性条件}
