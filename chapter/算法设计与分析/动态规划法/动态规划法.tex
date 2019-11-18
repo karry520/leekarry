@@ -1,24 +1,159 @@
+动态规划是另一种求解最优化问题的重要算法设计策略。对于一个问题，如果能从较小规模子问题的最优解求得较大规模同类子问题的最优解，最终得到给定问题的最优解，这就是问题最优解的最优子结构特征。最优子结构特性使动态规划算法可以采用自底向上的方式进行计算。如果能在求解中保存已计算的子问题的最优解，当这些子最优解被重复引用时，则无须再次计算，从而节省了大量的计算时间。
 \section{一般方法和基本要素}
+动态规划的实质也是将较大问题分解为较小的同类子问题，在这一点上它与分治法和贪心法类似。但动态规划法有自己的特点。分治法的子问题相互独立，相同的子问题被重复计算，而动态规划法解决了这种子问题重叠现象。贪心法要求针对问题设计最优量度标准，但这在很多情况下并不容易做到，而动态规划法利用最优子结构，自底向上从子问题的最优解逐步构造出整个问题的最优解，动态规划可以处理不具备贪心准则的问题。
 \subsection*{一般方法}
+与贪心法类似，动态规划法是一种求解最优化问题的算法设计策略，它也采用分步决策的方式求解问题。贪心算法在求解问题的每一步上根据最优量度标准做出某种决策。产生n-元组解的一个分量。用于决策的贪心准则仅依赖于局部的和以前的选择，但不依赖于尚未做出的选择和子问题的解。动态规划法每一步的决策依赖于子问题的解。直观上，为了在某一步上做出的选择，需要先求解若干子问题，再根据子问题的解做出决策，这就使得动态规划法求解问题的方法是自底向上的。
+
+最优性原理指出，一个最优策略具有这样的性质，不论过去状态和决策如何，对前面的决策所形成的状态而言，其余决策必定构成最优策略。这便是最优决策序列的最优子结构特性。
+
+设计一个动态规划算法，通常可以按以下4个步骤进行：
+\begin{enumerate}
+	\item 刻画最优解的结构特性； 
+	\item 递归定义最优解值； 
+	\item 以自底向上方式计算最优解值； 
+	\item 根据计算得到的信息构造一个最优解。
+\end{enumerate}
 \subsection*{基本要素}
+一个最优化多步决策问题是否适合用动态规划法求解有两个要素：最优子结构特性和重叠子问题。
+
+动态规划法要求较小子问题的最优解与较大子问题的最优解之间存在数值关系，这就是最优子结构特性。
 \subsection*{多段图问题}
+\textbf{问题描述}：
+\begin{center}
+	\begin{tikzpicture}
+	[node distance=2cm]
+	\node[state](0) {0};
+	
+	\foreach \l/\d in {2/1,3/-1,1/3,4/-3}
+		\node[state,right of=0,yshift=\d cm](\l){\l};
+		
+	\foreach \l/\c in {1/9,2/7,3/3,4/2}
+		\draw[->] (0) --node[below] {\c} (\l);
+		
+	\foreach \l/\d in {5/1,6/2,7/3}
+		\node[state,right of=\d,yshift=-1cm](\l){\l};	
+		
+	\foreach \i/\o/\c/\m in {1/5/4/0,1/6/2/0,1/7/1/0,2/5/2/-0.5,2/6/7/-0.5,3/7/11/0,4/6/11/-0.5,4/7/8/0}	
+		\draw[->] (\i) --node[xshift=\m cm] {\c} (\o);
+		
+	\foreach \l/\d in {8/5,9/6,10/7}
+		\node[state,right of=\d](\l){\l};
+		
+	\foreach \i/\o/\c/\m in {5/8/6/0,5/9/5/0.5,6/8/4/0,6/9/3/0,7/9/5/0,7/10/6/0}
+		\draw[->] (\i) --node[below,yshift=\m cm] {\c} (\o);
+		
+	\node[state,right of=9] (11){11};
+	
+	\foreach \i/\c in {8/4,9/2,10/5}
+		\draw[->] (\i) -- node[below]{\c} (11);
+	\end{tikzpicture}
+\end{center}
+多段图问题是一种特殊的有向无环图的最短路径问题。
+
+\textbf{多段图的最优子结构}
+
+对于上述多段图，很容易证明它的最优解满足最优子结构特性。
+
+
+\textbf{多段图的向前递推关系式}
+
+动态规划法每一步的决策信赖于子问题的解。对于多段图问题，一个阶段的决策与后面所要求解的子问题相关，所以不能在某个阶段直接做出决策。但由于多段图问题具有最优子结构特性，启发我们从最后阶段开始，采用逐步向前递推的方式，由子问题的最优解来计算原问题的最优解。由于动态规划法的递推关系是建立在最优子结构的基础上的，相应的算法容易用归纳法证明其正确性。。
+\begin{equation}
+	\begin{aligned}
+		\mathrm{cost}(k,t)&=0\\
+		\mathrm{cost}(i,j)&=\min\limits_{j\in V_i,p\in V_{i+1},<j,p>\in E}\{c(j,p)+\mathrm{cost}(i+1,p) \},0\leq i\leq k-2
+	\end{aligned}
+\end{equation}
+
+\textbf{多段图的重叠子问题}
+
+对于多段图显然也存在重叠子问题现象。采用备忘录的方法，可避免重复计算它的值。
+
+\textbf{多段图的动态规划算法}
+\lstinputlisting[language=c++]{./chapter/算法设计与分析/code/Dijstra.cpp}
 \subsection*{资源分配问题}
+将n个资源分配给r个项目，已知如果把j个资源分配给第i个项目，可以收益$N(i,j),0\leq j\leq n,1\leq i\leq r$，求总收益最大的资源分配方案。
 \subsection*{关键路径问题}
+关键路径问题是求一个带权有向无环图中两结点间的最长路径问题。关键路径问题是一个AOE网络问题。
+
+为了设计求关键路径的动态规划算法，现定义以下3个术语：
+\begin{enumerate}
+	\item 事件i可能的最早发生时间earliest(i)：是指从开始结点s到结点i的最长路径的长度。
+	\begin{equation}
+		\begin{cases}
+			\mathrm{earliest}(0)&=0\\
+			\mathrm{eariiest}(j)&=\max\limits_{i\in P(j)}\{\mathrm{earliest}(i)+w(i,j) \}\quad 0<j<n
+		\end{cases}
+	\end{equation}
+	\item 事件i允许的最迟发生时间latest(i)：是指在不影响工期的条件下，事件i允许的最晚发生时间。
+	\begin{equation}
+	\begin{cases}
+			\mathrm{latest}(n-1)&=\mathrm{earliest}(n-1)\\
+			\mathrm{latest}(i)&=\min\limits_{j\in S(i)}\{\mathrm{latest}(j)-w(i,j) \}\quad 0<i<n-1
+		\end{cases}
+	\end{equation}
+	\item 关键活动：若latest(j)-earliest(i)=w(i,j)，则边$<i,j>$代表的活动是关键活动。对关键活动组成的关键路径上的每个结点i，都有latest(i)=earlist(i)。
+\end{enumerate}
 \section{每对结点间的最短路径}
 \subsection*{问题描述}
+每对结点间的最短路径问题是指求图中任意一对结点i和j之间的最短路径。
 \subsection*{动态规划求解}
-\section{矩阵连乘}
-\subsection*{问题描述}
-\subsection*{动态规划求解}
+\textbf{最优子结构}
+
+设图$G=(V,E)$是带权有向图，$\delta(i,j)$将从结点i到结点j的最短路径长度，k是这条路径上的一个结点，$\delta(i,k)$和$\delta(k,j)$分别是从i到k和从k到j的最短路径长度，则必有$\delta(i,j)=\delta(i,k)+\delta(k,j)$。这表明每对结点之间的最短路径问题的最优解具有最优子结构特性。
+
+\textbf{最优解的递推关系}
+\begin{equation}
+	\mathrm{d}_{n-1}[i][j]=\mathrm{min}\{\mathrm{d}_{n-2}[i][j],\mathrm{d}_{n-2}[i][n-1]+\mathrm{d}_{n-2}[n-1][j] \}
+\end{equation}
+\textbf{弗洛伊德算法}
+\lstinputlisting[language=c++]{./chapter/算法设计与分析/code/Floyd.cpp}
 \section{最长公共子序列}
 \subsection*{问题描述}
+给定两个序列X和Y，当另一序列Z既是X的子序列又是Y的子序列时，称Z是序列X和Y的公共子序列(common subsequence)。
 \subsection*{动态规划求解}
-\section{最优二叉搜索树}
-\subsection*{问题描述}
-\subsection*{动态规划求解}
+设$X=(x_1,x_2,\dots,x_m)$和$Y=(y_1,y_2,\dots,y_n)$为两个序列，$Z=(z_1,z_2,\dots,z_k)$是它们的最长公共子序列，则
+\begin{enumerate}
+	\item 若$x_m=y_n$，则$z_k=x_m=y_n$，且$Z_{k-1}$是$X_{m-1}$和$Y_{n-1}$的最长公共子序列；
+	\item 若$x_m\ne y_n$且$z_k\ne x_m$，则$Z$是$X_{m-1}$和Y的最长公共子序列；
+	\item 若$x_m\ne y_n$且$z_k\ne y_n$，则$Z$是$Y_{n-1}$和X的最长公共子序列。
+\end{enumerate}
+\textbf{最优解的递推关系}：需要使用一个二维数组来保存最长公共子序列的长度，设$c[i][j]$保存$X_i=(x_1,x_2,\dots,x_i)$和$Y_j=(y_1,y_2,\dots,y_j)$的最长公共子序列的长度。
+\begin{equation}
+	c[i][j]=\begin{cases}
+		0\quad &i=0,j=0\\
+		c[i-1][j-1]+1\quad &i,j>0,x_i=y_j\\
+		\max \{c[i][j-1],c[i-1][j]\quad &i,j>0,x_i\ne y_j \}
+	\end{cases}
+\end{equation}
+\textbf{最长公共子序列算法}
+\lstinputlisting[language=c++]{./chapter/算法设计与分析/code/lcs.cpp}
+
 \section{0/1背包}
 \subsection*{问题描述}
+如果物品不能分割，只能作为一个整体或者装入背包，或者不装入背包，称为0/1背包问题。
 \subsection*{动态规划求解}
+判断一个问题是否适用于动态规划法求解，首先必须分析问题解的结构，考察它的最优解是否具有最优子结构特性。其次，应当检查分解所得的子问题是否相互独立，是否存在重叠子问题现象。
+
+\textbf{最优解的递归算法}
+
+给定一个0/1背包问题实例KNAP(0,N-1,M)，可以通过对n个物品是否加入背包做出一系列决策进行求解，假定变量$x_i\in\{0,1\},0\leq i<n$表示对物品i是否加入背包的一个决策。假定对这些$x_i$做出决策的次序是$X=(x_{n-1},x_{n-2},\dots,x_0)$。在对$x_{n-1}$做出决策后，存在两种情况：
+\begin{enumerate}
+	\item $x_{n-1}=1$，将编号为n-1的物品加入背包，接着求解子问题$\mathrm{KNAP}(0,n-2,M-w_{n-1})$
+	\item $x_{n-1}=0$，将编号为n-1的物品不加入背包，接着求解子问题$\mathrm{KNAP}(0,n-2,M)$
+\end{enumerate}
+
+上面分析得到 
+\begin{equation}
+	\begin{aligned}
+		f(-1,X)&=\begin{cases}
+			-\infty \quad &X<0\\
+			0\quad &X\geq 0
+		\end{cases}\\
+		f(j,X)&=\max\{f(j-1,X),f(j-1,x-w_j)+p_j \}\quad 0\leq j<n
+	\end{aligned}
+\end{equation}
 \section{流水作业调度}
-\subsection*{最优量度标准}
-\subsection*{最优子结构}
+\subsection*{问题描述}
+假定处理一个作业需要执行若干项不同类型的任务，每一类任务只能在某一台设备上执行。设一条流水线上有n个作业$J=\{j_0,j_1,\dots,J_{n-1}\}$和m台设备$P=\{P_1,P_2,\dots,P_m \}$。每个作业需依次执行m个任务，其中第$j(1\leq j\leq m)$个任务只能在第j台设备上执行。如何将这$n\times m$个任务分配给m如设备，使得这n个作业都能顺利完成，这就是流水线作业调度(flow shop schedule)问题。
+\subsection*{动态规划法求解}
