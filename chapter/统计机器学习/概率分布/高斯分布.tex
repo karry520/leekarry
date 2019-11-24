@@ -122,7 +122,7 @@ $\triangle$被叫做$\boldsymbol{\mu}$和$\boldsymbol{x}$之间的马氏距离�
 	\item 单峰。因此不能够很好地近似多峰分布。
 \end{enumerate}
 高斯分布一方面相当灵活，因为它有很多参数。另一方面，它又有很大的局限性，因为它不能够近似很多分布。引入潜在变量(latent variable)也被称为隐藏变量(hidden variable)或者未观察变量(unobserved variable)，会让这两个问题都得到解决。
-\subsection*{条件高斯分布}
+\subsection*{条件与边缘高斯分布}
 多元高斯分布的一个重要性质是，如果两组变量是联合高斯分布，那么以一组变量为条件，另一组变量同样是高斯分布，类似地，任何一个变量的边缘分布也是高斯分布。
 
 首先考虑条件概率的情形，假设$\boldsymbol{x}$是一个服从高斯分布$\mathcal{N}(\boldsymbol{x}|\boldsymbol{\mu},\Sigma)$的D维向量。我们把$\boldsymbol{x}$划分成两个不相交的子集$x_a,x_b$。不失一般性，我们可令$x_a$为$\boldsymbol{x}$的前$M$个分量，令$x_b$为剩余的$D-M$个分量，因此
@@ -214,9 +214,11 @@ $x_{b| a}$的分布为
 所以
 \begin{flalign}
 	\mathbb{E}[x_b|x_a]&=\mu_{b| a}+\Sigma_{ba}\Sigma_{aa}^{-1}x_a\\
-	\mathrm{var}[x_b|x_a]&=var[x_{b| a}]=\Sigma_{bb| a}\\
+	\mathrm{var}[x_b|x_a]&=\mathrm{var}[x_{b| a}]=\Sigma_{bb| a}\\
 	p(x_b|x_a)&\sim \mathcal{N}(\mu_{b| a},\Sigma_{bb| a})
 \end{flalign}
+注意，条件概论分布$p(x_b|x_a)$的均值是$x_a$的线性函数，协方差与$x_a$无关。这是线性高斯模型的一个例子。
+
 \subsection*{高斯变量的贝叶斯定理}
 令边缘概率分布和条件概率分布的形式如下
 \begin{flalign}
@@ -432,7 +434,7 @@ $z(\theta^{(N)})$是当$\theta$的取值为$\theta^{(N)}$时$z$的观测值。�
 \end{equation}
 这被称为学生$t$分布(Student's t-distribution)。参数$\lambda$有时被称为$t$分布的精度(precision)，即使它通常不等于方差的倒数。参数$v$被称为自由度(degrees of freedom)。对于$v=1$的情况，$t$分布变成了柯西分布(Cauchy distribution)，而在极限$v\to \infty$的情况下，$t$分布变成了高斯分布，均值为$\mu$，精度为$\lambda$。
 
-根据公式$\ref{diejia}$，我们看到学生$t$分布可以这样通过将无限多个同均值不同精度的高斯分布相加的方式得到。这可以表示为无限的高斯混合模型。这个分布通常有着比高斯分布更长的“尾巴”，这给出了$t$分布的一个重要性质：鲁棒性(robustness)。
+根据公式$\ref{diejia}$，我们看到学生$t$分布可以这样通过将无限多个同均值不同精度的高斯分布相加的方式得到。这可以表示为无限的高斯混合模型。这个分布通常有着比高斯分布更长的“尾巴”，这给出了$t$分布的一个重要性质：鲁棒性(robustness)，意思是对于数据集里的几个离群点outlier的出现，$t$分布不会像高斯分布那样敏感。
 \subsection*{周期变量}
 高斯分布在实际应用中非常重要，但是，有些情况下，对于连续变量，使用高斯分布建模并不合适。一个重要的情况是周期变量，这在实际应用中经常出现。
 
