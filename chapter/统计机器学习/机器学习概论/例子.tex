@@ -1,0 +1,68 @@
+\section{多项式曲线拟合}
+假设给定一个训练集。这个训练集由$\boldsymbol{x}$的N次观测组成，写作$\boldsymbol{X}\equiv(\boldsymbol{x}_1,\dots,\boldsymbol{x}_N)^T$，伴随这对应的$t$的观测值，记作$\boldsymbol{t}=(t_1,t_2,\dots,t_N)^T$。我们的目标是利用这个训练集预测对于输入变量的新值$\hat{\boldsymbol{x}}$的目标变量的值$\hat{t}$。
+\subsection*{非正式的形式}
+我们要用一种相当非正式的、相当简单的方式来进行曲线拟合。特别地，我们将使用下面形式的多项式的函数来拟合数据：
+\begin{equation}
+	y(\boldsymbol{x},\boldsymbol{w})=w_0+w_1\boldsymbol{x}+w_2\boldsymbol{x}^2+\dots+w_M\boldsymbol{x}^M=\sum_{j=0}^{M}w_j\boldsymbol{x}^j
+\end{equation}
+其中M是多项式的阶数。注意，虽然多项式函数$y(\boldsymbol{x},\boldsymbol{w})$是$\boldsymbol{x}$的一个非线性函数，它是系数$\boldsymbol{w}$的一个线性函数。类似多项式函数的这种关于未知参数满足线性关系的函数有着重要的性质，被叫做线性模型。
+
+系数的值可以通过调整多项式函数拟合训练数据的方式确定。这可以通过最小化误差函数的方法来实现。误差函数衡量了对于任意给定的$\boldsymbol{w}$值，函数$y(\boldsymbol{x},\boldsymbol{w})$与训练集数据的差别。我们最小化
+\begin{equation}
+	E(\boldsymbol{w})=\frac{1}{2}\sum_{n=1}^{N}\{y(\boldsymbol{x}_n,\boldsymbol{w})-t_n\}^2
+\end{equation}
+\subsection*{重新考察曲线拟合问题}
+我们已经看到，多项式拟合的问题可以通过误差最小化问题来表示。从概率的角度来考察它，并且可以更深刻地认识误差函数和正则化，并且能够让我们完全从贝叶斯角度来看待这个问题。
+
+
+曲线拟合问题的目标是能够根据N个输入组成的数据集和它们对应的目标值，在给出输入变量$\boldsymbol{x}$的新值的情况下，对目标变量$t$进行预测。我们可以使用概率分布来表达关于目标变量的值的不确定性。为了达到这个目的，我们要假定，给定$\boldsymbol{x}$的值，对应的$t$值服从高斯分布，分布的均值为$y(\boldsymbol{x},\boldsymbol{w})$，我们有
+\begin{equation}
+\label{160}
+	p(t|\boldsymbol{x},\boldsymbol{w},\beta)=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}),\beta^{-1})
+\end{equation}
+其中我们定义了精度参数$\beta$，它对应于分布方差的倒数。
+
+我们现在用训练数据$\{\boldsymbol{X},\boldsymbol{t}\}$，通过最大似然方法，来决定未知参数$\boldsymbol{w}$和$\beta$的值。如果数据假定从分布中抽取，那么似然函数为
+\begin{equation}
+	p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)=\prod_{n=1}^{N}\mathcal{N}(t_n|y(\boldsymbol{x}_n,\boldsymbol{w}),\beta^{-1})
+\end{equation}
+最大化似然函数
+\begin{equation}
+	\ln p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)=-\frac{\beta}{2}\sum_{n=1}^{N}\{y(\boldsymbol{x}_n,\boldsymbol{w})-t_n\}^2+\frac{N}{2}\ln \beta-\frac{N}{2}\ln(2\pi)
+\end{equation}
+对于确定$\boldsymbol{w}$的问题来说，最大似然函数等价于最小化平方和误差函数。因此，在高斯噪声的假设下，平方和误差函数是最大化似然函数的一个自然结果。
+
+我们也可以使用最大似然方法来确定高斯条件分布的精度参数$\beta$。
+\begin{equation}
+	\frac{1}{\beta_{ML}}=\frac{1}{N}\sum_{n=1}^{N}\{y(\boldsymbol{x}_n,\boldsymbol{w})-t_n\}^2
+\end{equation}
+
+已经确定了参数$\boldsymbol{w}$和$\beta$，我们现在可以对新的$\boldsymbol{x}$的值进行预测。由于我们现在有一个概率模型，预测可以通过给出的$t$的概率分布来表示。预测分布通过把最大似然参数代入公式
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{w}_{ML},\beta_{ML})=\mathcal{N}(t|y(\boldsymbol{x},\boldsymbol{w}_{ML}),\beta^{-1}_{ML})	
+\end{equation}
+现在我们朝着贝叶斯的方法前进一步，引入在多项式系数$\boldsymbol{w}$上的先验分布。简单起见，我们考虑下面形式的高斯分布
+\begin{equation}
+	p(\boldsymbol{w}|\alpha)=\mathcal{N}(\boldsymbol{w}|\textbf{O},\alpha^{-1}\boldsymbol{I})=\left(\frac{\alpha}{2\pi}\right)^{\frac{M+1}{2}}\exp\left\{-\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w} \right\}
+\end{equation}
+其中$\alpha$是分布的精度，是超参数，$M+1$是对于$M$阶多项式的向量$\boldsymbol{w}$的总数。使用贝叶斯定理 
+\begin{equation}
+\label{166}
+	p(\boldsymbol{w}|\boldsymbol{X},\boldsymbol{t},\alpha,\beta)\propto p(\boldsymbol{t}|\boldsymbol{X},\boldsymbol{w},\beta)p(\boldsymbol{w}|\alpha)
+\end{equation}
+给定数据集，我们现在通过寻找最可能的$\boldsymbol{w}$值来确定$\boldsymbol{w}$。这种技术被称为最大后验(maximum posterior)，简称MAP。我们可以看到，最大化后验概率就是最小化下式
+\begin{equation}
+	\frac{\beta}{2}\sum_{n=1}^{N}\{y(\boldsymbol{x}_n,\boldsymbol{w})-t_n\}^2+\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w}
+\end{equation}
+因此，我们看到最大化后验概率等价于最小化正则化的平方和误差函数。
+
+\subsection*{贝叶斯曲线拟合}
+虽然我们已经谈到了先验分布$p(\boldsymbol{w}|\alpha)$，但是我们目仍然在进行$\boldsymbol{w}$的点估计，这并不是贝叶斯观点。在一个纯粹的贝叶斯方法中，我们应该自始至终地应用概率的加和规则和乘积规则。我们稍后会看到，这需要对所有$\boldsymbol{w}$值进行积分。对于模式识别来说，这种积分是贝叶斯方法的核心。
+
+在曲线拟合问题中，我们知道训练数据$\boldsymbol{X}$和$\boldsymbol{t}$，以及一个新的测试点$\boldsymbol{x}$，我们的目标是预测$t$的值。因此我们想估计预测分布$p(t|\boldsymbol{x},\boldsymbol{X},\boldsymbol{t})$。这里我们要假设参数$\alpha$和$\beta$是固定的，事先知道的(后续章节中我们会讨论这种参数如何通过贝叶斯方法从数据中推断出来)。
+
+简单地说，贝叶斯方法就是自始至终地使用概率的加和规则和乘积规则。因此预测概率可以写成下面的形式
+\begin{equation}
+	p(t|\boldsymbol{x},\boldsymbol{X},\boldsymbol{t})=\int p(t|\boldsymbol{x},\boldsymbol{w})p(\boldsymbol{w}|\boldsymbol{X},\boldsymbol{t})\mathrm{d}\boldsymbol{w}
+\end{equation}
+这里，$p(t|\boldsymbol{x},\boldsymbol{w})$由公式$\ref{160}$给出，并且我们省略了对于$\alpha,\beta$的信赖，简化记号。这里$p(\boldsymbol{w}|\boldsymbol{X},\boldsymbol{t})$是参数的后验分布，可以通过对公式$\ref{166}$归一化得到。
