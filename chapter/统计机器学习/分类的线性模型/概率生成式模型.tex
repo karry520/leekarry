@@ -130,7 +130,7 @@ logistic sigmoid的反函数为
 	
 	已知
 	\begin{flalign}
-		Tr(AB)&=\mathrm{Tr}(BA)\\
+		\mathrm{Tr}(AB)&=\mathrm{Tr}(BA)\\
 		\frac{\partial \mathrm{Tr}(AB)}{\partial A}&=B^T\\
 		\frac{\partial |A|}{\partial A}&=|A|A^{-1}\\
 		\frac{\partial \ln |A|}{\partial A}&=A^{-1}
@@ -181,11 +181,11 @@ logistic sigmoid的反函数为
 
 朴素贝叶斯法分类时，对给定的输入$x$，通过学习到的模型计算后验概率分布$p(C_k|X=x)$，将后验概率最大的类作为$x$类的输出。后验概率计算根据贝叶斯定理进行。
 \begin{equation}
-	y=f(\boldsymbol{x})=arg \mathop{max}\limits_{c_k} \frac{p(C_k)\prod_jp(X^{(j)}|C_k)}{\sum_kp(C_k)\prod_jp(X^{(j)}|C_k)}
+	y=f(\boldsymbol{x})=\mathrm{arg} \max\limits_{c_k} \frac{p(C_k)\prod_jp(X^{(j)}|C_k)}{\sum_kp(C_k)\prod_jp(X^{(j)}|C_k)}
 \end{equation}
 注意到分母对所有$C_k$都是相同的，所以 
 \begin{equation}
-	y=arg \mathop{max}\limits_{c_k} p(C_k)\prod_jp(X^{(j)}|C_k)
+	y=\mathrm{arg} \max\limits_{c_k} p(C_k)\prod_jp(X^{(j)}|C_k)
 \end{equation}
 朴素贝叶斯法将实例分到后验概率最大的类中。这等价于期望风险最小化。假设选择0-1损失函数：
 \begin{equation}
@@ -206,10 +206,10 @@ logistic sigmoid的反函数为
 为了使期望风险最小化，只需对$X=x$逐个极小化，由此得到：
 \begin{equation}
 	\begin{aligned}
-	f(x)&=arg \mathop{min}_{y\in \mathcal{y}}\sum_{k=1}^{K}L(C_k,y)p(C_k|X=x)\\
-	&=arg \mathop{min}_{y\in \mathcal{y}}\sum_{k=1}^{K}p(y\ne C_k|X=x)\\
-	&=arg \mathop{min}_{y\in \mathcal{y}}(1-p(y=C_k|X=x))\\
-	&=arg \mathop{max}_{y\in \mathcal{y}}p(y=C_k|X=x)
+	f(x)&=\mathrm{arg} \min_{y\in \mathcal{y}}\sum_{k=1}^{K}L(C_k,y)p(C_k|X=x)\\
+	&=\mathrm{arg} \min_{y\in \mathcal{y}}\sum_{k=1}^{K}p(y\ne C_k|X=x)\\
+	&=\mathrm{arg} \min_{y\in \mathcal{y}}(1-p(y=C_k|X=x))\\
+	&=\mathrm{arg} \max_{y\in \mathcal{y}}p(y=C_k|X=x)
 	\end{aligned}
 \end{equation}
 下面给出朴素贝叶斯法的学习与分类算法
@@ -232,7 +232,7 @@ logistic sigmoid的反函数为
 	\item 确定实例x的类
 	
 	\begin{equation}
-		y=arg\mathop{max}\limits _{C_k}P(Y=C_k)\prod_{j=1}^nP(x^{(j)}=x^{(j)}|Y=Cc_k)
+		y=\mathrm{arg}\max\limits _{C_k}P(Y=C_k)\prod_{j=1}^nP(x^{(j)}=x^{(j)}|Y=Cc_k)
 	\end{equation}
 \end{enumerate}
 
