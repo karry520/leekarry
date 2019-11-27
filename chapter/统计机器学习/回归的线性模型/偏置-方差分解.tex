@@ -1,21 +1,47 @@
 \section{偏置-方差分解}
 目前为止，我们对于回归的线性模型的讨论中，我们假定了基函数的形式和数量都是固定的。如果使用有限规模的数据集来训练复杂的模型，那么使用最大似然法，或者等价地使用最小平方法，会导致严重的过拟合问题。正如前面所说，过拟合现象确实是最大似然方法的一个不好的性质。但是当我们在使用贝叶斯方法对参数进行求和或者积分时，过拟合现象不会出现。从贝叶斯观点讨论模型的复杂度之前，从频率学家的观点考虑一下模型的复杂度的问题——偏置-方差折中(bias-variance trade-off)。
 
-最优的预测(变分法可求出)由条件期望(记作$h(x)$)给出，即
+\subsection*{回归问题的损失函数}
+例如之前讨论过的曲线拟合问题。决策阶段包括对于每个输入$\boldsymbol{x}$，选择一个对于$t$值的具体的估计$y(\boldsymbol{x})$。最优解是使损失函数最小的解。但是，损失函数信赖于真实的$t$，这是未知的。对于一个给定的输入向量$\boldsymbol{x}$，我们对于真实类别的不确定性通过联合概率分布$p(\boldsymbol{x},t)$表示。假设这样做之后，我们造成了一个损失$L(t,y(\boldsymbol{x}))$。平均损失就是
+\begin{equation}
+	\mathbb{E}[L]=\iint L(t,y(\boldsymbol{x}))p(\boldsymbol{x},t)\mathrm{d}\boldsymbol{x}\mathrm{d}t
+\end{equation}
+回归问题中，损失函数的一个通常的选择是平方损失。这种情况下，期望损失函数可以写成
+\begin{equation}
+	\mathbb{E}[L]=\iint \{y(\boldsymbol{x}-t)\}^2p(\boldsymbol{x},t)\mathrm{d}\boldsymbol{x}\mathrm{d}t
+\end{equation}
+我们的目标是选择$y(\boldsymbol{x})$来最小化$\mathbb{E}[L]$。如果我们假设一个完全任意的函数$y(\boldsymbol{x})$，我们能够形式化地使用变分法求解：
+\begin{equation}
+	\frac{\delta \mathbb{E}[L]}{\delta y(\boldsymbol{x})}=2\int \{y(\boldsymbol{x}-t)\}p(\boldsymbol{x},t)\mathrm{d}t=0
+\end{equation}
+求解$y(\boldsymbol{x})$，使用概率的加和规则和乘积规则，我们得到
+\begin{equation}
+	y(\boldsymbol{x})=\frac{\int tp(\boldsymbol{x},t)\mathrm{d}t}{p(\boldsymbol{x})}=\int tp(t|\boldsymbol{d})\mathrm{d}t=\mathbb{E}_t[t|\boldsymbol{x}]
+\end{equation}
+这是在$\boldsymbol{x}$的条件下$t$的条件均值，被称为回归函数(regression function)。记作$h(x)$)，即
 \begin{equation}
 	h(\boldsymbol{x})=\mathbb{E}[t|\boldsymbol{x}]=\int tp(t|\boldsymbol{x})\mathrm{d}t
 \end{equation}
-平方损失函数的期望可以写成
+已经知道了最优解是条件期望，我们可以把平方项按照下面的方式展开
+\begin{equation}
+	\begin{aligned}
+		\{y(\boldsymbol{x})-t \}^2&=\{y(\boldsymbol{x})-\mathbb{E}[t|\boldsymbol{x}]+\mathbb{E}[t|\boldsymbol{x}]-t\}^2\\
+		&=\{y(\boldsymbol{x}-\mathbb{E}[t|\boldsymbol{x}]) \}^2+2\{y(\boldsymbol{x})-\mathbb{E}[t|\boldsymbol{x}]\}\{\mathbb{E}[t|\boldsymbol{x}]-t\}\\
+		&\ +\{\mathbb{E}[t|\boldsymbol{x}]-t\}^2
+	\end{aligned}
+\end{equation}
+此处第2项等于0。因此，平方损失函数的期望可以写成
 \begin{equation}
 \label{llk}
 \begin{aligned}
-	\mathbb{E}[L]&=\iint \{y(x)-h(x)\}^2p(x,t)dxdt\\
-	&=\int \{y(x)-h(x) \}^2p(x)dx + \iint \{h(x)-t\}^2p(x,t)dxdt\\
+	\mathbb{E}[L]&=\iint \{y(\boldsymbol{x})-t\}^2p(x,t)\mathrm{d}x\mathrm{d}t\\
+	&=\int \{y(\boldsymbol{x})-\mathbb{E}[t|\boldsymbol{x}]\}^2p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}+\int \mathrm{var}[t|\boldsymbol{x}]p(\boldsymbol{x})\mathrm{d}\boldsymbol{x}\\
+	&=\int \{y(\boldsymbol{x})-h(\boldsymbol{x}) \}^2p(\boldsymbol{x})d\boldsymbol{x} + \underbrace{\iint \{h(\boldsymbol{x})-t\}^2p(\boldsymbol{x},t)\mathrm{d}\boldsymbol{x}\mathrm{d}t}_{\text{噪声}}
 \end{aligned}
 \end{equation}
 与$y(\boldsymbol{x})$无关的第二项，是由数据本身的噪声造成的，表明期望损失能够达到的最小值。第一项与我们对函数$y(\boldsymbol{x})$的选择有关，我们要找一个$y(\boldsymbol{x})$的解，使得这一项最小。在实际应用中，我们的数据集D只有有限的N个数据点，从而我们不能够精确地知道回归函数$h(\boldsymbol{x})$。
 
-如果我们使用由参数向量$\boldsymbol{w}$控制的函数$y(\boldsymbol{x},\boldsymbol{w})$对$h(\boldsymbol{x})$建模，那么从贝叶斯的观点来看，我们模型的不确定性是通过$\boldsymbol{w}$的概率分布来表示的。但是，频率学家的方法涉及到根据数据集$D$对$\boldsymbol{w}$进行点估计，然后度着通过下面的思想实验来表示估计的不确定性。
+如果我们使用由参数向量$\boldsymbol{w}$控制的函数$y(\boldsymbol{x},\boldsymbol{w})$对$h(\boldsymbol{x})$建模，那么从贝叶斯的观点来看，我们模型的不确定性是通过$\boldsymbol{w}$的概率分布来表示的。但是，频率学家的方法涉及到根据数据集$D$对$\boldsymbol{w}$进行点估计，然后试着通过下面的思想实验来表示估计的不确定性。
 
 考虑第一项的被积函数，对于一个特定的数据集$D$，它的形式为
 \begin{equation}
@@ -51,4 +77,4 @@
 	\text{噪声}&=\iint \{h(x)-t\}^2p(x,t)dxdt
 \end{flalign}
 
-我们的目标是最小化期望损失，它可以分解为(平方)偏置、方差和一个常数噪声项的和。对于非常灵活的模型来说，偏置较小，方差较大。对于相对固定的模型来说，偏置较大，方差较小。有着最优预测能力的模型是在偏置和方差之前取得最优的平衡的模型。
+我们的目标是最小化期望损失，它可以分解为(平方)偏置、方差和一个常数噪声项的和。对于非常灵活的模型来说，偏置较小，方差较大。对于相对固定的模型来说，偏置较大，方差较小。有着最优预测能力的模型是在偏置和方差之间取得最优的平衡的模型。

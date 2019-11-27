@@ -8,6 +8,7 @@
 	p(w)\equiv \mathcal{N}(w|\boldsymbol{m}_0,\boldsymbol{S}_0)
 \end{equation}
 均值为$\boldsymbol{m}_0$协方差为$\boldsymbol{S}_0$
+
 后验分布
 \begin{equation}
 \label{349}
@@ -66,7 +67,7 @@
 考虑$y(\boldsymbol{x})$和$y(\boldsymbol{x^{'}})$的协方差
 \begin{equation}
 	\begin{aligned}
-	cov[y(\boldsymbol{x}),y(\boldsymbol{x^{'}})]&=cov[\phi(\boldsymbol{x})^T\boldsymbol{w},\boldsymbol{w}^T\phi(\boldsymbol{x^{'}})]\\
+	\mathrm{cov}[y(\boldsymbol{x}),y(\boldsymbol{x^{'}})]&=cov[\phi(\boldsymbol{x})^T\boldsymbol{w},\boldsymbol{w}^T\phi(\boldsymbol{x^{'}})]\\
 	&=\phi(\boldsymbol{x})^T\boldsymbol{S}_N\phi(\boldsymbol{x^{'}})\\
 	&=\beta^{-1}k(\boldsymbol{x},\boldsymbol{x^{'}})
 	\end{aligned}
