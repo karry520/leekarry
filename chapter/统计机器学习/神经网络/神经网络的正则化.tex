@@ -185,12 +185,17 @@ $\pi_j$为混合系数。取负对数，即可得到正则化函数，形式为
 
 为了最小化总的误差函数，难免计算出它关于各个可调节参数的参数是很有必要的。为了完成这一点，比较方便的做法是把$\{\pi_j \}$当成先验概率，然后引入对应的后验概率。后验概率由贝叶斯定理给出，形式为
 \begin{equation}
-	\gamma_j(w)=\frac{\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2)}{\sum_k\pi_k\mathcal{N}(w_i|\mu_k,\sigma_k^2)}
+\begin{aligned}
+	\gamma_j(w)&=p(\pi_j|w)\\
+	&=\frac{p(\pi_j)p(w|\pi_j)}{\sum_k p(k)p(w|k)}\\
+	&=\frac{\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2)}{\sum_k\pi_k\mathcal{N}(w_i|\mu_k,\sigma_k^2)}
+\end{aligned}
 \end{equation}
 这样，总的误差函数关于权值的导数为
 \begin{equation}
 	\begin{aligned}
 	\frac{\partial \tilde{E}}{\partial w_i}&=\frac{\partial E}{\partial w_i}+\lambda\frac{\partial \Omega}{\partial w_i}\\
+	&=\frac{\partial E}{\partial w_i}+\lambda\sum_{j}\frac{\pi_j\mathcal{N}(w_i|\mu_j,\sigma_j^2)}{\sum_k\pi_k\mathcal{N}(w_i|\mu_k,\sigma_k^2)}\frac{(w_i-\mu_j)}{\sigma_j^2}\\
 	&=\frac{\partial E}{\partial w_i}+\lambda\sum_{j}\gamma_j(w_i)\frac{(w_i-\mu_j)}{\sigma_j^2}
 	\end{aligned}
 \end{equation}

@@ -23,7 +23,7 @@
 其中$\Phi$是设计矩阵，元素为$\Phi_{nk}=\phi_k(\boldsymbol{x}_n)$。我们可以用下面的方式找到$\boldsymbol{y}$的概率分布。首先，我们注意到$\boldsymbol{y}$是由$\boldsymbol{w}$的元素给出的服从高斯分布的变量的线性组合，因此它本身是服从高斯分布。于是，我们只需要找到它的均值和方差。
 \begin{flalign}
 	\mathbb{E}[y]&=\Phi\mathbb{E}[\boldsymbol{w}]=0\\
-	cov[\boldsymbol{y}]=\mathbb{E}[\boldsymbol{y}\boldsymbol{y}^T]-0&=\Phi\mathbb{E}[\boldsymbol{w}\boldsymbol{w}^T]\Phi^T=\frac{1}{\alpha}\Phi\Phi^T=\boldsymbol{K}
+	\mathrm{cov}[\boldsymbol{y}]=\mathbb{E}[\boldsymbol{y}\boldsymbol{y}^T]-0&=\Phi\mathbb{E}[\boldsymbol{w}\boldsymbol{w}^T]\Phi^T=\frac{1}{\alpha}\Phi\Phi^T=\boldsymbol{K}
 \end{flalign}
 其中，$\boldsymbol{K}$是Gram矩阵，元素为
 \begin{equation}
